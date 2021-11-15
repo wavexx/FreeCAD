@@ -1044,6 +1044,9 @@ public:
     void setSyncSubObject(bool enable);
 
 private:
+    void verifyObject(App::DocumentObject *, App::DocumentObject *);
+
+private:
     //FIXME: Do not make two independent lists because this will lead to some inconsistencies!
     std::vector<DocumentObject*> _lValueList;
     std::vector<std::string>     _lSubList;
