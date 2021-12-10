@@ -3858,7 +3858,7 @@ StdTreeToggleShowHidden::StdTreeToggleShowHidden()
 	sStatusTip      = sToolTipText;
 	sWhatsThis      = "Std_TreeToggleShowHidden";
 	sPixmap         = "tree-show-hidden";
-	sAccel          = "Ctrl+Shift+S";
+	sAccel          = "Shift+Alt+S";
 	eType           = 0;
 }
 
