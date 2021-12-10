@@ -52,6 +52,7 @@ public:
 
     App::DocumentObjectExecReturn *execute(void);
     short mustExecute() const;
+    void setupObject();
     /// returns the type name of the view provider
     const char* getViewProviderName(void) const {
         return "PartDesignGui::ViewProviderPipe";
@@ -60,6 +61,7 @@ public:
 
     static App::DocumentObjectExecReturn *_execute(ProfileBased *feat,
                                                    const TopoShape &path,
+                                                   const TopLoc_Location &invObjLoc = TopLoc_Location(),
                                                    int transition = 0,
                                                    const TopoShape &auxpath = TopoShape(),
                                                    bool auxCurveLinear = true,
@@ -70,9 +72,7 @@ public:
 protected:
     ///get the given edges and all their tangent ones
     void getContinuousEdges(Part::TopoShape TopShape, std::vector< std::string >& SubNames);
-    TopoShape buildPipePath(const App::PropertyLinkSub &link, const gp_Trsf &trsf);
-    void buildPipePathOld(const Part::TopoShape& input, const  std::vector<std::string>& edges, TopoDS_Shape& result);
-    void setupAlgorithmOld(BRepOffsetAPI_MakePipeShell& mkPipeShell, TopoDS_Shape& auxshape);
+    TopoShape buildPipePath(const App::PropertyLinkSub &link, const TopLoc_Location &loc);
     static void setupAlgorithm(BRepOffsetAPI_MakePipeShell& mkPipeShell,
                                int mode,
                                const Base::Vector3d &binormalVector,

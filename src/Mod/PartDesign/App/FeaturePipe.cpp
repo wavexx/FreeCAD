@@ -100,6 +100,12 @@ Pipe::Pipe()
     Transformation.setEnums(TransformEnums);
 }
 
+void Pipe::setupObject()
+{
+    ProfileBased::setupObject();
+    _ProfileBasedVersion.setValue(2);
+}
+
 short Pipe::mustExecute() const
 {
     if (Sections.isTouched())
@@ -116,18 +122,19 @@ short Pipe::mustExecute() const
 App::DocumentObjectExecReturn *Pipe::execute()
 {
     TopoShape path, auxpath;
+    TopLoc_Location invObjLoc;
     try {
         positionByPrevious();
-        auto invTrsf = getLocation().Inverted().Transformation();
+        invObjLoc = getLocation().Inverted();
 
         //build the paths
-        path = buildPipePath(Spine,invTrsf);
+        path = buildPipePath(Spine,invObjLoc);
         if(path.isNull())
             return new App::DocumentObjectExecReturn("Invalid spine");
 
         // auxiliary
         if(Mode.getValue()==3) {
-            auxpath = buildPipePath(AuxillerySpine,invTrsf);
+            auxpath = buildPipePath(AuxillerySpine,invObjLoc);
             if(auxpath.isNull())
                 return new App::DocumentObjectExecReturn("invalid auxiliary spine");
         }
@@ -142,6 +149,7 @@ App::DocumentObjectExecReturn *Pipe::execute()
 
     return _execute(this,
                     path,
+                    invObjLoc,
                     Transition.getValue(),
                     auxpath,
                     AuxilleryCurvelinear.getValue(),
@@ -153,6 +161,7 @@ App::DocumentObjectExecReturn *Pipe::execute()
 
 App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
                                               const TopoShape &path,
+                                              const TopLoc_Location &invObjLoc,
                                               int transition,
                                               const TopoShape &auxpath,
                                               bool auxCurveLinear,
@@ -178,7 +187,6 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
 
     try {
         //setup the location
-        TopLoc_Location invObjLoc = feat->getLocation().Inverted();
         if(!base.isNull())
             base.move(invObjLoc);
 
@@ -472,7 +480,7 @@ void Pipe::getContinuousEdges(Part::TopoShape /*TopShape*/, std::vector< std::st
     */
 }
 
-TopoShape Pipe::buildPipePath(const App::PropertyLinkSub &link, const gp_Trsf &trsf) {
+TopoShape Pipe::buildPipePath(const App::PropertyLinkSub &link, const TopLoc_Location &invObjLoc) {
     TopoShape result(0,getDocument()->getStringHasher());
     auto obj = link.getValue();
     if(!obj) return result;
@@ -489,10 +497,12 @@ TopoShape Pipe::buildPipePath(const App::PropertyLinkSub &link, const gp_Trsf &t
                 return result;
         }
     }
-    result.makEWires(shapes);
+    result.makEWires(shapes, nullptr, _ProfileBasedVersion.getValue() >= 2);
     if(result.countSubShapes(TopAbs_WIRE)>1)
         FC_WARN("Sweep path contain more than one wire");
-    return result.getSubTopoShape(TopAbs_WIRE,1).makETransform(trsf);
+    result = result.getSubTopoShape(TopAbs_WIRE,1);
+    result.move(invObjLoc);
+    return result;
 }
 
 
