@@ -94,6 +94,7 @@
 #include <App/ComplexGeoDataPy.h>
 #include <App/GeoFeatureGroupExtension.h>
 #include <App/DocumentObserver.h>
+#include <App/AutoTransaction.h>
 #include "TreeParams.h"
 
 #include <QDomDocument>
@@ -2849,7 +2850,7 @@ void StdViewBoxZoom::activated(int iMsg)
         View3DInventorViewer* viewer = view->getViewer();
         if (!viewer->isSelecting()) {
             SelectionCallbackHandler::Create(viewer, View3DInventorViewer::BoxZoom, QCursor(QPixmap(cursor_box_zoom), 7, 7));
-		}
+        }
     }
 }
 
@@ -3815,6 +3816,69 @@ void StdTreeDrag::activated(int)
 }
 
 //======================================================================
+// Std_TreeHideSelection
+//======================================================================
+DEF_STD_CMD(StdTreeHideSelection)
+
+StdTreeHideSelection::StdTreeHideSelection()
+    : Command("Std_TreeHideSelection")
+{
+    sGroup          = "TreeView";
+    sMenuText       = QT_TR_NOOP("Hide item in tree");
+    sToolTipText    = QT_TR_NOOP("Hides the selected item in the tree view");
+    sStatusTip      = sToolTipText;
+    sWhatsThis      = "Std_TreeHideSelection";
+    sPixmap         = "tree-item-hide";
+    sAccel          = "Ctrl+Shift+H";
+    eType           = 0;
+}
+
+void StdTreeHideSelection::activated(int)
+{
+    auto sels = Gui::Selection().getSelectionT();
+    std::set<App::SubObjectT> objs(sels.begin(), sels.end());
+    std::ostringstream ss;
+    App::AutoTransaction guard(QT_TRANSLATE_NOOP("Command", "Toggle tree item"),
+                               false, /*not a temporary transaction*/
+                               true /*enable view object undo*/);
+    for (auto &objT : objs) {
+        ss.str("");
+        ss << objT.getObjectPython() << ".ViewObject.ShowInTree = not "
+           << objT.getObjectPython() << ".ViewObject.ShowInTree";
+        runCommand(Command::Gui, ss.str().c_str());
+    }
+}
+
+//======================================================================
+// Std_TreeToggleShowHidden
+//======================================================================
+DEF_STD_CMD(StdTreeToggleShowHidden)
+
+StdTreeToggleShowHidden::StdTreeToggleShowHidden()
+	: Command("Std_TreeToggleShowHidden")
+{
+	sGroup          = "TreeView";
+	sMenuText       = QT_TR_NOOP("Toggle showing hidden items");
+	sToolTipText    = QT_TR_NOOP("Toggles whether or not hidden items are visible in the tree");
+	sStatusTip      = sToolTipText;
+	sWhatsThis      = "Std_TreeToggleShowHidden";
+	sPixmap         = "tree-show-hidden";
+	sAccel          = "Shift+Alt+S";
+	eType           = 0;
+}
+
+void StdTreeToggleShowHidden::activated(int)
+{
+    if (auto doc = App::GetApplication().getActiveDocument()) {
+        std::ostringstream ss;
+        ss << "App.getDocument('" << doc->getName() << "').ShowHidden = not "
+              "App.getDocument('" << doc->getName() << "').ShowHidden";
+        runCommand(Command::Gui, ss.str().c_str());
+    }
+}
+
+
+//======================================================================
 // Std_TreeViewActions
 //===========================================================================
 //
@@ -3848,6 +3912,8 @@ public:
 
         addCommand(new StdTreeDrag(),cmds.size());
         addCommand(new StdTreeSelection(),cmds.size());
+        addCommand(new StdTreeHideSelection());
+        addCommand(new StdTreeToggleShowHidden());
     };
     virtual const char* className() const {return "StdCmdTreeViewActions";}
 };
