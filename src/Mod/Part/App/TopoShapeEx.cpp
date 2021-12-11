@@ -143,6 +143,7 @@
 # include <Geom_SphericalSurface.hxx>
 # include <Geom_ToroidalSurface.hxx>
 # include <GeomLib_IsPlanarSurface.hxx>
+# include <GeomConvert.hxx>
 # include <Poly_Triangulation.hxx>
 # include <Standard_Failure.hxx>
 # include <StlAPI_Writer.hxx>
@@ -2596,11 +2597,11 @@ TopoShape::sortEdges(std::list<TopoShape>& edges, bool keepOrder, double tol)
         first = curve->ReversedParameter(first);
         last = curve->ReversedParameter(last);
         TopoShape res(BRepBuilderAPI_MakeEdge(curve->Reversed(), last, first));
-        Data::IndexedName edgeName("Edge", 1);
+        auto edgeName = Data::IndexedName::fromConst("Edge", 1);
         if (auto mapped = edge.getMappedName(edgeName))
             res.setElementName(edgeName, mapped);
-        Data::IndexedName v1Name("Vertex", 1);
-        Data::IndexedName v2Name("Vertex", 2);
+        auto v1Name = Data::IndexedName::fromConst("Vertex", 1);
+        auto v2Name = Data::IndexedName::fromConst("Vertex", 2);
         auto v1 = edge.getMappedName(v1Name);
         auto v2 = edge.getMappedName(v2Name);
         if (v1 && v2) {
@@ -4702,14 +4703,81 @@ bool TopoShape::isSame(const Data::ComplexGeoData &_other) const
 
 TopoShape & TopoShape::makEBSplineFace(const TopoShape & shape, FillingStyle style, const char *op)
 {
-    int edgeCount = shape.countSubShapes(TopAbs_EDGE);
-    if (edgeCount < 2 || edgeCount > 4)
-        FC_THROWM(Base::CADKernelError, "Require minimum two, maimum four edges");
+    std::vector<TopoShape> input(1, shape);
+    return makEBSplineFace(input, style, op);
+}
+
+TopoShape & TopoShape::makEBSplineFace(const std::vector<TopoShape> &input, FillingStyle style, const char *op)
+{
+    std::vector<TopoShape> edges;
+    for (auto &s : input) {
+        auto e = s.getSubTopoShapes(TopAbs_EDGE);
+        edges.insert(edges.end(), e.begin(), e.end());
+    }
+
+    if (edges.size() == 1 && edges[0].isClosed()) {
+        auto edge = edges[0].getSubShape(TopAbs_EDGE, 1);
+        auto e = TopoDS::Edge(edge);
+        auto v = TopExp::FirstVertex(e);
+        Standard_Real first, last;
+        Handle(Geom_Curve) curve = BRep_Tool::Curve(e, first, last);
+
+        BRepBuilderAPI_MakeEdge mk1,mk2,mk3,mk4;
+        Handle(Geom_BSplineCurve) bspline = Handle(Geom_BSplineCurve)::DownCast(curve);
+        if (bspline.IsNull()) {
+            ShapeConstruct_Curve scc;
+            bspline = scc.ConvertToBSpline(curve, first, last, Precision::Confusion());
+            if (bspline.IsNull())
+                FC_THROWM(Base::CADKernelError, "Failed to convert edge to bspline");
+            first = bspline->FirstParameter();
+            last = bspline->LastParameter();
+        }
+        auto step = (last - first) * 0.25;
+        auto m1 = first + step;
+        auto m2 = m1 + step;
+        auto m3 = m2 + step;
+        auto c1 = GeomConvert::SplitBSplineCurve(bspline, first, m1, Precision::Confusion());
+        auto c2 = GeomConvert::SplitBSplineCurve(bspline, m1, m2, Precision::Confusion());
+        auto c3 = GeomConvert::SplitBSplineCurve(bspline, m2, m3, Precision::Confusion());
+        auto c4 = GeomConvert::SplitBSplineCurve(bspline, m3, last, Precision::Confusion());
+        mk1.Init(c1);
+        mk2.Init(c2);
+        mk3.Init(c3);
+        mk4.Init(c4);
+
+        if(!mk1.IsDone() || !mk2.IsDone() || !mk3.IsDone() || !mk4.IsDone())
+            FC_THROWM(Base::CADKernelError, "Failed to split edge");
+
+        auto e1 = mk1.Edge();
+        auto e2 = mk2.Edge();
+        auto e3 = mk3.Edge();
+        auto e4 = mk4.Edge();
+
+        ShapeMapper mapper;
+        mapper.populate(true, e, {e1, e2, e3, e4});
+        mapper.populate(false, v, {TopExp::FirstVertex(e1)});
+        mapper.populate(false, v, {TopExp::LastVertex(e4)});
+
+        BRep_Builder builder;
+        TopoDS_Compound comp;
+        builder.MakeCompound(comp);
+        builder.Add(comp, e1);
+        builder.Add(comp, e2);
+        builder.Add(comp, e3);
+        builder.Add(comp, e4);
+
+        TopoShape s;
+        s.makESHAPE(comp, mapper, edges, TOPOP_SPLIT);
+        return makEBSplineFace(s, style, op);
+    }
+
+    if (edges.size() < 2 || edges.size() > 4)
+        FC_THROWM(Base::CADKernelError, "Require minimum one, maximum four edges");
 
     std::vector<Handle(Geom_BSplineCurve)> curves;
     curves.reserve(4);
     Standard_Real u1, u2; // contains output
-    for (auto & e : shape.getSubTopoShapes(TopAbs_EDGE)) {
+    for (auto & e : edges) {
         const TopoDS_Edge& edge = TopoDS::Edge (e.getShape());
         TopLoc_Location heloc; // this will be output
         Handle(Geom_Curve) c_geom = BRep_Tool::Curve(edge, heloc, u1, u2); //The geometric curve
@@ -4761,13 +4829,13 @@ TopoShape & TopoShape::makEBSplineFace(const TopoShape & shape, FillingStyle sty
     }
     GeomFill_BSplineCurves aSurfBuilder; //Create Surface Builder
 
-    if (edgeCount == 2) {
+    if (edges.size() == 2) {
         aSurfBuilder.Init(curves[0], curves[1], fstyle);
     }
-    else if (edgeCount == 3) {
+    else if (edges.size() == 3) {
         aSurfBuilder.Init(curves[0], curves[1], curves[2], fstyle);
     }
-    else if (edgeCount == 4) {
+    else if (edges.size() == 4) {
         aSurfBuilder.Init(curves[0], curves[1], curves[2], curves[3], fstyle);
     }
 
@@ -4789,20 +4857,19 @@ TopoShape & TopoShape::makEBSplineFace(const TopoShape & shape, FillingStyle sty
         FC_THROWM(Base::CADKernelError, "Resulting Face is null");
     }
 
-    std::ostringstream ss;
-    for (int i=0; i<edgeCount; ++i) {
-        Data::IndexedName element = Data::IndexedName::fromConst("Edge", i+1);
-        for(auto &v : getElementMappedNames(element, true)) {
-            auto &name = v.first;
-            auto &sids = v.second;
-            ss.str("");
-            encodeElementName(element[0],name,ss,&sids,op,this->Tag);
-            aFace.setElementName(element,name,&sids);
-        }
+    auto newEdges = aFace.getSubTopoShapes(TopAbs_EDGE);
+    if (newEdges.size() != edges.size())
+        FC_ERR("Face edge count mismatch");
+    else {
+        int i = 0;
+        for (auto &edge : newEdges)
+            edge.resetElementMap(edges[i++].elementMap());
+        aFace.mapSubElement(newEdges);
     }
 
     Data::ElementIDRefs sids;
-    Data::MappedName edgeName = aFace.getMappedName(Data::IndexedName::fromConst("Edge",1), true, &sids);
+    Data::MappedName edgeName = aFace.getMappedName(
+            Data::IndexedName::fromConst("Edge",1), true, &sids);
     aFace.setElementComboName(Data::IndexedName::fromConst("Face",1),
                               {edgeName},
                               TOPOP_BSPLANE_FACE,
