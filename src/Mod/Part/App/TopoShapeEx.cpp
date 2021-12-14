@@ -3363,7 +3363,7 @@ Data::MappedName TopoShape::setElementComboName(const Data::IndexedName & elemen
             if(first)
                 first = false;
             else
-                ss << ',';
+                ss << '|';
             ss << *it;
         }
         ss << ')';
@@ -3375,6 +3375,67 @@ Data::MappedName TopoShape::setElementComboName(const Data::IndexedName & elemen
     }
     encodeElementName(element[0],newName,ss,&sids,op);
     return setElementName(element,newName,&sids);
+}
+
+std::vector<Data::MappedName>
+TopoShape::decodeElementComboName(const Data::IndexedName &element,
+                                  const Data::MappedName &name,
+                                  const char *marker,
+                                  std::string *postfix) const
+{
+    std::vector<Data::MappedName> names;
+    if (!element)
+        return names;
+    if (!marker)
+        marker = "";
+
+    int len;
+    int pos = findTagInElementName(name, nullptr, &len);
+    if (len < 0)
+        return names;
+
+    int plen = (int)elementMapPrefix().size();
+    if (name.find(elementMapPrefix(), len) != len
+            || name.find(marker, len+plen) != len+plen)
+        return {};
+
+    names.emplace_back(name, 0, len);
+
+    std::string text;
+    len += plen + strlen(marker);
+    name.toString(text, len, pos-len);
+
+    if (this->Hasher) {
+        if (auto id = App::StringID::fromString(names.back().toRawBytes())) {
+            if (App::StringIDRef sid = this->Hasher->getID(id)) {
+                names.pop_back();
+                names.emplace_back(sid);
+            }
+            else
+                return {};
+        }
+        if (auto id = App::StringID::fromString(text.c_str())) {
+            if (App::StringIDRef sid = this->Hasher->getID(id))
+                text = sid.dataToText();
+            else
+                return {};
+        }
+    }
+    if (text.empty() || text[0] != '(')
+        return {};
+    auto endPos = text.rfind(')');
+    if (endPos == std::string::npos)
+        return {};
+
+    if (postfix)
+        *postfix = text.substr(endPos+1);
+
+    text.resize(endPos);
+    std::istringstream iss(text.c_str()+1);
+    std::string token;
+    while(std::getline(iss, token, '|')) 
+        names.emplace_back(token);
+    return names;
 }
 
 struct NameKey {
