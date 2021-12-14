@@ -381,14 +381,35 @@ public:
 
             if (s._Cache->cachedElementMap)
                 res.resetElementMap(s._Cache->cachedElementMap);
-            else if (parent._ParentCache)
+            else if (parent._ParentCache) {
+                // If no cachedElementMap exists, we use _ParentCache for
+                // delayed generation of sub element map so that we don't need
+                // to always generate a full map whenever we returns a sub
+                // shape.  To simplify the mapping and avoid circular
+                // dependency, we do not chain parent and grand parent.
+                // Instead, we always use the cache from the top parent. And to
+                // make it work, we must accumulate the TopLoc_Location along
+                // the lineage, which is required for OCCT shape mapping to
+                // work.
+                //
+                // Cache::subLocation is shared and only contains the location
+                // in the direct parent shape, while TopoShape::_SubLocation is
+                // used to accumulate locations in higher ancestors. We
+                // separate these two to avoid invalidating cache.
+
+                res._SubLocation = parent._SubLocation * parent._Cache->subLocation;
                 res._ParentCache = parent._ParentCache;
-            else
+            } else
                 res._ParentCache = owner->shared_from_this();
             return res;
         }
 
     public:
+        void clear()
+        {
+            topoShapes.clear();
+        }
+
         TopoShape getTopoShape(const TopoShape &parent, int index) {
             TopoShape res;
             if(index<=0 || index>shapes.Extent())
@@ -536,17 +557,27 @@ void TopoShape::initCache(int reset, const char *file, int line) const{
             else
                 FC_TRACE("invalidate cache");
         }
-        if (_ParentCache)
+        if (_ParentCache) {
             _ParentCache.reset();
+            _SubLocation.Identity();
+        }
         _Cache = std::make_shared<Cache>(_Shape);
     }
 }
 
 Data::ElementMapPtr TopoShape::resetElementMap(Data::ElementMapPtr elementMap)
 {
-    INIT_SHAPE_CACHE();
-    if (elementMap)
+    if (_Cache && elementMap != this->elementMap(false)) {
+        for (auto &info : _Cache->infos)
+            info.clear();
+    } else
+        INIT_SHAPE_CACHE();
+    if (elementMap) {
         _Cache->cachedElementMap = elementMap;
+        _Cache->subLocation.Identity();
+        _SubLocation.Identity();
+        _ParentCache.reset();
+    }
     return Data::ComplexGeoData::resetElementMap(elementMap);
 }
 
@@ -556,16 +587,17 @@ void TopoShape::flushElementMap() const
     if (!elementMap(false) && this->_Cache) {
         if (this->_Cache->cachedElementMap) {
             const_cast<TopoShape*>(this)->resetElementMap(this->_Cache->cachedElementMap);
-            this->_ParentCache.reset();
         }
         else if (this->_ParentCache) {
             TopoShape parent(this->Tag, this->Hasher, this->_ParentCache->shape);
             parent._Cache = _ParentCache;
-            _ParentCache.reset();
             parent.flushElementMap();
-            TopoShape self(this->Tag, this->Hasher, this->_Shape.Located(this->_Cache->subLocation));
+            TopoShape self(this->Tag, this->Hasher,
+                    this->_Shape.Located(this->_SubLocation * this->_Cache->subLocation));
             self._Cache = _Cache;
             self.mapSubElement(parent);
+            this->_ParentCache.reset();
+            this->_SubLocation.Identity();
             const_cast<TopoShape*>(this)->resetElementMap(self.elementMap());
         }
     }
@@ -612,6 +644,7 @@ void TopoShape::operator = (const TopoShape& sh)
         this->Hasher = sh.Hasher;
         this->_Cache = sh._Cache;
         this->_ParentCache = sh._ParentCache;
+        this->_SubLocation = sh._SubLocation;
         resetElementMap(sh.elementMap(false));
     }
 }

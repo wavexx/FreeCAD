@@ -906,6 +906,7 @@ private:
     ShapeProtector _Shape;
     mutable std::shared_ptr<Cache> _Cache;
     mutable std::shared_ptr<Cache> _ParentCache;
+    mutable TopLoc_Location _SubLocation;
 };
 
 } //namespace Part
