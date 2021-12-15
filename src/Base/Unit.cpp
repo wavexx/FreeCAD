@@ -475,8 +475,8 @@ const std::vector<std::pair<Unit, const char *> > &Unit::unitTypes() {
         units.emplace_back(Unit::ElectricalConductivity,"ElectricalConductivity");
         units.emplace_back(Unit::AmountOfSubstance,"AmountOfSubstance");
         units.emplace_back(Unit::LuminousIntensity,"LuminousIntensity");
-        units.emplace_back(Unit::CompressiveStrength,"CompressiveStrength");
         units.emplace_back(Unit::Pressure,"Pressure");
+        units.emplace_back(Unit::CompressiveStrength,"CompressiveStrength");
         units.emplace_back(Unit::ShearModulus,"ShearModulus");
         units.emplace_back(Unit::Stress,"Stress");
         units.emplace_back(Unit::UltimateTensileStrength,"UltimateTensileStrength");
