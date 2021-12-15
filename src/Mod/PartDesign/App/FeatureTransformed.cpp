@@ -472,6 +472,7 @@ App::DocumentObjectExecReturn *Transformed::execute(void)
         bool hasSupport = false;
         if (!support.isNull()) {
             hasSupport = true;
+            result = support;
             fuseShapes.push_back(support);
         }
         std::vector<TopoShape> cutShapes, intsectShapes;
