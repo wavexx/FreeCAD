@@ -348,8 +348,6 @@ public:
     void testActive(void);
     /// Enables or disables the command
     void setEnabled(bool);
-    /// (Re)Create the text for the tooltip (for example, when the shortcut is changed)
-    void recreateTooltip(const char* context, Action*);
     /// Command trigger source
     enum TriggerSource {
         /// No external trigger, e.g. invoked through Python
@@ -654,6 +652,8 @@ public:
      * @return Return the found command, or NULL if not found.
      */
     Command *addCommand(const char *cmdName);
+
+    Command *getCommand(int idx) const;
 
 protected:
     virtual void activated(int iMsg);
