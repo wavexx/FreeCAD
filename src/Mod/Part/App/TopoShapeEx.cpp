@@ -1865,7 +1865,7 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
                                 const TopoShape& supportface,
                                 const TopoShape& __uptoface,
                                 const gp_Dir& direction,
-                                PrismMode _Mode,
+                                PrismMode Mode,
                                 Standard_Boolean checkLimits,
                                 Standard_Boolean Modify,
                                 const char *op)
@@ -1889,7 +1889,7 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
     TopoShape base(_base);
 
     if (base.isNull()) {
-        _Mode = PrismMode::None;
+        Mode = PrismMode::None;
         base = sketchshape;
     }
 
@@ -1944,13 +1944,11 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
     }
 
     TopoShape uptofaceCopy = uptoface;
-    auto Mode = _Mode;
     bool checkBase = false;
     auto retry = [&]() {
         if (!uptoface.isSame(_uptoface)) {
             // retry using the original up to face in case unnecessary failure
             // due to removing the limits
-            Mode = checkBase ? PrismMode::None : _Mode;
             uptoface = _uptoface;
             return true;
         }
@@ -1965,7 +1963,6 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
             // supplied base (i.e. _base) to calculate the final shape if the
             // mode is FuseWithBase or CutWithBase, 
             checkBase = true;
-            Mode = PrismMode::None;
             uptoface = uptofaceCopy;
             base.makEPrism(_uptoface, direction);
             return true;
@@ -1977,6 +1974,11 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
     for (;;) {
         try {
             *this = base;
+
+            // We do not rely on BRepFeat_MakePrism to perform fuse or cut for
+            // us because of its poor support of element mapping.
+            auto mode = PrismMode::None;
+
             for (auto &face : sketchshape.getSubTopoShapes(
                         sketchshape.hasSubShape(TopAbs_FACE)?TopAbs_FACE:TopAbs_WIRE)) {
                 srcShapes.clear();
@@ -1998,7 +2000,8 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
                 srcShapes.push_back(*this);
 
                 PrismMaker.Init(this->getShape(), face.getShape(),
-                        TopoDS::Face(supportface.getShape()), direction, Mode, Modify);
+                        TopoDS::Face(supportface.getShape()), direction, mode, Modify);
+                mode = PrismMode::FuseWithBase;
 
                 PrismMaker.Perform(uptoface.getShape());
 
@@ -2006,9 +2009,6 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
                     FC_THROWM(Base::CADKernelError,"BRepFeat_MakePrism: extrusion failed");
 
                 this->makEShape(PrismMaker, srcShapes, uptoface, op);
-
-                if (Mode == PrismMode::None)
-                    Mode = PrismMode::FuseWithBase;
             }
             break;
         } catch (Base::Exception &) {
@@ -2018,8 +2018,8 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
         }
     }
 
-    if (checkBase && !_base.isNull() && _Mode != PrismMode::None) {
-        if (_Mode == PrismMode::FuseWithBase)
+    if (!_base.isNull() && Mode != PrismMode::None) {
+        if (Mode == PrismMode::FuseWithBase)
             this->makEFuse({_base, *this});
         else
             this->makECut({_base, *this});
