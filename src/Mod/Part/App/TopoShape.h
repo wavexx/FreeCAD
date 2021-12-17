@@ -785,6 +785,13 @@ public:
     class Cache;
     friend class Cache;
 
+protected:
+    virtual Data::MappedName renameDuplicateElement(int index,
+                                                    const Data::IndexedName & element, 
+                                                    const Data::IndexedName & element2,
+                                                    const Data::MappedName & name,
+                                                    Data::ElementIDRefs &sids);
+
 private:
 
     // helper class to ensure synchronization of element map and cache

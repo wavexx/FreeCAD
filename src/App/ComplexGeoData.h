@@ -445,10 +445,10 @@ public:
 
 protected:
     virtual MappedName renameDuplicateElement(int index,
-									         const IndexedName & element, 
-           								     const IndexedName & element2,
-										     const MappedName & name,
-										     ElementIDRefs &sids);
+                                              const IndexedName & element, 
+                                              const IndexedName & element2,
+                                              const MappedName & name,
+                                              ElementIDRefs &sids);
 
     void restoreStream(std::istream &s, std::size_t count);
 
