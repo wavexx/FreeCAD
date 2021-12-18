@@ -42,6 +42,7 @@
 #include <Base/Exception.h>
 #include <Base/Console.h>
 #include <App/DynamicProperty.h>
+#include <App/DocumentObject.h>
 #include "Application.h"
 #include "Document.h"
 #include "ComplexGeoData.h"
@@ -2217,14 +2218,35 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
 {
     long tag = this->Tag, encodedTag = 0;
     int len = 0;
+
     auto pos = findTagInElementName(name,&encodedTag,&len,nullptr,nullptr,true);
     if(cb(name, len, encodedTag, tag) || pos < 0)
         return;
 
+    std::set<long> tagSet;
+
+    std::vector<MappedName> names;
+    if (tag)
+        tagSet.insert(tag);
+    if (encodedTag)
+        tagSet.insert(encodedTag);
+    names.push_back(name);
+
     tag = encodedTag;
     MappedName tmp;
     bool first = true;
-    while(1) {
+
+    // TODO: element tracing without object is inheriently unsafe, because of
+    // possible external linking object which means the element may be encoded
+    // using external string table. Looking up the wrong table may accidently
+    // cause circular mapping, and is actually quite easy to reproduce. See
+    //
+    // https://github.com/realthunder/FreeCAD_assembly3/issues/968
+    //
+    // A random depth limit is set here to not waste time. 'tagSet' above is
+    // also used for early detection of 'recursive' mapping.
+
+    for (int i=0; i<50; ++i) {
         if(!len || len>pos)
             return;
         if(first) {
@@ -2236,10 +2258,29 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
         }else
             tmp = MappedName(tmp, 0, len);
         tmp = dehashElementName(tmp);
+        names.push_back(tmp);
         encodedTag = 0;
         pos = findTagInElementName(tmp,&encodedTag,&len,nullptr,nullptr,true);
         if(cb(tmp, len, encodedTag, tag) || pos < 0)
             return;
+
+        if (encodedTag && tag != std::abs(encodedTag)
+                       && !tagSet.insert(std::abs(encodedTag)).second) {
+            if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG)) {
+                FC_WARN("circular element mapping");
+                if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_TRACE)) {
+                    auto doc = App::GetApplication().getActiveDocument();
+                    if (doc) {
+                        auto obj = doc->getObjectByID(this->Tag);
+                        if (obj)
+                            FC_ERR("\t" << obj->getFullName() << obj->getFullName() << "." << getIndexedName(name));
+                    }
+                    for (auto &name : names)
+                        FC_ERR("\t" << name);
+                }
+            }
+            break;
+        }
         tag = encodedTag;
     }
 }
