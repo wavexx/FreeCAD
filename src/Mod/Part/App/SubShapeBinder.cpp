@@ -467,7 +467,9 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
                     && shape.Hasher != getDocument()->getStringHasher())
             {
                 ss.str("");
-                ss << TOPOP_SHAPEBINDER << ':' << shapeOwners[idx].first
+                ss << Data::ComplexGeoData::externalTagPostfix()
+                   << Data::ComplexGeoData::elementMapPrefix()
+                   << TOPOP_SHAPEBINDER << ':' << shapeOwners[idx].first
                    << ':' << shapeOwners[idx].second;
                 shape.reTagElementMap(-getID(),
                         getDocument()->getStringHasher(),ss.str().c_str());

@@ -1720,6 +1720,11 @@ const std::string &ComplexGeoData::decTagPostfix() {
     return postfix;
 }
 
+const std::string &ComplexGeoData::externalTagPostfix() {
+    static std::string postfix(elementMapPrefix() + ":X");
+    return postfix;
+}
+
 const std::string &ComplexGeoData::indexPostfix() {
     static std::string postfix(elementMapPrefix() + ":I");
     return postfix;
@@ -2223,13 +2228,16 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
     if(cb(name, len, encodedTag, tag) || pos < 0)
         return;
 
+    if (name.startsWith(externalTagPostfix(), len))
+        return;
+
     std::set<long> tagSet;
 
     std::vector<MappedName> names;
     if (tag)
-        tagSet.insert(tag);
+        tagSet.insert(std::abs(tag));
     if (encodedTag)
-        tagSet.insert(encodedTag);
+        tagSet.insert(std::abs(encodedTag));
     names.push_back(name);
 
     tag = encodedTag;
@@ -2261,8 +2269,8 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
         names.push_back(tmp);
         encodedTag = 0;
         pos = findTagInElementName(tmp,&encodedTag,&len,nullptr,nullptr,true);
-        if(cb(tmp, len, encodedTag, tag) || pos < 0)
-            return;
+        if (pos >= 0 && tmp.startsWith(externalTagPostfix(), len))
+            break;
 
         if (encodedTag && tag != std::abs(encodedTag)
                        && !tagSet.insert(std::abs(encodedTag)).second) {
@@ -2273,7 +2281,7 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
                     if (doc) {
                         auto obj = doc->getObjectByID(this->Tag);
                         if (obj)
-                            FC_ERR("\t" << obj->getFullName() << obj->getFullName() << "." << getIndexedName(name));
+                            FC_LOG("\t" << obj->getFullName() << obj->getFullName() << "." << getIndexedName(name));
                     }
                     for (auto &name : names)
                         FC_ERR("\t" << name);
@@ -2281,6 +2289,9 @@ void ComplexGeoData::traceElement(const MappedName &name, TraceCallback cb) cons
             }
             break;
         }
+
+        if(cb(tmp, len, encodedTag, tag) || pos < 0)
+            return;
         tag = encodedTag;
     }
 }
