@@ -183,6 +183,9 @@ SbVec2s ViewProviderSketch::prvClickPos;
 SbVec2s ViewProviderSketch::prvCursorPos;
 SbVec2s ViewProviderSketch::newCursorPos;
 
+static bool _AllowFaceExternal;
+static const char *_ParamAllowFaceExternal = "AllowFaceExternalPick";
+
 //**************************************************************************
 // Edit data structure
 
@@ -246,6 +249,7 @@ struct EditData {
         hPart->Attach(master);
         hSketchGeneral = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
         hSketchGeneral->Attach(master);
+        _AllowFaceExternal = hSketchGeneral->GetBool(_ParamAllowFaceExternal, true);
 
         timer.setSingleShot(true);
         QObject::connect(&timer, &QTimer::timeout, [master]() {
@@ -4237,8 +4241,16 @@ void ViewProviderSketch::OnChange(Base::Subject<const char*> &rCaller, const cha
         "HighlightColor",
         "SelectionColor",
     };
-    if(edit && dict.count(sReason))
+    if(!edit) return;
+    if (dict.count(sReason))
         edit->timer.start(100);
+    else if (boost::equals(sReason, _ParamAllowFaceExternal))
+        _AllowFaceExternal = edit->hSketchGeneral->GetBool(_ParamAllowFaceExternal, true);
+}
+
+bool ViewProviderSketch::allowFaceExternalPick()
+{
+    return _AllowFaceExternal;
 }
 
 void ViewProviderSketch::updateInventorNodeSizes()
