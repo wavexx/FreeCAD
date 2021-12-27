@@ -350,6 +350,10 @@ public:
         QT_TRANSLATE_NOOP("ViewParams","Section filling texture image path."))\
     FC_VIEW_PARAM(SectionHatchTextureEnable, bool, Bool, true, \
         QT_TRANSLATE_NOOP("ViewParams","Enable section fill texture."))\
+    FC_VIEW_PARAM(SectionFillGroup, bool, Bool, true, \
+        QT_TRANSLATE_NOOP("ViewParams","Render cross section filling of objects with similar materials together.\n"\
+                                       "Intersecting objects will act as boolean cut operation"))\
+    FC_VIEW_PARAM(ShowClipPlane, bool, Bool, false, QT_TRANSLATE_NOOP("ViewParams","Show clip plane"))\
     FC_VIEW_PARAM(TransformOnTop, bool, Bool, true, "") \
     FC_VIEW_PARAM(SelectionColorDifference, double, Float, 25.0, \
         QT_TRANSLATE_NOOP("ViewParams","Color difference threshold for auto making distinct\n"\

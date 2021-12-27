@@ -119,14 +119,19 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
     d->ui.setupUi(this);
 
     d->ui.checkBoxFill->setChecked(ViewParams::getSectionFill() && ViewParams::isUsingRenderer());
-    d->ui.checkBoxInvert->setChecked(ViewParams::getSectionFillInvert());
-    d->ui.checkBoxConcave->setChecked(ViewParams::getSectionConcave());
-    d->ui.checkBoxOnTop->setChecked(ViewParams::getNoSectionOnTop());
-    d->ui.checkBoxOnTop->setDisabled(ViewParams::getSectionConcave());
-    d->ui.checkBoxHatch->setChecked(ViewParams::getSectionHatchTextureEnable());
+    d->ui.checkBoxInvert->initAutoSave();
+    d->ui.checkBoxConcave->initAutoSave();
+    d->ui.checkBoxInvert->initAutoSave();
+    d->ui.checkBoxOnTop->initAutoSave();
+    d->ui.checkBoxHatch->initAutoSave();
+    d->ui.spinBoxHatchScale->initAutoSave();
+    d->ui.checkBoxGroupRendering->initAutoSave();
+    d->ui.checkBoxBacklight->initAutoSave();
+    d->ui.backlightColor->initAutoSave();
+    d->ui.sliderIntensity->initAutoSave();
     d->ui.editHatchTexture->setFileName(
             QString::fromUtf8(ViewParams::getSectionHatchTexture().c_str()));
-    d->ui.spinBoxHatchScale->setValue(ViewParams::getSectionHatchTextureScale());
+    d->ui.checkBoxOnTop->setDisabled(ViewParams::getSectionConcave());
 
     if (!d->ui.checkBoxFill->isChecked()) {
         d->ui.checkBoxInvert->setDisabled(true);
@@ -373,28 +378,26 @@ void Clipping::on_checkBoxFill_toggled(bool on)
     d->ui.checkBoxHatch->setEnabled(on);
     d->ui.editHatchTexture->setEnabled(on);
     d->ui.spinBoxHatchScale->setEnabled(on);
+    d->ui.checkBoxGroupRendering->setEnabled(on);
     if (d->view)
         d->view->getViewer()->redraw();
 }
 
-void Clipping::on_checkBoxInvert_toggled(bool on)
+void Clipping::on_checkBoxInvert_toggled(bool)
 {
-    ViewParams::setSectionFillInvert(on);
     if (d->view)
         d->view->getViewer()->redraw();
 }
 
 void Clipping::on_checkBoxConcave_toggled(bool on)
 {
-    ViewParams::setSectionConcave(on);
     d->ui.checkBoxOnTop->setDisabled(on);
     if (d->view)
         d->view->getViewer()->redraw();
 }
 
-void Clipping::on_checkBoxOnTop_toggled(bool on)
+void Clipping::on_checkBoxOnTop_toggled(bool)
 {
-    ViewParams::setNoSectionOnTop(on);
     if (d->view)
         d->view->getViewer()->redraw();
 }
@@ -514,16 +517,14 @@ void Clipping::on_dirZ_valueChanged(double)
         d->clipView->plane.setValue(SbPlane(normal,pln.getDistanceFromOrigin()));
 }
 
-void Clipping::on_spinBoxHatchScale_valueChanged(double v)
+void Clipping::on_spinBoxHatchScale_valueChanged(double)
 {
-    ViewParams::setSectionHatchTextureScale(v);
     if (d->view)
         d->view->getViewer()->redraw();
 }
 
-void Clipping::on_checkBoxHatch_toggled(bool on)
+void Clipping::on_checkBoxHatch_toggled(bool)
 {
-    ViewParams::setSectionHatchTextureEnable(on);
     if (d->view)
         d->view->getViewer()->redraw();
 }
