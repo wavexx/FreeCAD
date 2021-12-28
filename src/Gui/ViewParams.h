@@ -354,6 +354,9 @@ public:
         QT_TRANSLATE_NOOP("ViewParams","Render cross section filling of objects with similar materials together.\n"\
                                        "Intersecting objects will act as boolean cut operation"))\
     FC_VIEW_PARAM(ShowClipPlane, bool, Bool, false, QT_TRANSLATE_NOOP("ViewParams","Show clip plane"))\
+    FC_VIEW_PARAM(ClipPlaneSize, double, Float, 40.0, QT_TRANSLATE_NOOP("ViewParams","Clip plane visual size"))\
+    FC_VIEW_PARAM(ClipPlaneColor, std::string, ASCII, "cyan", QT_TRANSLATE_NOOP("ViewParams","Clip plane color"))\
+    FC_VIEW_PARAM(ClipPlaneLineWidth, double, Float, 2.0, QT_TRANSLATE_NOOP("ViewParams","Clip plane line width"))\
     FC_VIEW_PARAM(TransformOnTop, bool, Bool, true, "") \
     FC_VIEW_PARAM(SelectionColorDifference, double, Float, 25.0, \
         QT_TRANSLATE_NOOP("ViewParams","Color difference threshold for auto making distinct\n"\
