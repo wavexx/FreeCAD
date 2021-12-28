@@ -91,16 +91,6 @@ public:
     Clipping(Gui::View3DInventor* view, QWidget* parent = nullptr);
     ~Clipping();
 
-    void setupClipPlanes(const Base::Placement &plaX, bool enableX,
-                         const Base::Placement &plaY, bool enableY,
-                         const Base::Placement &plaZ, bool enableZ,
-                         const Base::Placement &plaCustom, bool enableCustom);
-
-    void getClipPlanes(Base::Placement &plaX, bool &enableX,
-                       Base::Placement &plaY, bool &enableY,
-                       Base::Placement &plaZ, bool &enableZ,
-                       Base::Placement &plaCustom, bool &enableCustom);
-
     static void toggle();
 
 protected Q_SLOTS:

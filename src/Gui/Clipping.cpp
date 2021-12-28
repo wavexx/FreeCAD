@@ -96,6 +96,9 @@ void ClipDragger::init(SoClipPlane *clip, bool custom)
     }
 
     SoSeparator *sep = new SoSeparator;
+    auto pickStyle = new SoPickStyle;
+    pickStyle->style.setValue(SoPickStyle::UNPICKABLE);
+    sep->addChild(pickStyle);
 
     this->color = new SoBaseColor;
     this->color->rgb.setValue(this->planeColor.getValue());

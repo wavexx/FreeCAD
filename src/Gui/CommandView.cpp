@@ -556,6 +556,36 @@ void StdCmdFreezeViews::languageChange()
     }
 }
 
+//===========================================================================
+// Std_ClipPlaneDragger
+//===========================================================================
+
+class StdCmdClipPlaneDragger : public  Gui::CheckableCommand
+{
+public:
+    StdCmdClipPlaneDragger();
+    virtual const char* className() const
+    { return "StdCmdClipPlaneDragger"; }
+protected: 
+    virtual void setOption(bool checked) {
+        ViewParams::setShowClipPlane(checked);
+    }
+    virtual bool getOption(void) const {
+        return ViewParams::ShowClipPlane();
+    }
+};
+StdCmdClipPlaneDragger::StdCmdClipPlaneDragger()
+  : CheckableCommand("Std_ClipPlaneDragger")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Clip plane dragger");
+    sToolTipText  = QT_TR_NOOP("Toggles clipping plane dragger");
+    sWhatsThis    = "Std_ClipPlaneDragger";
+    sStatusTip    = sMenuText;
+    sPixmap       = "Std_ClipPlaneDragger";
+    sAccel        = "C, D";
+    eType         = Alter3DView;
+}
 
 //===========================================================================
 // Std_ToggleClipPlane
@@ -4573,6 +4603,7 @@ void CreateViewStdCommands(void)
     rcCmdMgr.addCommand(new StdOrthographicCamera());
     rcCmdMgr.addCommand(new StdPerspectiveCamera());
     rcCmdMgr.addCommand(new StdCmdToggleClipPlane());
+    rcCmdMgr.addCommand(new StdCmdClipPlaneDragger());
     rcCmdMgr.addCommand(new StdCmdDrawStyle());
     rcCmdMgr.addCommand(new StdCmdViewSaveCamera());
     rcCmdMgr.addCommand(new StdCmdViewRestoreCamera());
