@@ -1322,8 +1322,6 @@ SoFCRendererP::renderSection(SoGLRenderAction *action,
   if (this->depthwriteonly
       || curpass >= numclip
       || draw_entry.ventry->partidx >= 0
-      || (draw_entry.material->shapetype != SoShapeHintsElement::SOLID
-            && !draw_entry.ventry->cache->hasSolid())
       || (!ViewParams::getSectionFill() && !concave))
     return curpass == 0;
 
@@ -1343,7 +1341,11 @@ SoFCRendererP::renderSection(SoGLRenderAction *action,
     return true;
   }
 
-  if (ViewParams::SectionFillGroup()) {
+  if (draw_entry.material->shapetype != SoShapeHintsElement::SOLID
+      && !draw_entry.ventry->cache->hasSolid())
+    return curpass == 0;
+
+  if (!concave && ViewParams::SectionFillGroup()) {
     if (curpass != 0)
       return false;
     if (transp)
