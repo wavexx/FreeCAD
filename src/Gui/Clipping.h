@@ -62,7 +62,6 @@ public:
 
     SoClipPlane *getClipPlane() const {return clip;}
 
-protected:
     void onDragStart();
     void onDragFinish();
     void onDragMotion();
@@ -91,7 +90,21 @@ public:
     Clipping(Gui::View3DInventor* view, QWidget* parent = nullptr);
     ~Clipping();
 
-    static void toggle();
+    static void restoreClipPlanes(Gui::View3DInventor *view,
+                                  const Base::Vector3d &posX, bool enableX,
+                                  const Base::Vector3d &posY, bool enableY,
+                                  const Base::Vector3d &posZ, bool enableZ,
+                                  const Base::Placement &plaCustom, bool enableCustom);
+
+    static void getClipPlanes(Gui::View3DInventor *view,
+                              Base::Vector3d &posX, bool &enableX,
+                              Base::Vector3d &posY, bool &enableY,
+                              Base::Vector3d &posZ, bool &enableZ,
+                              Base::Placement &plaCustom, bool &enableCustom);
+
+    static void toggle(View3DInventor *view = nullptr);
+
+    virtual bool eventFilter(QObject *, QEvent*);
 
 protected Q_SLOTS:
     void onViewDestroyed(QObject *);

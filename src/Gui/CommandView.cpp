@@ -42,7 +42,9 @@
 # include <boost_bind_bind.hpp>
 #endif
 
-#include "Command.h"
+#include <App/AutoTransaction.h>
+#include <App/Document.h>
+#include "CommandT.h"
 #include "Action.h"
 #include "Application.h"
 #include "BitmapFactory.h"
@@ -582,7 +584,6 @@ StdCmdClipPlaneDragger::StdCmdClipPlaneDragger()
     sToolTipText  = QT_TR_NOOP("Toggles clipping plane dragger");
     sWhatsThis    = "Std_ClipPlaneDragger";
     sStatusTip    = sMenuText;
-    sPixmap       = "Std_ClipPlaneDragger";
     sAccel        = "C, D";
     eType         = Alter3DView;
 }
@@ -1998,7 +1999,45 @@ bool StdCmdViewVR::isActive(void)
    return getGuiApplication()->sendHasMsgToActiveView("ViewVR");
 }
 
+//===========================================================================
+// Std_SaveView
+//===========================================================================
+DEF_STD_CMD_A(StdCmdSaveView)
 
+StdCmdSaveView::StdCmdSaveView()
+  : Command("Std_SaveView")
+{
+    sGroup      = "Standard-View";
+    sMenuText   = QT_TR_NOOP("Save view");
+    sToolTipText= QT_TR_NOOP("Save the current view into an object");
+    sWhatsThis  = "Std_SaveView";
+    sStatusTip  = sMenuText;
+    sPixmap     = "SavedView";
+    eType       = AlterDoc;
+    sAccel      = "Ctrl+Shift+V";
+}
+
+void StdCmdSaveView::activated(int)
+{
+    auto doc = App::GetApplication().getActiveDocument();
+    if(!doc)
+        return;
+    App::AutoTransaction committer(QT_TRANSLATE_NOOP("Command", "Save view"));
+    try {
+        std::string name = doc->getUniqueObjectName("SavedView");
+        std::ostringstream ss;
+        cmdAppDocument(doc, ss << "addObject('App::SavedView','" << name << "')");
+        auto obj = doc->getObject(name.c_str());
+        cmdGuiObject(obj, "capture()");
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    }
+}
+
+bool StdCmdSaveView::isActive()
+{
+    return App::GetApplication().getActiveDocument() != nullptr;
+}
 
 //===========================================================================
 // Std_ViewScreenShot
@@ -4587,6 +4626,7 @@ void CreateViewStdCommands(void)
 
     rcCmdMgr.addCommand(new StdCmdViewCreate());
     rcCmdMgr.addCommand(new StdViewScreenShot());
+    rcCmdMgr.addCommand(new StdCmdSaveView());
     rcCmdMgr.addCommand(new StdMainFullscreen());
     rcCmdMgr.addCommand(new StdViewDockUndockFullscreen());
     rcCmdMgr.addCommand(new StdCmdSetAppearance());

@@ -379,6 +379,9 @@ public:
     FC_VIEW_PARAM2(DefaultFontSize, int , Int, 0,  "") \
     FC_VIEW_PARAM2(EnableTaskPanelKeyTranslate, bool, Bool, false, "") \
     FC_VIEW_PARAM(EnableMenuBarCheckBox, bool, Bool, FC_ENABLE_MENUBAR_CHECKBOX, "")\
+    FC_VIEW_PARAM(EnableBacklight, bool, Bool, false, "")\
+    FC_VIEW_PARAM(BacklightColor, unsigned long, Unsigned, 0xffffffff, "")\
+    FC_VIEW_PARAM(BacklightIntensity, double, Float, 1.0, "")\
 
 #undef FC_VIEW_PARAM
 #define FC_VIEW_PARAM(_name,_ctype,_type,_def,_doc) \

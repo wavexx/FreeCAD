@@ -47,12 +47,14 @@
 #include <QStackedWidget>
 
 #include <Base/Tools.h>
+#include <App/SavedView.h>
 #include "Clipping.h"
 #include "ui_Clipping.h"
 #include "Application.h"
 #include "DockWindowManager.h"
 #include "View3DInventor.h"
 #include "View3DInventorViewer.h"
+#include "ViewProviderSavedView.h"
 #include "ViewParams.h"
 #include "MainWindow.h"
 #include "SoFCCSysDragger.h"
@@ -365,6 +367,14 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
     d->ui.setupUi(this);
     d->initView(view);
 
+    // Install event filter to suppress wheel focus
+    for(auto child : this->findChildren<QWidget*>()) {
+        if (child->focusPolicy() == Qt::WheelFocus) {
+            child->setFocusPolicy(Qt::StrongFocus);
+            child->installEventFilter(this);
+        }
+    }
+
     d->ui.checkBoxFill->setChecked(ViewParams::getSectionFill() && ViewParams::isUsingRenderer());
     d->ui.checkBoxInvert->initAutoSave();
     d->ui.checkBoxConcave->initAutoSave();
@@ -412,16 +422,6 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
         spinbox->onRestore();
     };
 
-    setupSpinBox(d->ui.clipView, "ClipView", false);
-    setupSpinBox(d->ui.clipX, "ClipX", false);
-    setupSpinBox(d->ui.clipY, "ClipY", false);
-    setupSpinBox(d->ui.clipZ, "ClipZ", false);
-    setupSpinBox(d->ui.dirX, "DirX", false);
-    setupSpinBox(d->ui.dirY, "DirY", false);
-    setupSpinBox(d->ui.dirZ, "DirZ", false);
-    setupSpinBox(d->ui.angleX, "AngleX", false);
-    setupSpinBox(d->ui.angleY, "AngleY", false);
-
     d->ui.clipView->setRange(-INT_MAX,INT_MAX);
     d->ui.clipView->setSingleStep(0.1f);
     d->ui.clipX->setRange(-INT_MAX,INT_MAX);
@@ -443,6 +443,16 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
     d->ui.angleX->setRange(-180,180);
     d->ui.angleY->setSingleStep(1.0f);
     d->ui.angleY->setRange(-180,180);
+
+    setupSpinBox(d->ui.clipView, "ClipView", false);
+    setupSpinBox(d->ui.clipX, "ClipX", false);
+    setupSpinBox(d->ui.clipY, "ClipY", false);
+    setupSpinBox(d->ui.clipZ, "ClipZ", false);
+    setupSpinBox(d->ui.dirX, "DirX", false);
+    setupSpinBox(d->ui.dirY, "DirY", false);
+    setupSpinBox(d->ui.dirZ, "DirZ", false);
+    setupSpinBox(d->ui.angleX, "AngleX", false);
+    setupSpinBox(d->ui.angleY, "AngleY", false);
 
     d->ui.spinBoxTranslation->signalSubEntryChanged.connect(
         [this](QObject *o, const PrefWidget::SubEntry *entry) {
@@ -479,6 +489,31 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
 
     setupSpinBox(d->ui.spinBoxTranslation, "Translation", true);
     setupSpinBox(d->ui.spinBoxRotation, "Rotation", true);
+
+    QObject::connect(d->ui.buttonBox, &QDialogButtonBox::clicked,
+        [this](QAbstractButton *button) {
+            if (!d->view || !d->view->getAppDocument())
+                return;
+            ViewProviderSavedView::CaptureOptions options;
+            if (button == d->ui.buttonBox->button(QDialogButtonBox::Save))
+                options = ViewProviderSavedView::CaptureOption::Clippings;
+            else if (button == d->ui.buttonBox->button(QDialogButtonBox::SaveAll))
+                options = ViewProviderSavedView::CaptureOption::Default;
+            else
+                return;
+            auto doc = d->view->getAppDocument();
+            auto sels = Gui::Selection().getObjectsOfType(App::SavedView::getClassTypeId(), doc->getName());
+            ViewProviderSavedView *vp = nullptr;
+            if (sels.size())
+                vp = Base::freecad_dynamic_cast<ViewProviderSavedView>(
+                        Application::Instance->getViewProvider(sels[0]));
+            else 
+                vp = Base::freecad_dynamic_cast<ViewProviderSavedView>(
+                        Application::Instance->getViewProvider(doc->addObject("App::SavedView", "SavedView")));
+            if (vp)
+                vp->capture(options);
+
+        });
 }
 
 static QPointer<QDockWidget> _DockWidget;
@@ -516,11 +551,13 @@ static QWidget *bindView(Gui::View3DInventor *view)
     return scrollArea;
 }
 
-void Clipping::toggle()
+void Clipping::toggle(View3DInventor *view)
 {
-    auto view = qobject_cast<Gui::View3DInventor*>(Application::Instance->activeView());
-    if (!view)
-        return;
+    if (!view) {
+        view = qobject_cast<Gui::View3DInventor*>(Application::Instance->activeView());
+        if (!view)
+            return;
+    }
 
     if (!_Inited) {
         _Inited = true;
@@ -788,6 +825,102 @@ void Clipping::on_editHatchTexture_fileNameSelected(const QString &filename)
         ViewParams::setSectionHatchTexture(filename.toUtf8().constData());
     if (d->view)
         d->view->getViewer()->redraw();
+}
+
+void Clipping::restoreClipPlanes(View3DInventor *view,
+                                 const Base::Vector3d &posX, bool enableX,
+                                 const Base::Vector3d &posY, bool enableY,
+                                 const Base::Vector3d &posZ, bool enableZ,
+                                 const Base::Placement &plaCustom, bool enableCustom)
+{
+    if (!view)
+        return;
+    if (!enableX && !enableY && !enableZ && !enableCustom)
+        return;
+
+    auto it = _Clippings.find(view);
+    if (it == _Clippings.end() || !it->second) {
+        toggle(view);
+        it = _Clippings.find(view);
+        if (it  == _Clippings.end() || !it->second)
+            return;
+    }
+    auto clipping = qobject_cast<Clipping*>(it->second->widget());
+    if (!clipping)
+        return;
+    auto d = clipping->d;
+    d->ui.groupBoxX->setChecked(enableX);
+    d->ui.groupBoxY->setChecked(enableY);
+    d->ui.groupBoxZ->setChecked(enableZ);
+    d->ui.groupBoxView->setChecked(enableCustom);
+    d->draggerX->translation.setValue(SbVec3f(posX.x, posX.y, posX.z));
+    d->draggerY->translation.setValue(SbVec3f(posY.x, posY.y, posY.z));
+    d->draggerZ->translation.setValue(SbVec3f(posZ.x, posZ.y, posZ.z));
+    const auto &r = plaCustom.getRotation();
+    d->draggerCustom->rotation.setValue(SbRotation(r[0], r[1], r[2], r[3]));
+    const auto &t = plaCustom.getPosition();
+    d->draggerCustom->translation.setValue(SbVec3f(t[0], t[1], t[2]));
+
+    d->draggerX->onDragFinish();
+    d->draggerY->onDragFinish();
+    d->draggerZ->onDragFinish();
+    d->draggerCustom->onDragFinish();
+}
+
+void Clipping::getClipPlanes(View3DInventor *view,
+                             Base::Vector3d &posX, bool &enableX,
+                             Base::Vector3d &posY, bool &enableY,
+                             Base::Vector3d &posZ, bool &enableZ,
+                             Base::Placement &plaCustom, bool &enableCustom)
+{
+    auto it = _Clippings.find(view);
+    if (it == _Clippings.end() || !it->second) {
+        enableX = enableY = enableZ = enableCustom = false;
+        return;
+    }
+    auto clipping = qobject_cast<Clipping*>(it->second->widget());
+    if (!clipping)
+        return;
+    auto d = clipping->d;
+    enableX = d->ui.groupBoxX->isChecked();
+    enableY = d->ui.groupBoxY->isChecked();
+    enableZ = d->ui.groupBoxZ->isChecked();
+    enableCustom = d->ui.groupBoxView->isChecked();
+    SbVec3f t;
+    t = d->draggerX->translation.getValue();
+    posX = Base::Vector3d(t[0], t[1], t[2]);
+    t = d->draggerY->translation.getValue();
+    posY = Base::Vector3d(t[0], t[1], t[2]);
+    t = d->draggerZ->translation.getValue();
+    posZ = Base::Vector3d(t[0], t[1], t[2]);
+    t = d->draggerCustom->translation.getValue();
+    const auto &r = d->draggerCustom->rotation.getValue();
+    plaCustom = Base::Placement(Base::Vector3d(t[0], t[1], t[2]),
+                                Base::Rotation(r[0], r[1], r[2], r[3]));
+}
+
+bool Clipping::eventFilter(QObject *o, QEvent *ev)
+{
+    if (o->isWidgetType()) {
+        auto widget = static_cast<QWidget*>(o);
+        switch(ev->type()) {
+        case QEvent::Wheel:
+            if (!widget->hasFocus()) {
+                ev->setAccepted(false);
+                return true;
+            }
+            break;
+        case QEvent::FocusIn:
+            widget->setFocusPolicy(Qt::WheelFocus);
+            break;
+        case QEvent::FocusOut:
+            widget->setFocusPolicy(Qt::StrongFocus);
+            break;
+        default:
+            break;
+        }
+    }
+    return QDialog::eventFilter(o, ev);
 }
 
 #include "moc_Clipping.cpp"
