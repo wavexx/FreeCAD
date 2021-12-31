@@ -656,7 +656,7 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
     this->rayPickAction.setResetClipPlane(false);
 
     this->rayPickAction.setPickBackFace(singlePick ? pickBackFace : 0);
-    if (singlePick && pickBackFace && ret.size()) {
+    if (singlePick && (ViewParams::hiddenLineSelectionOnTop() || pickBackFace) && ret.size()) {
         // Here means, we got some pick in the on top group. But user is
         // holding SHIFT for backface picking. Right now, we can't pick back
         // face beyond on top group yet. But we can pick other edge or vertex
@@ -695,8 +695,11 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
     if(singlePick && pickBackFace) {
         if(pickBackFace > 1 && this->rayPickAction.getBackFaceCount() < pickBackFace)
             pickBackFace = std::max(1, this->rayPickAction.getBackFaceCount());
-        else if (pickBackFace < 0 && this->rayPickAction.getBackFaceCount() < -pickBackFace)
-            pickBackFace = std::min(-1, -this->rayPickAction.getBackFaceCount());
+        else if (pickBackFace < -1 && this->rayPickAction.getBackFaceCount() < -pickBackFace+1) {
+            // Note pickBackFace == -1 is reserved for picking hidden
+            // edge/vertex. So we start from -2 for picking actual back face
+            pickBackFace = std::min(-2, -this->rayPickAction.getBackFaceCount()-1);
+        }
     }
 
     FC_TIME_TRACE(t,"pick radius " << radius << ", count " << ret.size() << ',');
@@ -1498,15 +1501,17 @@ SoFCUnifiedSelection::Private::handleEvent(SoHandleEventAction * action)
             if (shiftDown && event->wasCtrlDown()) {
                 auto wev = static_cast<const SoMouseWheelEvent*>(event);
                 if (wev->getDelta() > 0) {
-                    if(pickBackFace == 1)
-                        pickBackFace = -1;
-                    else
+                    if(pickBackFace == 1) {
+                        // Note pickBackFace == -1 is reserved for picking hidden
+                        // edge/vertex. So we start from -2 for picking actual back face
+                        pickBackFace = -2;
+                    } else
                         --pickBackFace;
                     doPick = true;
                     FC_LOG("back face forward " << pickBackFace << " " << wev->getDelta());
                     action->setHandled();
                 } else if (wev->getDelta() < 0) {
-                    if(pickBackFace == -1)
+                    if(pickBackFace == -2)
                         pickBackFace = 1;
                     else
                         ++pickBackFace;
