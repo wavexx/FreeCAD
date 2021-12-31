@@ -493,6 +493,7 @@ public:
     PreselectHighlight = 1,
     CheckIndices = 2,
     WholeOnTop = 4,
+    AltGroup = 8,
   };
   VertexCacheMap buildHighlightCache(SbFCMap<int, Gui::CoinPtr<SoFCVertexCache> > &sharedcache,
                                      int order,

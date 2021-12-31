@@ -651,6 +651,8 @@ SoFCRenderCacheManagerP::updateSelection(void * userdata, SoSensor * _sensor)
       flags |= SoFCRenderCache::CheckIndices;
     if (elentry.id > 0)
       flags |= SoFCRenderCache::WholeOnTop;
+    if (elentry.id & SoFCRenderer::SelIdAlt)
+      flags |= SoFCRenderCache::AltGroup;
     elentry.vcachemap = sensor->cache->buildHighlightCache(
         self->sharedcache, elentry.id, elentry.detail.get(), elentry.color, flags);
 
@@ -753,6 +755,8 @@ SoFCRenderCacheManager::addSelection(const std::string & key,
           flags |= SoFCRenderCache::CheckIndices;
         if (elentry.id > 0)
           flags |= SoFCRenderCache::WholeOnTop;
+        if (elentry.id & SoFCRenderer::SelIdAlt)
+          flags |= SoFCRenderCache::AltGroup;
         elentry.vcachemap = sensor->cache->buildHighlightCache(
             PRIVATE(this)->sharedcache, elentry.id, elentry.detail.get(), elentry.color, flags);
         PRIVATE(this)->renderer->addSelection(elentry.id, elentry.vcachemap);
@@ -787,6 +791,8 @@ SoFCRenderCacheManager::addSelection(const std::string & key,
       flags |= SoFCRenderCache::CheckIndices;
     if (elentry.id > 0)
       flags |= SoFCRenderCache::WholeOnTop;
+    if (elentry.id & SoFCRenderer::SelIdAlt)
+      flags |= SoFCRenderCache::AltGroup;
     elentry.vcachemap = sensor->cache->buildHighlightCache(
         PRIVATE(this)->sharedcache, elentry.id, elentry.detail.get(), elentry.color, flags);
     PRIVATE(this)->renderer->addSelection(elentry.id, elentry.vcachemap);

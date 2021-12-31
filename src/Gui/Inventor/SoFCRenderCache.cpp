@@ -1671,6 +1671,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
   VertexCacheMap res;
   uint32_t alpha = color & 0xff;
   color &= 0xffffff00;
+  uint32_t _color = color;
 
   bool checkindices = (flags & CheckIndices) ? true : false;
   bool wholeontop = (flags & WholeOnTop) ? true : false;
@@ -1733,6 +1734,8 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
     }
 
     for (auto & ventry : child.second) {
+      color = _color;
+
       bool elementselectable = ventry.cache->isElementSelectable()
         && child.first.selectstyle != Material::Unpickable;
 
@@ -1749,21 +1752,6 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
       material.order = order;
       material.depthfunc = SoDepthBuffer::LEQUAL;
 
-      if (color) {
-        if (order <= 0 && detail)
-            material.polygonoffsetstyle = 0;
-        if (material.type != Material::Triangle)
-          material.lightmodel = SoLazyElement::BASE_COLOR;
-        if (material.lightmodel != SoLazyElement::BASE_COLOR && detail) {
-          material.emissive = color | 0xff;
-          makeDistinctColor(material.emissive, material.emissive, material.diffuse);
-        } 
-        uint32_t c = material.diffuse;
-        material.diffuse = color | (material.diffuse & 0xff);
-        makeDistinctColor(material.diffuse, material.diffuse, c);
-        material.pervertexcolor = false;
-      }
-
       if (color && (material.selectstyle == Material::Box
                     || (ViewParams::getShowSelectionBoundingBox()
                         && (!detail || !preselect))
@@ -1774,6 +1762,8 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
         if (!bboxinited) {
           bboxinited = true;
           bboxmaterial = material;
+          uint32_t c = bboxmaterial.diffuse;
+          bboxmaterial.diffuse = color | (bboxmaterial.diffuse & 0xff);
         }
         const SbMatrix *matrix = ventry.identity ? nullptr : &ventry.matrix;
         switch(material.type) {
@@ -1799,7 +1789,24 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
             ventry.cache->getTrianglesBoundingBox(matrix, bbox);
           break;
         }
-        continue;
+        if (!(flags & SoFCRenderCache::AltGroup))
+          continue;
+        color = 0;
+      }
+
+      if (color) {
+        if (order <= 0 && detail)
+            material.polygonoffsetstyle = 0;
+        if (material.type != Material::Triangle)
+          material.lightmodel = SoLazyElement::BASE_COLOR;
+        if (material.lightmodel != SoLazyElement::BASE_COLOR && detail) {
+          material.emissive = color | 0xff;
+          makeDistinctColor(material.emissive, material.emissive, material.diffuse);
+        } 
+        uint32_t c = material.diffuse;
+        material.diffuse = color | (material.diffuse & 0xff);
+        makeDistinctColor(material.diffuse, material.diffuse, c);
+        material.pervertexcolor = false;
       }
 
       VertexCacheEntry newentry(ventry);
@@ -2024,12 +2031,15 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
     }
   }
 
+  color = _color;
+
   FC_TRACE("highlight cache " << res.size() << " materials, "
         << entrycount << " entries, "
         << mergecount << " merged caches, "
         << PRIVATE(this)->facecount << " faces");
 
-  if (!bbox.isEmpty() && res.empty()) {
+  // if (!bbox.isEmpty() && res.empty()) {
+  if (!bbox.isEmpty()) {
     SbVec3f unitsize(1.f, 1.f, 1.f);
     auto size = bbox.getSize();
     int cacheid = 0;
