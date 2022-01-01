@@ -4153,6 +4153,19 @@ VIEW_CMD_DEF(PreselEdgeOnly, ShowHighlightEdgeOnly)
 }
 
 //======================================================================
+// Std_HiddenLineSelectionOnTop
+//======================================================================
+VIEW_CMD_DEF(HiddenLineSelectionOnTop, HiddenLineSelectionOnTop)
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Hidden line select on top");
+  sToolTipText  = ViewParams::docHiddenLineSelectionOnTop();
+  sWhatsThis    = "Std_HiddenLineSelectionOnTop";
+  sStatusTip    = sToolTipText;
+  eType         = Alter3DView;
+}
+
+//======================================================================
 // Std_MapChildrenPlacement
 //======================================================================
 VIEW_CMD_DEF(MapChildrenPlacement, MapChildrenPlacement)
@@ -4206,7 +4219,8 @@ public:
         addCommand(new StdCmdPartialHighlightOnFullSelect());
         // addCommand(new StdCmdSelectionFaceWire());
         addCommand(new StdCmdAutoTransparentPick());
-        addCommand(new StdCmdPreselEdgeOnly());
+        // addCommand(new StdCmdPreselEdgeOnly());
+        addCommand(new StdCmdHiddenLineSelectionOnTop()); 
         addCommand("Std_TreePreSelection");
         addCommand(new StdCmd3DViewPreselection());
         addCommand(new StdCmdSelHierarchyAscend());
