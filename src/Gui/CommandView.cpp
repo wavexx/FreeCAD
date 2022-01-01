@@ -4166,6 +4166,19 @@ VIEW_CMD_DEF(HiddenLineSelectionOnTop, HiddenLineSelectionOnTop)
 }
 
 //======================================================================
+// Std_OverrideSelectability
+//======================================================================
+VIEW_CMD_DEF(OverrideSelectability, OverrideSelectability)
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Override selectability");
+  sToolTipText  = ViewParams::docOverrideSelectability();
+  sWhatsThis    = "Std_OverrideSelectability";
+  sStatusTip    = sToolTipText;
+  eType         = NoDefaultAction;
+}
+
+//======================================================================
 // Std_MapChildrenPlacement
 //======================================================================
 VIEW_CMD_DEF(MapChildrenPlacement, MapChildrenPlacement)
@@ -4221,6 +4234,7 @@ public:
         addCommand(new StdCmdAutoTransparentPick());
         // addCommand(new StdCmdPreselEdgeOnly());
         addCommand(new StdCmdHiddenLineSelectionOnTop()); 
+        addCommand(new StdCmdOverrideSelectability()); 
         addCommand("Std_TreePreSelection");
         addCommand(new StdCmd3DViewPreselection());
         addCommand(new StdCmdSelHierarchyAscend());

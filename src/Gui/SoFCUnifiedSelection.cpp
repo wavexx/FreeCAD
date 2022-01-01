@@ -488,7 +488,8 @@ SoFCUnifiedSelection::Private::getPickedInfo(std::vector<PickedInfo> &ret,
         info.vpd = static_cast<ViewProviderDocumentObject*>(vp);
         if(!(master->useNewSelection.getValue()
                 || info.vpd->useNewSelectionModel())
-            || !info.vpd->isSelectable())
+            || (!info.vpd->isSelectable()
+                && !ViewParams::OverrideSelectability()))
         {
             if(!singlePick) continue;
             if(ret.empty()) {
@@ -935,7 +936,8 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
             App::DocumentObject* obj = doc->getObject(hilaction->SelChange->pObjectName);
             ViewProvider*vp = Application::Instance->getViewProvider(obj);
             if (vp && vp->isDerivedFrom(ViewProviderDocumentObject::getClassTypeId()) &&
-                (master->useNewSelection.getValue()||vp->useNewSelectionModel()) && vp->isSelectable())
+                (master->useNewSelection.getValue()||vp->useNewSelectionModel())
+                && (vp->isSelectable() || ViewParams::OverrideSelectability()))
             {
                 detailPath->truncate(0);
                 SoDetail *det = 0;
@@ -969,7 +971,9 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
             App::Document* doc = App::GetApplication().getDocument(selaction->SelChange->pDocName);
             App::DocumentObject* obj = doc->getObject(selaction->SelChange->pObjectName);
             ViewProvider*vp = Application::Instance->getViewProvider(obj);
-            if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel()) && vp->isSelectable()) {
+            if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel())
+                   && (vp->isSelectable() || ViewParams::OverrideSelectability()))
+            {
                 SoDetail *detail = nullptr;
                 detailPath->truncate(0);
                 if (useRenderer()) {
@@ -1064,7 +1068,8 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 ViewProviderDocumentObject* vpd = static_cast<ViewProviderDocumentObject*>(*it);
                 if (master->useNewSelection.getValue() || vpd->useNewSelectionModel()) {
                     SoSelectionElementAction::Type type;
-                    if(Selection().isSelected(vpd->getObject()) && vpd->isSelectable())
+                    if(Selection().isSelected(vpd->getObject())
+                            && (vpd->isSelectable() || ViewParams::OverrideSelectability()))
                         type = SoSelectionElementAction::All;
                     else
                         type = SoSelectionElementAction::None;
@@ -2723,7 +2728,8 @@ void SoFCSelectionRoot::pick(SoPickAction * action) {
 }
 
 void SoFCSelectionRoot::rayPick(SoRayPickAction * action) {
-    if(selectionStyle.getValue() == Unpickable)
+    if(!ViewParams::OverrideSelectability()
+            && selectionStyle.getValue() == Unpickable)
         return;
     auto stack = beginAction(action);
     if (!stack)
@@ -2794,7 +2800,8 @@ void SoFCSelectionRoot::callback(SoCallbackAction *action) {
 }
 
 void SoFCSelectionRoot::doAction(SoAction *action) {
-    if(selectionStyle.getValue() == Unpickable
+    if(!ViewParams::OverrideSelectability()
+            && selectionStyle.getValue() == Unpickable
             && action->getCurPathCode() != SoAction::IN_PATH)
     {
         if(action->isOfType(SoSelectionElementAction::getClassTypeId())

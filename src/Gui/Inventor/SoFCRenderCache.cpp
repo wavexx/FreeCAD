@@ -1712,7 +1712,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
       // 'wholeontop' and there is some highlight detail, it means we are
       // highlighting some sub-element of a shape node.
 
-      if (child.first.selectstyle == Material::Unpickable) {
+      if (child.first.selectstyle == Material::Unpickable && !ViewParams::OverrideSelectability) {
         // Either the parent is not selectable, or the shape is not
         // sub-element selectable (checked in the loop below).
         continue;
@@ -1762,7 +1762,6 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
         if (!bboxinited) {
           bboxinited = true;
           bboxmaterial = material;
-          uint32_t c = bboxmaterial.diffuse;
           bboxmaterial.diffuse = color | (bboxmaterial.diffuse & 0xff);
         }
         const SbMatrix *matrix = ventry.identity ? nullptr : &ventry.matrix;
