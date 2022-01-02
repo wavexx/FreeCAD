@@ -183,9 +183,7 @@ public:
   int curdepth = 0;
 
   Material material;
-  uint32_t facecolor;
-  uint32_t hiddenlinecolor;
-  float facetransp;
+  Material basematerial;
   bool resetmatrix;
   bool resetclip = false;
 
@@ -294,7 +292,7 @@ getOverrideFlags(SoState * state)
 }
 
 void
-SoFCRenderCache::Material::init(SoState * state)
+SoFCRenderCache::_Material::init(SoState * state)
 {
   this->resetclip = false;
   this->depthtest = true;
@@ -304,7 +302,8 @@ SoFCRenderCache::Material::init(SoState * state)
   this->order = 0;
   this->annotation = 0;
   this->diffuse = 0xff;
-  this->hiddenlinecolor = 0;
+  this->facecolor = 0;
+  this->linecolor = 0;
   this->ambient = 0xff;
   this->emissive = 0xff;
   this->specular = 0xff;
@@ -678,9 +677,6 @@ SoFCRenderCacheP::mergeMaterial(const SbMatrix &matrix,
   if (res.selectstyle != Material::Box && res.selectstyle != Material::Unpickable)
     res.selectstyle = parent.selectstyle;
 
-  if (parent.hiddenlinecolor)
-    res.hiddenlinecolor = parent.hiddenlinecolor;
-
   res.outline |= parent.outline;
 
   auto mergeNodeInfo = [&](SoFCRenderCache::NodeInfoArray &thisarray,
@@ -742,6 +738,23 @@ SoFCRenderCacheP::mergeMaterial(const SbMatrix &matrix,
     res.diffuse &= 0xffffff00;
     res.diffuse |= parent.diffuse & 0xff;
     res.maskflags.set(Material::FLAG_TRANSPARENCY);
+  }
+
+  if (canSetMaterial(res, parent, Material::FLAG_LINE_COLOR, Material::FLAG_LINE_COLOR)) {
+    res.linecolor = parent.linecolor;
+    res.maskflags.set(Material::FLAG_LINE_COLOR);
+  }
+
+  if (canSetMaterial(res, parent, Material::FLAG_FACE_COLOR, Material::FLAG_FACE_COLOR)) {
+    res.facecolor &= 0xff;
+    res.facecolor |= parent.facecolor & 0xffffff00;
+    res.maskflags.set(Material::FLAG_FACE_COLOR);
+  }
+
+  if (canSetMaterial(res, parent, Material::FLAG_FACE_TRANSPARENCY, Material::FLAG_FACE_TRANSPARENCY)) {
+    res.facecolor &= 0xffffff00;
+    res.facecolor |= parent.facecolor & 0xff;
+    res.maskflags.set(Material::FLAG_FACE_TRANSPARENCY);
   }
 
   if (res.type == Material::Line || res.outline) {
@@ -850,9 +863,6 @@ SoFCRenderCache::open(SoState *state, int selectstyle, bool initmaterial)
     PRIVATE(this)->selnode->setupColorOverride(state, true);
   }
 
-  PRIVATE(this)->facecolor = 0;
-  PRIVATE(this)->hiddenlinecolor = 0;
-  PRIVATE(this)->facetransp = -1.f;
   PRIVATE(this)->material.init(initmaterial ? state : nullptr);
   PRIVATE(this)->material.selectstyle = selectstyle;
 
@@ -863,14 +873,6 @@ SoFCRenderCache::open(SoState *state, int selectstyle, bool initmaterial)
   if (initmaterial && SoFCDisplayModeElement::showHiddenLines(state, &outline)) {
     PRIVATE(this)->material.outline = outline;
     PRIVATE(this)->material.linewidth = SoLineWidthElement::get(state);
-
-    PRIVATE(this)->facetransp = SoFCDisplayModeElement::getTransparency(state);
-    const SbColor * color = SoFCDisplayModeElement::getFaceColor(state);
-    if (color)
-      PRIVATE(this)->facecolor = color->getPackedValue(0.f);
-    color = SoFCDisplayModeElement::getLineColor(state);
-    if (color)
-      PRIVATE(this)->hiddenlinecolor = color->getPackedValue(0.f);
   }
 
   // Call SoState::getElement() here to force create SoOverrideElement at the
@@ -949,6 +951,36 @@ SoFCRenderCache::open(SoState *state, int selectstyle, bool initmaterial)
   PRIVATE(this)->shapehintselement = constElement<SoShapeHintsElement>(state);
 
   PRIVATE(this)->resetmatrix = false;
+
+  float transp = SoFCDisplayModeElement::getTransparency(state);
+  if (transp >= 0.f && !PRIVATE(this)->material.overrideflags.test(Material::FLAG_FACE_TRANSPARENCY)) {
+    PRIVATE(this)->material.facecolor &= ~0xff;
+    SbColor color(0,0,0);
+    PRIVATE(this)->material.facecolor |= color.getPackedValue(transp);
+    PRIVATE(this)->material.maskflags.set(Material::FLAG_FACE_TRANSPARENCY);
+    if (outline)
+      PRIVATE(this)->material.overrideflags.set(Material::FLAG_FACE_TRANSPARENCY);
+  }
+  if (auto color = SoFCDisplayModeElement::getFaceColor(state)) {
+    if (!PRIVATE(this)->material.overrideflags.test(Material::FLAG_FACE_COLOR)) {
+      PRIVATE(this)->material.facecolor &= 0xff;
+      PRIVATE(this)->material.facecolor |= color->getPackedValue(1.f);
+      PRIVATE(this)->material.maskflags.set(Material::FLAG_FACE_COLOR);
+      if (outline)
+        PRIVATE(this)->material.overrideflags.set(Material::FLAG_FACE_COLOR);
+    }
+  }
+  if (auto color = SoFCDisplayModeElement::getLineColor(state)) {
+    if (!PRIVATE(this)->material.overrideflags.test(Material::FLAG_LINE_COLOR)) {
+      PRIVATE(this)->material.linecolor = color->getPackedValue(0.f);
+      PRIVATE(this)->material.maskflags.set(Material::FLAG_LINE_COLOR);
+      if (outline)
+        PRIVATE(this)->material.overrideflags.set(Material::FLAG_LINE_COLOR);
+    }
+  }
+
+  if (PRIVATE(this)->curdepth)
+    PRIVATE(this)->basematerial = PRIVATE(this)->material;
 }
 
 void
@@ -992,6 +1024,7 @@ SoFCRenderCacheP::checkState(SoState *state)
   int depth = state->getDepth();
   if (!this->curdepth) {
     this->curdepth = depth;
+    this->basematerial = this->material;
     return;
   }
   if (depth == this->curdepth)
@@ -1003,7 +1036,7 @@ SoFCRenderCacheP::checkState(SoState *state)
     this->curdepth = depth;
   }
   else if (this->mstack->empty()) {
-    this->material.init();
+    this->material = this->basematerial;
     this->curdepth = 0;
   }
   else {
@@ -1251,25 +1284,18 @@ SoFCRenderCacheP::finalizeMaterial(Material & material)
     material.pervertexcolor = false;
 
   if (material.type == Material::Triangle) {
-    if (this->facecolor) {
+    if (material.maskflags.test(Material::FLAG_FACE_COLOR)) {
       material.pervertexcolor = false;
-      material.diffuse = this->facecolor | (material.diffuse & 0xff);
-      material.overrideflags.set(Material::FLAG_DIFFUSE);
+      material.diffuse = (material.facecolor & ~0xff) | (material.diffuse & 0xff);
     }
-    if (this->facetransp >= 0.f && this->facetransp <= 1.f) {
+    if (material.maskflags.test(Material::FLAG_FACE_TRANSPARENCY)) {
       uint8_t alpha = static_cast<uint8_t>(
-          std::max(std::min(1.f-this->facetransp, 1.f), 0.f) * 255.f);
+          std::max(std::min(255 - int(material.facecolor & 0xff), 255), 0) * 255.f);
       material.diffuse = (material.diffuse & ~0xff) | alpha;
-      material.overrideflags.set(Material::FLAG_TRANSPARENCY);
     }
-  }
-
-  if (this->hiddenlinecolor) {
-    material.hiddenlinecolor = this->hiddenlinecolor;
-    if (material.type != Material::Triangle) {
-      material.pervertexcolor = false;
-      material.diffuse = material.hiddenlinecolor;
-    }
+  } else if (material.linecolor) {
+    material.pervertexcolor = false;
+    material.diffuse = material.linecolor;
   }
 
   // if (material.pervertexcolor && material.maskflags.test(Material::FLAG_TRANSPARENCY))
