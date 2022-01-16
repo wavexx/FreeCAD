@@ -181,7 +181,7 @@ void DocumentObjectT::operator=(const DocumentObject* obj)
 }
 
 void DocumentObjectT::operator=(const Property *prop) {
-    if(prop && prop->getName() && prop->getContainer()) {
+    if(prop && prop->hasName() && prop->getContainer()) {
         if (prop->getContainer()->isDerivedFrom(App::DocumentObject::getClassTypeId())) {
             auto obj = static_cast<App::DocumentObject*>(prop->getContainer());
             object = obj->getNameInDocument();

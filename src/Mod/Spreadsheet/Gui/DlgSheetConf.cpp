@@ -140,7 +140,7 @@ App::Property *DlgSheetConf::prepare(CellAddress &from, CellAddress &to,
     if(vexpr) {
         auto prop = Base::freecad_dynamic_cast<PropertyEnumeration>(
                             vexpr->getPath().getProperty());
-        if(prop && prop->getName()) {
+        if(prop && prop->hasName()) {
             auto obj = Base::freecad_dynamic_cast<DocumentObject>(prop->getContainer());
             if(obj) {
                 path = ObjectIdentifier(sheet);
@@ -276,7 +276,7 @@ void DlgSheetConf::onDiscard() {
 
         Gui::cmdAppObjectArgs(sheet, "clear('%s')", from.toString(true));
 
-        if(prop && prop->getName()) {
+        if(prop && prop->hasName()) {
             auto obj = path.getDocumentObject();
             if(!obj)
                 FC_THROWM(Base::RuntimeError, "Object not found");
