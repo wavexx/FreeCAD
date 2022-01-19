@@ -3179,7 +3179,7 @@ void ViewProviderSketch::updateColor(void)
         vcount = (edit->CurveSet->numVertices[i]);
 
         bool selected = (edit->SelCurveMap.find(GeoId) != edit->SelCurveMap.end());
-        bool preselected = (edit->PreselectCurve == GeoId);
+        bool preselected = (edit->DragCurve == -1 && edit->PreselectCurve == GeoId) || edit->DragCurve == GeoId;
 
         bool constrainedElement = isFullyConstraintElement(sketch, GeoId);
 
@@ -3457,8 +3457,8 @@ void ViewProviderSketch::updateColor(void)
         pverts[0][2] = zdir*zHighlight;
     } else
         pverts[0][2] = zdir*zRootPoint;
-    if (edit->PreselectPoint != -1) {
-        int PtId = edit->PreselectPoint + 1;
+    if (edit->PreselectPoint != -1 || edit->DragPoint != -1) {
+        int PtId = (edit->DragPoint >= 0 ? edit->DragPoint : edit->PreselectPoint) + 1;
         if (PtId && PtId <= (int)edit->VertexIdToPointId.size())
             PtId = edit->VertexIdToPointId[PtId-1];
         if (PtId < PtNum) {
@@ -6471,10 +6471,13 @@ Restart:
     }
 
     // Avoids unneeded calls to pixmapFromSvg
-    if(_Mode==STATUS_NONE || _Mode==STATUS_SKETCH_UseHandler) {
+    if(_Mode==STATUS_NONE || _Mode==STATUS_SKETCH_UseHandler)
        this->drawConstraintIcons();
+
+    if(_Mode==STATUS_NONE || _Mode==STATUS_SKETCH_UseHandler
+                          || _Mode==STATUS_SKETCH_DragCurve
+                          || _Mode==STATUS_SKETCH_DragPoint)
        this->updateColor();
-    }
 
     // delete the cloned objects
     if (temp) {
