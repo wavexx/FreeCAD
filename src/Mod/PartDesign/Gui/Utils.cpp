@@ -1020,9 +1020,7 @@ public:
             if (view) {
                 for (auto &v : onTopUserObjs) {
                     const App::SubObjectT &objT = v.first;
-                    bool ontop = view->getViewer()->isInGroupOnTop(
-                                objT.getObjectName().c_str(),
-                                objT.getSubName().c_str());
+                    bool ontop = view->getViewer()->isInGroupOnTop(objT);
                     if (v.second == ontop)
                         continue;
                     view->getViewer()->checkGroupOnTop(
@@ -1220,8 +1218,7 @@ public:
             break;
         }
 
-        bool ontop = view->getViewer()->isInGroupOnTop(
-                objT.getObjectName().c_str(), objT.getSubName().c_str());
+        bool ontop = view->getViewer()->isInGroupOnTop(objT);
         onTopUserObjs.emplace(objT, ontop);
         bool enable = mode == OnTopShow;
         if (ontop != enable) {
@@ -1229,9 +1226,7 @@ public:
                 Gui::SelectionChanges(
                     enable ? Gui::SelectionChanges::AddSelection
                            : Gui::SelectionChanges::RmvSelection,
-                    objT.getDocumentName().c_str(),
-                    objT.getObjectName().c_str(),
-                    objT.getSubName().c_str()), true);
+                    objT), true);
         }
     }
 
