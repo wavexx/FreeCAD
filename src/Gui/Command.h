@@ -658,6 +658,8 @@ public:
 
     virtual void refreshIcon();
 
+    virtual void updateAction(int mode);
+
 protected:
     virtual void activated(int iMsg);
     virtual Gui::Action * createAction(void);
@@ -960,6 +962,7 @@ private:
     void clearCommands();
     std::map<std::string, Command*> _sCommands;
     std::map<std::string, std::list<std::string> > _sCommandModes;
+    std::map<std::string, int> _sCurrentCommandModes;
 
     typedef std::multimap<std::string, CallbackFunction> CallbackMap;
     CallbackMap _CallbackMap;

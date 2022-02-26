@@ -1124,12 +1124,21 @@ void GroupCommand::setup(Action *pcAction) {
 void GroupCommand::refreshIcon()
 {
     if (_pcAction) {
-        for (auto &v : cmds) {
+        for (const auto &v : cmds) {
             if (v.first)
                 v.first->refreshIcon();
         }
         setup(_pcAction);
     }
+}
+
+void GroupCommand::updateAction(int mode)
+{
+    for (const auto &v : cmds) {
+        if (v.first)
+            v.first->updateAction(mode);
+    }
+    setup(_pcAction);
 }
 
 //===========================================================================
@@ -2152,6 +2161,8 @@ std::vector <Command*> CommandManager::getAllCommands(void) const
 
 void CommandManager::refreshIcons()
 {
+    for (const auto &v : _sCurrentCommandModes)
+        updateCommands(v.first.c_str(), v.second);
     for (auto &v : _sCommands)
         v.second->refreshIcon();
 }
@@ -2217,6 +2228,7 @@ void CommandManager::addCommandMode(const char* sContext, const char* sName)
 
 void CommandManager::updateCommands(const char* sContext, int mode)
 {
+    _sCurrentCommandModes[sContext] = mode;
     std::map<std::string, std::list<std::string> >::iterator it = _sCommandModes.find(sContext);
     if (it != _sCommandModes.end()) {
         for (std::list<std::string>::iterator jt = it->second.begin(); jt != it->second.end(); ++jt) {
