@@ -247,11 +247,6 @@ public:
      */
     Action*  getAction() const;
 
-    /// Override shortcut of this command
-    virtual void setShortcut (const QString &);
-    /// Obtain the current shortcut of this command
-    virtual QString getShortcut() const;
-
     /** @name Methods to override when creating a new command */
     //@{
 protected:
@@ -582,6 +577,11 @@ public:
     //@}
 
     virtual void refreshIcon();
+
+    /// Override shortcut of this command
+    virtual void setShortcut (const QString &);
+    /// Obtain the current shortcut of this command
+    virtual QString getShortcut() const;
 
     /** @name arbitrary helper methods */
     //@{
