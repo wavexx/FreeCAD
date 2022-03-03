@@ -65,7 +65,7 @@ void ViewProviderSavedView::setupContextMenu(QMenu *menu, QObject*, const char*)
 
 QString propertyName(const App::Property &prop)
 {
-    QString name = QString::fromLatin1(prop.getName() ? prop.getName() : "?");
+    QString name = QString::fromUtf8(prop.getName() ? prop.getName() : "?");
     QString display;
     bool upper = false;
     for (int i=0; i<name.length(); i++) {

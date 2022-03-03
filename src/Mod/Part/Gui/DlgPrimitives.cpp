@@ -109,13 +109,13 @@ void Picker::createPrimitive(QWidget* widget, const QString& descr, Gui::Documen
 
         // Execute the Python block
         doc->openCommand(descr.toUtf8());
-        Gui::Command::runCommand(Gui::Command::Doc, cmd.toLatin1());
+        Gui::Command::runCommand(Gui::Command::Doc, cmd.toUtf8());
         doc->commitCommand();
         Gui::Command::runCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");
         Gui::Command::runCommand(Gui::Command::Gui, "Gui.SendMsgToActiveView(\"ViewFit\")");
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(widget, descr, QString::fromLatin1(e.what()));
+        QMessageBox::warning(widget, descr, QString::fromUtf8(e.what()));
     }
 }
 
@@ -136,7 +136,7 @@ QString Picker::toPlacement(const gp_Ax2& axis) const
     Base::Rotation rot(Base::convertTo<Base::Vector3d>(theAxis), theAngle);
     gp_Pnt loc = axis.Location();
 
-    return QString::fromLatin1("Base.Placement(Base.Vector(%1,%2,%3),Base.Rotation(%4,%5,%6,%7))")
+    return QStringLiteral("Base.Placement(Base.Vector(%1,%2,%3),Base.Rotation(%4,%5,%6,%7))")
         .arg(loc.X(),0,'g',Base::UnitsApi::getDecimals())
         .arg(loc.Y(),0,'g',Base::UnitsApi::getDecimals())
         .arg(loc.Z(),0,'g',Base::UnitsApi::getDecimals())
@@ -167,7 +167,7 @@ public:
         Handle(Geom_Circle) circle = Handle(Geom_Circle)::DownCast(trim->BasisCurve());
 
         QString name = QString::fromLatin1(doc->getUniqueObjectName("Circle").c_str());
-        return QString::fromLatin1(
+        return QStringLiteral(
             "App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
             "App.ActiveDocument.%1.Radius=%2\n"
             "App.ActiveDocument.%1.Angle0=%3\n"
@@ -713,7 +713,7 @@ void DlgPrimitives::on_buttonCircleFromThreePoints_clicked()
 
 QString DlgPrimitives::createPlane(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Plane\",\"%1\")\n"
         "App.ActiveDocument.%1.Length=%2\n"
         "App.ActiveDocument.%1.Width=%3\n"
@@ -728,7 +728,7 @@ QString DlgPrimitives::createPlane(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::createBox(const QString& objectName, const QString& placement) const
 {
-   return QString::fromLatin1(
+   return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Box\",\"%1\")\n"
         "App.ActiveDocument.%1.Length=%2\n"
         "App.ActiveDocument.%1.Width=%3\n"
@@ -745,7 +745,7 @@ QString DlgPrimitives::createBox(const QString& objectName, const QString& place
 
 QString DlgPrimitives::createCylinder(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Cylinder\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius=%2\n"
         "App.ActiveDocument.%1.Height=%3\n"
@@ -766,7 +766,7 @@ QString DlgPrimitives::createCylinder(const QString& objectName, const QString& 
 
 QString DlgPrimitives::createCone(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Cone\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius1=%2\n"
         "App.ActiveDocument.%1.Radius2=%3\n"
@@ -785,7 +785,7 @@ QString DlgPrimitives::createCone(const QString& objectName, const QString& plac
 
 QString DlgPrimitives::createSphere(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Sphere\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius=%2\n"
         "App.ActiveDocument.%1.Angle1=%3\n"
@@ -804,7 +804,7 @@ QString DlgPrimitives::createSphere(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::createEllipsoid(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Ellipsoid\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius1=%2\n"
         "App.ActiveDocument.%1.Radius2=%3\n"
@@ -827,7 +827,7 @@ QString DlgPrimitives::createEllipsoid(const QString& objectName, const QString&
 
 QString DlgPrimitives::createTorus(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Torus\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius1=%2\n"
         "App.ActiveDocument.%1.Radius2=%3\n"
@@ -848,7 +848,7 @@ QString DlgPrimitives::createTorus(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::createPrism(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Prism\",\"%1\")\n"
         "App.ActiveDocument.%1.Polygon=%2\n"
         "App.ActiveDocument.%1.Circumradius=%3\n"
@@ -869,7 +869,7 @@ QString DlgPrimitives::createPrism(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::createWedge(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Wedge\",\"%1\")\n"
         "App.ActiveDocument.%1.Xmin=%2\n"
         "App.ActiveDocument.%1.Ymin=%3\n"
@@ -900,7 +900,7 @@ QString DlgPrimitives::createWedge(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::createHelix(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Helix\",\"%1\")\n"
         "App.ActiveDocument.%1.Pitch=%2\n"
         "App.ActiveDocument.%1.Height=%3\n"
@@ -922,7 +922,7 @@ QString DlgPrimitives::createHelix(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::createSpiral(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Spiral\",\"%1\")\n"
         "App.ActiveDocument.%1.Growth=%2\n"
         "App.ActiveDocument.%1.Rotations=%3\n"
@@ -939,7 +939,7 @@ QString DlgPrimitives::createSpiral(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::createCircle(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
         "App.ActiveDocument.%1.Radius=%2\n"
         "App.ActiveDocument.%1.Angle0=%3\n"
@@ -956,7 +956,7 @@ QString DlgPrimitives::createCircle(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::createEllipse(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Ellipse\",\"%1\")\n"
         "App.ActiveDocument.%1.MajorRadius=%2\n"
         "App.ActiveDocument.%1.MinorRadius=%3\n"
@@ -975,7 +975,7 @@ QString DlgPrimitives::createEllipse(const QString& objectName, const QString& p
 
 QString DlgPrimitives::createVertex(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Vertex\",\"%1\")\n"
         "App.ActiveDocument.%1.X=%2\n"
         "App.ActiveDocument.%1.Y=%3\n"
@@ -992,7 +992,7 @@ QString DlgPrimitives::createVertex(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::createLine(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::Line\",\"%1\")\n"
         "App.ActiveDocument.%1.X1=%2\n"
         "App.ActiveDocument.%1.Y1=%3\n"
@@ -1015,7 +1015,7 @@ QString DlgPrimitives::createLine(const QString& objectName, const QString& plac
 
 QString DlgPrimitives::createRegularPolygon(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "App.ActiveDocument.addObject(\"Part::RegularPolygon\",\"%1\")\n"
         "App.ActiveDocument.%1.Polygon=%2\n"
         "App.ActiveDocument.%1.Circumradius=%3\n"
@@ -1113,7 +1113,7 @@ void DlgPrimitives::createPrimitive(const QString& placement)
     }
     catch (const Base::PyException& e) {
         QMessageBox::warning(this, tr("Create %1")
-            .arg(ui->PrimitiveTypeCB->currentText()), QString::fromLatin1(e.what()));
+            .arg(ui->PrimitiveTypeCB->currentText()), QString::fromUtf8(e.what()));
     }
 }
 
@@ -1388,9 +1388,9 @@ void DlgPrimitives::accept(const QString& placement)
     QString command;
     App::Document* doc = featurePtr->getDocument();
     Base::Type type = featurePtr->getTypeId();
-    QString objectName = QString::fromLatin1("App.getDocument(\"%1\").%2")
-                         .arg(QString::fromLatin1(doc->getName()))
-                         .arg(QString::fromLatin1(featurePtr->getNameInDocument()));
+    QString objectName = QStringLiteral("App.getDocument(\"%1\").%2")
+                         .arg(QString::fromUtf8(doc->getName()))
+                         .arg(QString::fromUtf8(featurePtr->getNameInDocument()));
 
     // read values from the properties
     if (type == Part::Plane::getClassTypeId()) {
@@ -1443,7 +1443,7 @@ void DlgPrimitives::accept(const QString& placement)
     }
 
     // execute command, a transaction is already opened
-    Gui::Command::runCommand(Gui::Command::App, command.toLatin1());
+    Gui::Command::runCommand(Gui::Command::App, command.toUtf8());
     doc->recompute();
     // commit undo command
     doc->commitTransaction();
@@ -1991,7 +1991,7 @@ QString Location::toPlacement() const
     loc.y = ui->YPositionQSB->rawValue();
     loc.z = ui->ZPositionQSB->rawValue();
 
-    return QString::fromLatin1("App.Placement(App.Vector(%1,%2,%3),App.Rotation(App.Vector(%4,%5,%6),%7))")
+    return QStringLiteral("App.Placement(App.Vector(%1,%2,%3),App.Rotation(App.Vector(%4,%5,%6),%7))")
         .arg(loc.x, 0, 'f', Base::UnitsApi::getDecimals())
         .arg(loc.y, 0, 'f', Base::UnitsApi::getDecimals())
         .arg(loc.z, 0, 'f', Base::UnitsApi::getDecimals())

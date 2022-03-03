@@ -330,8 +330,19 @@ void SheetView::confirmAliasChanged(const QString& text)
     }
 
     QModelIndex i = ui->cells->currentIndex();
-    if (const auto* cell = sheet->getCell(CellAddress(i.row(), i.column()))) {
-        std::string address = CellAddress(i.row(), i.column()).toString();
+    CellAddress addr(i.row(), i.column());
+
+    const auto* cell = sheet->getCell(addr);
+    if (text.size() && !cell) {
+        if (!aliasOkay) {
+            Base::Console().Error("Unable to set alias: %s\n", Base::Tools::toStdString(text).c_str());
+            return;
+        }
+        cell = sheet->getNewCell(addr);
+    }
+
+    if (cell) {
+        std::string address = addr.toString();
         std::string current_alias;
         (void)cell->getAlias(current_alias);
         if (!aliasOkay) {
