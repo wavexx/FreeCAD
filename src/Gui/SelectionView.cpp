@@ -203,7 +203,6 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
 
     QString selObject;
     QTextStream str(&selObject);
-    str.setCodec("UTF-8");
     if (Reason.Type == SelectionChanges::AddSelection) {
         addItem(selectionView, Reason.Object);
     }
@@ -213,7 +212,7 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
             selectionView->clear();
         }else{
             // build name
-            str << Reason.pDocName;
+            str << QString::fromUtf8(Reason.pDocName);
             str << "#";
             // remove all items
             for(auto item : selectionView->findItems(selObject,Qt::MatchStartsWith,PathIndex))
@@ -222,7 +221,9 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
     }
     else if (Reason.Type == SelectionChanges::RmvSelection) {
         // build name
-        str << Reason.pDocName << "#" << Reason.pObjectName << "." << Reason.pSubName;
+        str << QString::fromUtf8(Reason.pDocName) << "#"
+            << QString::fromUtf8(Reason.pObjectName) << "."
+            << QString::fromUtf8(Reason.pSubName);
 
         // remove all items
         for(auto item : selectionView->findItems(selObject,Qt::MatchExactly,PathIndex))
