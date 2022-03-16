@@ -1817,6 +1817,12 @@ void PythonGroupCommand::languageChange()
     if (!_pcAction)
         return;
 
+    {
+        Base::PyGILStateLocker lock;
+        Py_DECREF(_pcPyResource);
+        _pcPyResource = Interpreter().runMethodObject(_pcPyCommand, "GetResources");
+    }
+
     applyCommandData(this->getName(), _pcAction);
 
     Gui::CommandManager &rcCmdMgr = Gui::Application::Instance->commandManager();
