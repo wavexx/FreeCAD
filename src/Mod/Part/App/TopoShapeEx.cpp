@@ -1875,8 +1875,8 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
     BRepFeat_MakePrism PrismMaker;
 
     TopoShape _uptoface(__uptoface);
-    if (_uptoface.shapeType(true) == TopAbs_FACE
-            && !BRep_Tool::NaturalRestriction(TopoDS::Face(_uptoface.getShape()))) {
+    if (checkLimits && _uptoface.shapeType(true) == TopAbs_FACE
+                    && !BRep_Tool::NaturalRestriction(TopoDS::Face(_uptoface.getShape()))) {
         // When using the face with BRepFeat_MakePrism::Perform(const TopoDS_Shape& Until)
         // then the algorithm expects that the 'NaturalRestriction' flag is set in order
         // to work as expected.
