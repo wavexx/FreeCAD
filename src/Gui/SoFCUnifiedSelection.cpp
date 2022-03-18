@@ -210,8 +210,8 @@ public:
 
     uint32_t getSelectionColor() const {
         float t = 0.f;
-        if (ViewParams::ShowSelectionOnTop())
-            t = ViewParams::TransparencyOnTop();
+        if (ViewParams::getShowSelectionOnTop())
+            t = ViewParams::getTransparencyOnTop();
         return master->colorSelection.getValue().getPackedValue(t);
     }
 
@@ -323,7 +323,7 @@ SoFCUnifiedSelection::SoFCUnifiedSelection()
     this->boundingBoxCaching = ViewParams::isUsingRenderer() ?
         SoSeparator::OFF : SoSeparator::ON;
 
-    this->useNewSelection = ViewParams::UseNewSelection();
+    this->useNewSelection = ViewParams::getUseNewSelection();
 
     pimpl = new Private(this);
 }
@@ -408,15 +408,15 @@ bool SoFCUnifiedSelection::hasHighlight() {
 
 void SoFCUnifiedSelection::applySettings()
 {
-    this->highlightMode = ViewParams::EnablePreselection()?ON:OFF;
-    this->selectionMode = ViewParams::EnableSelection()?ON:OFF;
+    this->highlightMode = ViewParams::getEnablePreselection()?ON:OFF;
+    this->selectionMode = ViewParams::getEnableSelection()?ON:OFF;
 
     float trans;
     SbColor color;
-    color.setPackedValue(ViewParams::HighlightColor(),trans);
+    color.setPackedValue(ViewParams::getHighlightColor(),trans);
     this->colorHighlight = color;
 
-    color.setPackedValue(ViewParams::SelectionColor(),trans);
+    color.setPackedValue(ViewParams::getSelectionColor(),trans);
     this->colorSelection = color;
 }
 
@@ -490,7 +490,7 @@ SoFCUnifiedSelection::Private::getPickedInfo(std::vector<PickedInfo> &ret,
         if(!(master->useNewSelection.getValue()
                 || info.vpd->useNewSelectionModel())
             || (!info.vpd->isSelectable()
-                && !ViewParams::OverrideSelectability()))
+                && !ViewParams::getOverrideSelectability()))
         {
             if(!singlePick) continue;
             if(ret.empty()) {
@@ -632,11 +632,11 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
 
     FC_TIME_INIT(t);
 
-    float radius = ViewParams::PickRadius();
+    float radius = ViewParams::getPickRadius();
     this->rayPickAction.setRadius(radius);
     this->rayPickAction.setViewportRegion(viewport);
     this->rayPickAction.setPoint(pos);
-    this->rayPickAction.setPickAll(!singlePick || !ViewParams::UseNewRayPick());
+    this->rayPickAction.setPickAll(!singlePick || !ViewParams::getUseNewRayPick());
 
     SoPickStyleElement::set(this->rayPickAction.getState(),
             (!this->rayPickAction.pickBackFace() && singlePick) ?
@@ -650,7 +650,7 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
     else
         this->rayPickAction.setPickBackFace(singlePick ? pickBackFace : 0);
 
-    this->rayPickAction.setResetClipPlane(ViewParams::NoSectionOnTop());
+    this->rayPickAction.setResetClipPlane(ViewParams::getNoSectionOnTop());
 
     this->rayPickAction.cleanup();
     getPickedInfoOnTop(ret, singlePick, filter);
@@ -865,13 +865,13 @@ void SoFCUnifiedSelection::Private::applyOverrideMode(SoState * state) const
         else if (mode == DisplayModeHiddenLine) {
             hiddenline = true;
             mode = DisplayModeFlatLines;
-            shading = ViewParams::HiddenLineShaded();
-            if (ViewParams::HiddenLineWidth() >= 1.0) {
-                SoLineWidthElement::set(state, master, ViewParams::HiddenLineWidth());
+            shading = ViewParams::getHiddenLineShaded();
+            if (ViewParams::getHiddenLineWidth() >= 1.0) {
+                SoLineWidthElement::set(state, master, ViewParams::getHiddenLineWidth());
                 SoOverrideElement::setLineWidthOverride(state, master, TRUE);
             }
-            if (ViewParams::HiddenLinePointSize() >= 1.0) {
-                SoPointSizeElement::set(state, master, ViewParams::HiddenLinePointSize());
+            if (ViewParams::getHiddenLinePointSize() >= 1.0) {
+                SoPointSizeElement::set(state, master, ViewParams::getHiddenLinePointSize());
                 SoOverrideElement::setPointSizeOverride(state, master, TRUE);
             }
         }
@@ -882,7 +882,7 @@ void SoFCUnifiedSelection::Private::applyOverrideMode(SoState * state) const
         else if (mode == DisplayModeAsIs)
             mode = SbName::empty();
 
-        SoFCDisplayModeElement::set(state, master, mode, hiddenline, ViewParams::HiddenLineShowOutline());
+        SoFCDisplayModeElement::set(state, master, mode, hiddenline, ViewParams::getHiddenLineShowOutline());
     }
 
     if (!shading && state->isElementEnabled(SoLightModelElement::getClassStackIndex())) {
@@ -938,7 +938,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
             ViewProvider*vp = Application::Instance->getViewProvider(obj);
             if (vp && vp->isDerivedFrom(ViewProviderDocumentObject::getClassTypeId()) &&
                 (master->useNewSelection.getValue()||vp->useNewSelectionModel())
-                && (vp->isSelectable() || ViewParams::OverrideSelectability()))
+                && (vp->isSelectable() || ViewParams::getOverrideSelectability()))
             {
                 detailPath->truncate(0);
                 SoDetail *det = 0;
@@ -973,7 +973,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
             App::DocumentObject* obj = doc->getObject(selaction->SelChange->pObjectName);
             ViewProvider*vp = Application::Instance->getViewProvider(obj);
             if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel())
-                   && (vp->isSelectable() || ViewParams::OverrideSelectability()))
+                   && (vp->isSelectable() || ViewParams::getOverrideSelectability()))
             {
                 SoDetail *detail = nullptr;
                 detailPath->truncate(0);
@@ -1006,7 +1006,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                     if (useRenderer()) {
                         if(detailPath->getLength()) {
                             CoinPtr<SoPath> nodePath = detailPath;
-                            if (ViewParams::ShowSelectionOnTop()) {
+                            if (ViewParams::getShowSelectionOnTop()) {
                                 // The render manager requires a path without
                                 // sub-element detail to bring the whole object
                                 // on top if any of its sub element is
@@ -1027,13 +1027,13 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                                                  detailPath,
                                                  detail,
                                                  getSelectionColor(),
-                                                 ViewParams::ShowSelectionOnTop()); 
+                                                 ViewParams::getShowSelectionOnTop()); 
                         } else
                             manager.addSelection(selaction->SelChange->Object.getSubNameNoElement(true),
                                                  selaction->SelChange->Object.getOldElementName(),
                                                  vp->getRoot(),
                                                  getSelectionColor(),
-                                                 ViewParams::ShowSelectionOnTop()); 
+                                                 ViewParams::getShowSelectionOnTop()); 
                         touch();
                     }
                     else {
@@ -1070,7 +1070,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 if (master->useNewSelection.getValue() || vpd->useNewSelectionModel()) {
                     SoSelectionElementAction::Type type;
                     if(Selection().isSelected(vpd->getObject())
-                            && (vpd->isSelectable() || ViewParams::OverrideSelectability()))
+                            && (vpd->isSelectable() || ViewParams::getOverrideSelectability()))
                         type = SoSelectionElementAction::All;
                     else
                         type = SoSelectionElementAction::None;
@@ -1081,7 +1081,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                                                  selaction->SelChange->Object.getOldElementName(),
                                                  vpd->getRoot(),
                                                  getSelectionColor(),
-                                                 ViewParams::ShowSelectionOnTop());
+                                                 ViewParams::getShowSelectionOnTop());
                             touch();
                         }
                     }
@@ -1168,9 +1168,9 @@ SoFCUnifiedSelection::Private::setHighlight(SoFullPath *path,
     else {
         if (useRenderer()) {
             float t = 0.f;
-            ontop = ontop || ViewParams::ShowPreSelectedFaceOnTop();
+            ontop = ontop || ViewParams::getShowPreSelectedFaceOnTop();
             if (ontop)
-                t = ViewParams::TransparencyOnTop();
+                t = ViewParams::getTransparencyOnTop();
             CoinPtr<SoPath> path(currentHighlight);
 
             App::SubObjectT obj(vpd->getObject(), subname);
@@ -1179,7 +1179,7 @@ SoFCUnifiedSelection::Private::setHighlight(SoFullPath *path,
             if (manager.isOnTop(obj.getSubNameNoElement(true), false)) {
                 ontop = true;
                 // we'll square the alpha make it more visible
-                float a = 1.f - ViewParams::TransparencyOnTop();
+                float a = 1.f - ViewParams::getTransparencyOnTop();
                 t = 1.f - a*a;
             }
             else if (!wholeontop && ontop && ViewParams::highlightPick()) {
@@ -1327,7 +1327,7 @@ SoFCUnifiedSelection::Private::setSelection(const std::vector<PickedInfo> &infos
             objectName << ", " << subName);
     std::string newElement;
     if(subSelected
-        && ((ViewParams::HierarchyAscend() && !ctrlDown && !shiftDown && !altDown)
+        && ((ViewParams::getHierarchyAscend() && !ctrlDown && !shiftDown && !altDown)
              || Data::ComplexGeoData::hasElementName(subSelected)))
     {
         newElement = Data::ComplexGeoData::newElementName(subSelected);
@@ -1486,7 +1486,7 @@ SoFCUnifiedSelection::Private::setSelection(const std::vector<PickedInfo> &infos
     // TODO: find out why!
     //
     if (pPath) {
-        if (!ViewParams::ShowSelectionOnTop()) {
+        if (!ViewParams::getShowSelectionOnTop()) {
             FC_TRACE("applying action");
             this->slaction.setType(type);
             this->slaction.setColor(master->colorSelection.getValue());
@@ -1603,7 +1603,7 @@ SoFCUnifiedSelection::Private::handleEvent(SoHandleEventAction * action)
         // set has been selected.
         if (mymode == AUTO || mymode == ON) {
             res = true;
-            double delay = ViewParams::PreSelectionDelay();
+            double delay = ViewParams::getPreSelectionDelay();
 
             preselPos = action->getEvent()->getPosition();
             preselViewport = action->getViewportRegion();
@@ -1625,7 +1625,7 @@ SoFCUnifiedSelection::Private::handleEvent(SoHandleEventAction * action)
 static FC_COIN_THREAD_LOCAL bool _ShowBoundBox;
 
 bool SoFCUnifiedSelection::getShowSelectionBoundingBox() {
-    return ViewParams::ShowSelectionBoundingBox()
+    return ViewParams::getShowSelectionBoundingBox()
         || _ShowBoundBox;
 }
 
@@ -2292,11 +2292,11 @@ void SoFCSelectionRoot::setupSelectionLineRendering(
         float width = SoLineWidthElement::get(state);
         if(width < 1.0)
             width = 1.0;
-        if(Gui::ViewParams::SelectionLineThicken()>1.0) {
-            float w = width * Gui::ViewParams::SelectionLineThicken();
-            if (Gui::ViewParams::SelectionLineMaxWidth() > 1.0) {
+        if(Gui::ViewParams::getSelectionLineThicken()>1.0) {
+            float w = width * Gui::ViewParams::getSelectionLineThicken();
+            if (Gui::ViewParams::getSelectionLineMaxWidth() > 1.0) {
                 w = std::min<float>(w,
-                        std::max<float>(width, Gui::ViewParams::SelectionLineMaxWidth()));
+                        std::max<float>(width, Gui::ViewParams::getSelectionLineMaxWidth()));
             }
             width = w;
         }
@@ -2326,13 +2326,13 @@ bool SoFCSelectionRoot::renderBBox(SoGLRenderAction *action, SoNode *node,
     auto state = action->getState();
 
     if(!force && !action->isRenderingDelayedPaths()
-            && ViewParams::ShowSelectionOnTop())
+            && ViewParams::getShowSelectionOnTop())
         return false;
 
     data->bboxaction->setViewportRegion(action->getViewportRegion());
     SoSwitchElement::set(data->bboxaction->getState(), SoSwitchElement::get(action->getState()));
 
-    bool project = !mat && ViewParams::RenderProjectedBBox();
+    bool project = !mat && ViewParams::getRenderProjectedBBox();
     if(project || !node->isOfType(SoGroup::getClassTypeId()))
         data->bboxaction->apply(node);
     else {
@@ -2377,7 +2377,7 @@ bool SoFCSelectionRoot::renderBBox(SoGLRenderAction *action, SoNode *node,
 
     if(mat) {
         SoModelMatrixElement::mult(state, node, *mat);
-    } else if(ViewParams::RenderProjectedBBox()) {
+    } else if(ViewParams::getRenderProjectedBBox()) {
         // reset model matrix, since we will transform and project the bounding box
         // by ourself, so that it is always rendered to be aligned with the global
         // axes regardless of the current model matrix.
@@ -2406,7 +2406,7 @@ bool SoFCSelectionRoot::renderBBox(SoGLRenderAction *action, SoNode *node,
     setupSelectionLineRendering(state,node,&packed,false);
 
     SoDrawStyleElement::set(state,SoDrawStyleElement::LINES);
-    SoLineWidthElement::set(state,ViewParams::SelectionBBoxLineWidth());
+    SoLineWidthElement::set(state,ViewParams::getSelectionBBoxLineWidth());
 
     float x, y, z;
     bbox.getSize(x, y, z);
@@ -2593,11 +2593,11 @@ bool SoFCSelectionRoot::_renderPrivate(SoGLRenderAction * action, bool inPath, b
                     inherited::GLRenderBelowPath(action);
             }
 
-            if(_ShowBoundBox || !ViewParams::ShowSelectionOnTop()) {
+            if(_ShowBoundBox || !ViewParams::getShowSelectionOnTop()) {
                 SoCacheElement::invalidate(state);
-                if(ViewParams::UseTightBoundingBox() && viewProvider) {
+                if(ViewParams::getUseTightBoundingBox() && viewProvider) {
                     Base::Matrix4D mat;
-                    bool project = ViewParams::RenderProjectedBBox();
+                    bool project = ViewParams::getRenderProjectedBBox();
                     if(project)
                         mat = ViewProvider::convert(SoModelMatrixElement::get(state));
                     auto fcbox = viewProvider->getBoundingBox(0,&mat,project);
@@ -2639,7 +2639,7 @@ bool SoFCSelectionRoot::_renderPrivate(SoGLRenderAction * action, bool inPath, b
         if((selPushed = ctx->selAll))
             SelColorStack.push_back(ctx->selColor);
 
-        if(!ViewParams::ShowSelectionOnTop()
+        if(!ViewParams::getShowSelectionOnTop()
                 && selPushed
                 && style != SoFCSelectionRoot::Box)
         {
@@ -2751,7 +2751,7 @@ SoFCSelectionRoot::beginAction(SoAction *action, bool checkcycle)
 {
     auto stack = getActionStack(action, true);
     if(checkcycle
-        && ViewParams::CoinCycleCheck()
+        && ViewParams::getCoinCycleCheck()
         && !stack->nodeSet.insert(this).second)
     {
         reportCyclicScene(action, this);
@@ -2766,7 +2766,7 @@ void SoFCSelectionRoot::endAction(SoAction *action, Stack &stack, bool checkcycl
     if(stack.empty() || stack.back()!=this)
         FC_ERR("action stack fault");
     else {
-        if(checkcycle && ViewParams::CoinCycleCheck())
+        if(checkcycle && ViewParams::getCoinCycleCheck())
             stack.nodeSet.erase(this);
         stack.pop_back();
         if(stack.empty())
@@ -2784,7 +2784,7 @@ void SoFCSelectionRoot::pick(SoPickAction * action) {
 }
 
 void SoFCSelectionRoot::rayPick(SoRayPickAction * action) {
-    if(!ViewParams::OverrideSelectability()
+    if(!ViewParams::getOverrideSelectability()
             && selectionStyle.getValue() == Unpickable)
         return;
     auto stack = beginAction(action);
@@ -2856,7 +2856,7 @@ void SoFCSelectionRoot::callback(SoCallbackAction *action) {
 }
 
 void SoFCSelectionRoot::doAction(SoAction *action) {
-    if(!ViewParams::OverrideSelectability()
+    if(!ViewParams::getOverrideSelectability()
             && selectionStyle.getValue() == Unpickable
             && action->getCurPathCode() != SoAction::IN_PATH)
     {
@@ -3423,7 +3423,7 @@ void SoFCPathAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
                 SbColor selColor,hlColor;
                 SoFCSelectionRoot::checkSelection(sel,selColor,hl,hlColor);
                 if(!sel && !hl)
-                    selColor.setPackedValue(ViewParams::SelectionColor(),trans);
+                    selColor.setPackedValue(ViewParams::getSelectionColor(),trans);
 
                 // push a null entry to skip SoFCSwitch manipulation in
                 // case ViewProvider::getBoundingBox() needs to use SoGetBoundingBoxAction()
@@ -3434,8 +3434,8 @@ void SoFCPathAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
                 } else {
                     auto state = action->getState();
 
-                    if(ViewParams::RenderProjectedBBox()) {
-                        if(!ViewParams::UseTightBoundingBox())
+                    if(ViewParams::getRenderProjectedBBox()) {
+                        if(!ViewParams::getUseTightBoundingBox())
                             SoFCSelectionRoot::renderBBox(action,this,hl?hlColor:selColor);
                         else {
                             Base::Matrix4D mat = ViewProvider::convert(SoModelMatrixElement::get(state));
@@ -3452,7 +3452,7 @@ void SoFCPathAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
                                     vpd->getObject()->getSubObject(subname.c_str(),0,&mat));
                             if(vp) {
                                 SbMatrix matrix = ViewProvider::convert(mat);
-                                if(!ViewParams::UseTightBoundingBox())
+                                if(!ViewParams::getUseTightBoundingBox())
                                     SoFCSelectionRoot::renderBBox(action,vp->getRoot(),hl?hlColor:selColor,&matrix);
                                 else {
                                     auto fcbox = vp->getBoundingBox(0,0,false,viewer);

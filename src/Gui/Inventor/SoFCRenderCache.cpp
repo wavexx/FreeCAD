@@ -1458,7 +1458,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
         if (vcache->hasSolid() > 1) {
           material.shapetype = SoShapeHintsElement::SOLID;
           // material.culling = 1;
-          if (ViewParams::ForceSolidSingleSideLighting()) {
+          if (ViewParams::getForceSolidSingleSideLighting()) {
             material.twoside = false;
             material.overrideflags.set(Material::FLAG_TWOSIDE);
             material.maskflags.set(Material::FLAG_TWOSIDE);
@@ -1599,21 +1599,21 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
   }
 
   if ((canmerge || PRIVATE(this)->mergemap)
-      && ViewParams::RenderCacheMergeCount()
-      && depth >= ViewParams::RenderCacheMergeDepthMin()
-      && (ViewParams::RenderCacheMergeDepthMax() < 0
-        || depth <= ViewParams::RenderCacheMergeDepthMax()))
+      && ViewParams::getRenderCacheMergeCount()
+      && depth >= ViewParams::getRenderCacheMergeDepthMin()
+      && (ViewParams::getRenderCacheMergeDepthMax() < 0
+        || depth <= ViewParams::getRenderCacheMergeDepthMax()))
   {
-    if (ViewParams::RenderCacheMergeDepthMax()
-        && ViewParams::RenderCacheMergeDepthMin())
+    if (ViewParams::getRenderCacheMergeDepthMax()
+        && ViewParams::getRenderCacheMergeDepthMin())
     for (auto & v : vcachemap) {
       int count = 0;
       for (int i=0; i<(int)v.second.size(); ++i) {
         ++count;
         i += v.second[i].mergecount;
       }
-      if (count < std::max(ViewParams::RenderCacheMergeCountMin(),
-            ViewParams::RenderCacheMergeCount()))
+      if (count < std::max(ViewParams::getRenderCacheMergeCountMin(),
+            ViewParams::getRenderCacheMergeCount()))
         continue;
 
       VertexCacheEntry newentry;
@@ -1662,7 +1662,7 @@ bool makeDistinctColor(SbColor &res, const SbColor &color, const SbColor &other)
     double delta = ColorUtils::getColorDeltaE(
           ColorUtils::rgbColor(color[0], color[1], color[2]),
           ColorUtils::rgbColor(other[0], other[1], other[2]));
-    if (delta > ViewParams::SelectionColorDifference())
+    if (delta > ViewParams::getSelectionColorDifference())
       return false;
 
     float h,s,v;
@@ -1738,7 +1738,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
       // 'wholeontop' and there is some highlight detail, it means we are
       // highlighting some sub-element of a shape node.
 
-      if (child.first.selectstyle == Material::Unpickable && !ViewParams::OverrideSelectability()) {
+      if (child.first.selectstyle == Material::Unpickable && !ViewParams::getOverrideSelectability()) {
         // Either the parent is not selectable, or the shape is not
         // sub-element selectable (checked in the loop below).
         continue;
@@ -1779,11 +1779,11 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
       material.depthfunc = SoDepthBuffer::LEQUAL;
 
       if (color && (material.selectstyle == Material::Box
-                    || (ViewParams::ShowSelectionBoundingBox()
+                    || (ViewParams::getShowSelectionBoundingBox()
                         && (!detail || !preselect))
-                    || (ViewParams::ShowSelectionBoundingBoxThreshold()
-                        && ViewParams::ShowSelectionOnTop()
-                        && PRIVATE(this)->facecount > ViewParams::ShowSelectionBoundingBoxThreshold())))
+                    || (ViewParams::getShowSelectionBoundingBoxThreshold()
+                        && ViewParams::getShowSelectionOnTop()
+                        && PRIVATE(this)->facecount > ViewParams::getShowSelectionBoundingBoxThreshold())))
       {
         if (!bboxinited) {
           bboxinited = true;
@@ -2040,7 +2040,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
         if (color && newentry.partidx >= 0) {
           uint32_t col = newentry.cache->getFaceColor(newentry.partidx);
           if ((col & 0xff) != 0xff && alpha == 0xff) {
-            uint32_t a = static_cast<uint32_t>(ViewParams::SelectionTransparency() * 255);
+            uint32_t a = static_cast<uint32_t>(ViewParams::getSelectionTransparency() * 255);
             material.diffuse = (material.diffuse & ~0xff) | std::max(a, col&0xff);
           }
           makeDistinctColor(material.diffuse, material.diffuse, col);
@@ -2111,7 +2111,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
 
     bboxmaterial.type = cache->getNumLineIndices() ? Material::Line : Material::Point;
     bboxmaterial.diffuse = color | 0xff;
-    bboxmaterial.linewidth = ViewParams::SelectionBBoxLineWidth();
+    bboxmaterial.linewidth = ViewParams::getSelectionBBoxLineWidth();
     bboxmaterial.pointsize = bboxmaterial.linewidth * 2;
     bboxmaterial.depthclamp = true;
     bboxmaterial.overrideflags.set(Material::FLAG_NO_TEXTURE);

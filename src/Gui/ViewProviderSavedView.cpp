@@ -401,17 +401,17 @@ void ViewProviderSavedView::capture(CaptureOptions options)
             obj->getClippingProperty<App::PropertyVector>("ClipPositionZ", true)->setValue(posZ);
             obj->getClippingProperty<App::PropertyVector>("ClipPosition", true)->setValue(pla.getPosition());
             obj->getClippingProperty<App::PropertyRotation>("ClipRotation", true)->setValue(pla.getRotation());
-            obj->getClippingProperty<App::PropertyBool>("ClipFill", true)->setValue(ViewParams::SectionFill());
-            obj->getClippingProperty<App::PropertyBool>("ClipConcave", true)->setValue(ViewParams::SectionConcave());
-            obj->getClippingProperty<App::PropertyBool>("ClipHatch", true)->setValue(ViewParams::SectionHatchTextureEnable());
-            obj->getClippingProperty<App::PropertyFloat>("ClipHatchScale", true)->setValue(ViewParams::SectionHatchTextureScale());
-            obj->getClippingProperty<App::PropertyString>("ClipHatchTexture", true)->setValue(ViewParams::SectionHatchTexture());
-            obj->getClippingProperty<App::PropertyBool>("ClipGroup", true)->setValue(ViewParams::SectionFillGroup());
-            obj->getClippingProperty<App::PropertyBool>("ClipShowPlane", true)->setValue(ViewParams::ShowClipPlane());
-            obj->getClippingProperty<App::PropertyFloat>("ClipPlaneSize", true)->setValue(ViewParams::ClipPlaneSize());
-            obj->getClippingProperty<App::PropertyBool>("BackLight", true)->setValue(ViewParams::EnableBacklight());
-            obj->getClippingProperty<App::PropertyColor>("BackLightColor", true)->setValue(ViewParams::BacklightColor());
-            obj->getClippingProperty<App::PropertyFloat>("BackLightIntensity", true)->setValue(ViewParams::BacklightIntensity());
+            obj->getClippingProperty<App::PropertyBool>("ClipFill", true)->setValue(ViewParams::getSectionFill());
+            obj->getClippingProperty<App::PropertyBool>("ClipConcave", true)->setValue(ViewParams::getSectionConcave());
+            obj->getClippingProperty<App::PropertyBool>("ClipHatch", true)->setValue(ViewParams::getSectionHatchTextureEnable());
+            obj->getClippingProperty<App::PropertyFloat>("ClipHatchScale", true)->setValue(ViewParams::getSectionHatchTextureScale());
+            obj->getClippingProperty<App::PropertyString>("ClipHatchTexture", true)->setValue(ViewParams::getSectionHatchTexture());
+            obj->getClippingProperty<App::PropertyBool>("ClipGroup", true)->setValue(ViewParams::getSectionFillGroup());
+            obj->getClippingProperty<App::PropertyBool>("ClipShowPlane", true)->setValue(ViewParams::getShowClipPlane());
+            obj->getClippingProperty<App::PropertyFloat>("ClipPlaneSize", true)->setValue(ViewParams::getClipPlaneSize());
+            obj->getClippingProperty<App::PropertyBool>("BackLight", true)->setValue(ViewParams::getEnableBacklight());
+            obj->getClippingProperty<App::PropertyColor>("BackLightColor", true)->setValue(ViewParams::getBacklightColor());
+            obj->getClippingProperty<App::PropertyFloat>("BackLightIntensity", true)->setValue(ViewParams::getBacklightIntensity());
         }
 
         if (options & CaptureOption::Camera) {

@@ -1228,8 +1228,8 @@ void TipLabel::set(const QString &text)
 {
     setWordWrap(Qt::mightBeRichText(text));
     setText(text);
-    if (fontSize != ViewParams::PreselectionToolTipFontSize()) {
-        fontSize = ViewParams::PreselectionToolTipFontSize();
+    if (fontSize != ViewParams::getPreselectionToolTipFontSize()) {
+        fontSize = ViewParams::getPreselectionToolTipFontSize();
         if (!fontSize)
             setFont(QFont());
         else {
@@ -1890,15 +1890,15 @@ void ExpLineEdit::keyPressEvent(QKeyEvent *event)
 LineEditStyle::LineEditStyle(QStyle *style)
     :QProxyStyle(style)
 {
-    cursor_width = ViewParams::TextCursorWidth();
+    cursor_width = ViewParams::getTextCursorWidth();
 }
 
 void LineEditStyle::setup(QLineEdit *le)
 {
     if (!le) return;
     if (auto style = qobject_cast<LineEditStyle*>(le->style())) {
-        if (style->cursorWidth() != ViewParams::TextCursorWidth()) {
-            style->setCursorWidth(ViewParams::TextCursorWidth());
+        if (style->cursorWidth() != ViewParams::getTextCursorWidth()) {
+            style->setCursorWidth(ViewParams::getTextCursorWidth());
             if (le->hasFocus())
                 le->update();
         }
@@ -1909,13 +1909,13 @@ void LineEditStyle::setup(QLineEdit *le)
 void LineEditStyle::setup(QTextEdit *editor)
 {
     if (editor)
-        editor->setCursorWidth(ViewParams::TextCursorWidth());
+        editor->setCursorWidth(ViewParams::getTextCursorWidth());
 }
 
 void LineEditStyle::setup(QPlainTextEdit *editor)
 {
     if (editor)
-        editor->setCursorWidth(ViewParams::TextCursorWidth());
+        editor->setCursorWidth(ViewParams::getTextCursorWidth());
 }
 
 void LineEditStyle::setupWidget(QWidget *w)

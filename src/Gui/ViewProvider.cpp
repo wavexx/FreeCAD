@@ -128,7 +128,7 @@ ViewProvider::ViewProvider()
     sPixmap = "px";
     pcModeSwitch->whichChild = _iActualMode;
 
-    setRenderCacheMode(ViewParams::RenderCache());
+    setRenderCacheMode(ViewParams::getRenderCache());
 }
 
 ViewProvider::~ViewProvider()
@@ -1020,7 +1020,7 @@ int ViewProvider::partialRender(const std::vector<std::string> &elements, bool c
 }
 
 bool ViewProvider::useNewSelectionModel() const {
-    return ViewParams::UseNewSelection();
+    return ViewParams::getUseNewSelection();
 }
 
 void ViewProvider::beforeDelete() {
@@ -1135,7 +1135,7 @@ Base::BoundBox3d ViewProvider::getBoundingBox(
     if(bboxCache->busy)
         return ViewProvider::_getBoundingBox(subname,mat,transform,viewer,depth);
 
-    if(!ViewParams::UseBoundingBoxCache()) {
+    if(!ViewParams::getUseBoundingBoxCache()) {
         Base::FlagToggler<> guard(bboxCache->busy);
         return _getBoundingBox(subname,mat,transform,viewer,depth);
     }

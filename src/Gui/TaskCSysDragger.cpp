@@ -108,7 +108,7 @@ void TaskCSysDragger::setupGui()
   auto checkBox = new QCheckBox(incrementsBox);
   checkBox->setText(tr("Show on top"));
   connect(checkBox, SIGNAL(toggled(bool)), this, SLOT(onToggleShowOnTop(bool)), Qt::QueuedConnection);
-  checkBox->setChecked(ViewParams::TransformOnTop());
+  checkBox->setChecked(ViewParams::getTransformOnTop());
   gridLayout->addWidget(checkBox, 2, 0);
 
   incrementsBox->groupLayout()->addLayout(gridLayout);

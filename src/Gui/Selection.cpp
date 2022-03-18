@@ -1099,13 +1099,13 @@ QString SelectionSingleton::format(const char *docname,
         if (cmds.empty()) 
             ToolTip::hideText();
         else {
-            QPoint pt(ViewParams::PreselectionToolTipOffsetX(),
-                      ViewParams::PreselectionToolTipOffsetY());
+            QPoint pt(ViewParams::getPreselectionToolTipOffsetX(),
+                      ViewParams::getPreselectionToolTipOffsetY());
             ToolTip::showText(pt,
                               QString::fromUtf8(PreselectionText.c_str()),
                               Application::Instance->activeView(),
                               true,
-                              (ToolTip::Corner)ViewParams::PreselectionToolTipCorner());
+                              (ToolTip::Corner)ViewParams::getPreselectionToolTipCorner());
         }
     }
 
@@ -1693,7 +1693,7 @@ void SelectionSingleton::setVisible(VisibleState vis, const std::vector<App::Sub
 
                 parent->setElementVisible(elementName.c_str(),visElement?true:false);
 
-                if(visElement && ViewParams::UpdateSelectionVisual())
+                if(visElement && ViewParams::getUpdateSelectionVisual())
                     updateSelection(true,
                                     sel.getDocumentName().c_str(),
                                     sel.getObjectName().c_str(),
@@ -1719,7 +1719,7 @@ void SelectionSingleton::setVisible(VisibleState vis, const std::vector<App::Sub
             SelectionNoTopParentCheck guard;
             if(visObject) {
                 vp->show();
-                if(ViewParams::UpdateSelectionVisual())
+                if(ViewParams::getUpdateSelectionVisual())
                     updateSelection(true,
                                     sel.getDocumentName().c_str(),
                                     sel.getObjectName().c_str(),

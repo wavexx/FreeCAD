@@ -69,9 +69,9 @@ ClipDragger::ClipDragger(SoClipPlane *clip, bool custom)
 {
     SO_NODE_CONSTRUCTOR(ClipDragger);
     SO_NODE_ADD_FIELD(plane, (SbPlane(SbVec3f(0,0,1), 0)));
-    SO_NODE_ADD_FIELD(planeSize, (ViewParams::ClipPlaneSize()));
-    SO_NODE_ADD_FIELD(lineWidth, (ViewParams::ClipPlaneLineWidth()));
-    QColor c(ViewParams::ClipPlaneColor().c_str());
+    SO_NODE_ADD_FIELD(planeSize, (ViewParams::getClipPlaneSize()));
+    SO_NODE_ADD_FIELD(lineWidth, (ViewParams::getClipPlaneLineWidth()));
+    QColor c(ViewParams::getClipPlaneColor().c_str());
     if (!c.isValid())
         c = QColor(ViewParams::defaultClipPlaneColor().c_str());
     SO_NODE_ADD_FIELD(planeColor, (c.redF(),c.greenF(),c.blueF()));
@@ -375,7 +375,7 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
         }
     }
 
-    d->ui.checkBoxFill->setChecked(ViewParams::SectionFill() && ViewParams::isUsingRenderer());
+    d->ui.checkBoxFill->setChecked(ViewParams::getSectionFill() && ViewParams::isUsingRenderer());
     d->ui.checkBoxInvert->initAutoSave();
     d->ui.checkBoxConcave->initAutoSave();
     d->ui.checkBoxInvert->initAutoSave();
@@ -389,10 +389,10 @@ Clipping::Clipping(Gui::View3DInventor* view, QWidget* parent)
     d->ui.checkBoxShowPlane->initAutoSave();
     d->ui.spinBoxPlaneSize->initAutoSave();
     d->ui.editHatchTexture->setFileName(
-            QString::fromUtf8(ViewParams::SectionHatchTexture().c_str()));
+            QString::fromUtf8(ViewParams::getSectionHatchTexture().c_str()));
 
-    d->ui.checkBoxOnTop->setDisabled(ViewParams::SectionConcave());
-    d->ui.checkBoxGroupRendering->setDisabled(ViewParams::SectionConcave());
+    d->ui.checkBoxOnTop->setDisabled(ViewParams::getSectionConcave());
+    d->ui.checkBoxGroupRendering->setDisabled(ViewParams::getSectionConcave());
 
     if (!d->ui.checkBoxFill->isChecked()) {
         d->ui.checkBoxInvert->setDisabled(true);
@@ -662,11 +662,11 @@ void Clipping::on_checkBoxFill_toggled(bool on)
     ViewParams::setSectionFill(on);
     d->ui.checkBoxInvert->setEnabled(on);
     d->ui.checkBoxConcave->setEnabled(on);
-    d->ui.checkBoxOnTop->setEnabled(on && !ViewParams::SectionConcave());
+    d->ui.checkBoxOnTop->setEnabled(on && !ViewParams::getSectionConcave());
     d->ui.checkBoxHatch->setEnabled(on);
     d->ui.editHatchTexture->setEnabled(on);
     d->ui.spinBoxHatchScale->setEnabled(on);
-    d->ui.checkBoxGroupRendering->setEnabled(on && !ViewParams::SectionConcave());
+    d->ui.checkBoxGroupRendering->setEnabled(on && !ViewParams::getSectionConcave());
     if (d->view)
         d->view->getViewer()->redraw();
 }

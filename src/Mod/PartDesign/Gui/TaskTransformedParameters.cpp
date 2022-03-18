@@ -96,7 +96,7 @@ TaskTransformedParameters::TaskTransformedParameters(ViewProviderTransformed *Tr
         this->attachDocument(doc);
     }
 
-    onTopEnabled = Gui::ViewParams::ShowSelectionOnTop();
+    onTopEnabled = Gui::ViewParams::getShowSelectionOnTop();
     if(!onTopEnabled)
         Gui::ViewParams::setShowSelectionOnTop(true);
     // remember initial transaction ID
