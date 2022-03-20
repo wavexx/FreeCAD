@@ -187,6 +187,8 @@ bool ElementNameComp::operator()(const MappedName &a, const MappedName &b) const
         }
         return a.size()<b.size();
     }
+    else if (a[0] == '#')
+        return false;
 
     // If the string does not start with '#', compare the non-digits prefix
     // using lexical order.
