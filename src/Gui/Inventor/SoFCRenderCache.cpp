@@ -860,7 +860,8 @@ SoFCRenderCache::open(SoState *state, int selectstyle, bool initmaterial)
   if (PRIVATE(this)->selnode) {
     PRIVATE(this)->material.resetclip =
       PRIVATE(this)->selnode->resetClipPlane.getValue() ? true : false;
-    PRIVATE(this)->selnode->setupColorOverride(state, true);
+    if (PRIVATE(this)->selnode->setupColorOverride(state, true))
+      initmaterial = true;
   }
 
   PRIVATE(this)->material.init(initmaterial ? state : nullptr);
