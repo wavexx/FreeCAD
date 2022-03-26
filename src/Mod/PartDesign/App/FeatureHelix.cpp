@@ -137,11 +137,14 @@ App::DocumentObjectExecReturn *Helix::execute(void)
         return new App::DocumentObjectExecReturn("Error: unsupported mode");
     }
 
+    TopLoc_Location invObjLoc;
+
     // update Axis from ReferenceAxis
     try {
         positionByPrevious();
+        invObjLoc = getLocation().Inverted();
         updateAxis();
-        return Pipe::_execute(this, TopoShape(generateHelixPath()));
+        return Pipe::_execute(this, generateHelixPath(), invObjLoc);
     }
     catch (Standard_Failure& e) {
         if (std::string(e.GetMessageString()) == "TopoDS::Face")
