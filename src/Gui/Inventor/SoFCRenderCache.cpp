@@ -1555,6 +1555,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
             }
           }
           ventries = &vcachemap[material];
+          it = vcachemap.end();
           material = value.first; // revert back to original material
         } else if (!ventries) {
           it = vcachemap.insert(it, value);
