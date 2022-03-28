@@ -1822,16 +1822,17 @@ void ViewProviderPartExt::updateVisual()
         bounds.SetGap(0.0);
         Standard_Real xMin, yMin, zMin, xMax, yMax, zMax;
         bounds.Get(xMin, yMin, zMin, xMax, yMax, zMax);
-        Standard_Real deflection = ((xMax-xMin)+(yMax-yMin)+(zMax-zMin))/300.0 *
-            std::max(PartParams::OverrideTessellation() ? PartParams::MeshDeviation() : Deviation.getValue(),
-                     PartParams::MinimumDeviation());
+        Standard_Real deflection = std::max(Precision::Confusion(),
+            ((xMax-xMin)+(yMax-yMin)+(zMax-zMin))/300.0 *
+                std::max(PartParams::OverrideTessellation() ? PartParams::MeshDeviation() : Deviation.getValue(),
+                     PartParams::MinimumDeviation()));
 
         // create or use the mesh on the data structure
 #if OCC_VERSION_HEX >= 0x060600
-        Standard_Real AngDeflectionRads = 
+        Standard_Real AngDeflectionRads = std::max(Precision::Angular(),
             std::max((PartParams::OverrideTessellation() ?
                         PartParams::MeshAngularDeflection() : AngularDeflection.getValue()),
-                      PartParams::MinimumAngularDeflection()) / 180.0 * M_PI;
+                      PartParams::MinimumAngularDeflection()) / 180.0 * M_PI);
         BRepMesh_IncrementalMesh(cShape,deflection,Standard_False,
                 AngDeflectionRads,Standard_True);
 #else
@@ -2145,8 +2146,14 @@ void ViewProviderPartExt::updateVisual()
         if (seamEdges.size())
             lineset->seamIndices.setValues(0, seamEdges.size(), &seamEdges[0]);
     }
+    catch (Base::Exception &e) {
+        FC_ERR("Failed to compute Inventor representation for the shape of " << pcObject->getFullName() << ": " << e.what());
+    }
+    catch (Standard_Failure &e) {
+        FC_ERR("Failed to compute Inventor representation for the shape of " << pcObject->getFullName() << ": " << e.GetMessageString());
+    }
     catch (...) {
-        FC_ERR("Cannot compute Inventor representation for the shape of " << pcObject->getFullName());
+        FC_ERR("Failed to compute Inventor representation for the shape of " << pcObject->getFullName());
     }
 
     // printing some information
