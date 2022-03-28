@@ -6359,9 +6359,10 @@ namespace SketcherGui {
             //}
 
             std::string element(sSubName);
-            if ((element.size() > 4 && element.substr(0,4) == "Edge") ||
-                (element.size() > 6 && element.substr(0,6) == "Vertex") ||
-                (element.size() > 4 && element.substr(0,4) == "Face")) {
+            if (boost::starts_with(element, "Edge") ||
+                boost::starts_with(element, "Vertex") ||
+                boost::starts_with(element, "Face") ||
+                boost::starts_with(element, "Wire")) {
                 return true;
             }
             if (pObj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
@@ -6559,9 +6560,10 @@ public:
             std::string subName = msg.Object.getOldElementName();
             if (obj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
                 obj->getTypeId().isDerivedFrom(Part::Datum::getClassTypeId()) ||
-                (subName.size() > 4 && subName.substr(0,4) == "Edge") ||
-                (subName.size() > 6 && subName.substr(0,6) == "Vertex") ||
-                (subName.size() > 4 && subName.substr(0,4) == "Face")) {
+                boost::starts_with(subName, "Edge") ||
+                boost::starts_with(subName, "Vertex") ||
+                boost::starts_with(subName, "Face") ||
+                boost::starts_with(subName, "Wire")) {
                 try {
                     if(attaching.size()) {
                         Gui::Command::openCommand(
