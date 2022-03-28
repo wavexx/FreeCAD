@@ -3567,8 +3567,13 @@ TopoShape &TopoShape::makESHAPE(const TopoDS_Shape &shape, const Mapper &mapper,
                     }
                     auto &newInfo = *infoMap[newShape.ShapeType()];
                     if(newInfo.type != newShape.ShapeType()) {
-                        FC_WARN("modified shape type " << shapeName(newShape.ShapeType())
-                                << " mismatch with " << info.shapetype << i);
+                        if(FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG)) {
+                            // TODO: it seems modified shape may report higher
+                            // level shape type just like generated shape below.
+                            // Maybe we shall do the same for name construction.
+                            FC_WARN("modified shape type " << shapeName(newShape.ShapeType())
+                                    << " mismatch with " << info.shapetype << i);
+                        }
                         continue;
                     }
                     int j = newInfo.find(newShape);
