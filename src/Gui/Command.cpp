@@ -1193,6 +1193,10 @@ Gui::Action * CheckableCommand::createAction(void)
     return pcAction;
 }
 
+void CheckableCommand::refreshIcon()
+{
+}
+
 //===========================================================================
 // MacroCommand
 //===========================================================================

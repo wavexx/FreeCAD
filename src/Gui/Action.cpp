@@ -80,6 +80,7 @@
 #include "PieMenu.h"
 #include "ShortcutManager.h"
 #include "CommandCompleter.h"
+#include "ViewProvider.h"
 
 #include <Base/Exception.h>
 #include <App/Application.h>
@@ -513,6 +514,16 @@ ActionGroup::~ActionGroup()
     delete _group;
 }
 
+static inline QToolButton *setupMenuToolButton(QWidget *w)
+{
+    QToolButton* tb = w->findChildren<QToolButton*>().last();
+    if (tb) {
+        tb->setPopupMode(QToolButton::MenuButtonPopup);
+        tb->setObjectName(QString::fromLatin1("qt_toolbutton_menubutton"));
+    }
+    return tb;
+}
+
 /**
  * Adds this action to widget \a w.
  */
@@ -532,10 +543,8 @@ void ActionGroup::addTo(QWidget *w)
         }
         else if (w->inherits("QToolBar")) {
             w->addAction(_action);
-            QToolButton* tb = w->findChildren<QToolButton*>().last();
-            tb->setPopupMode(QToolButton::MenuButtonPopup);
-            tb->setObjectName(QString::fromLatin1("qt_toolbutton_menubutton"));
-            QMenu* menu = new QMenu(tb);
+            auto tb = setupMenuToolButton(w);
+            QMenu* menu = new QMenu(w);
             menu->addActions(actions());
             tb->setMenu(menu);
             //tb->addActions(_group->actions());
@@ -1771,6 +1780,7 @@ void UndoAction::addTo (QWidget * w)
     if (w->inherits("QToolBar")) {
         actionChanged();
         connect(_action, SIGNAL(changed()), this, SLOT(actionChanged()));
+        setupMenuToolButton(w);
         w->addAction(_toolAction);
     }
     else {
@@ -1824,6 +1834,7 @@ void RedoAction::addTo ( QWidget * w )
     if (w->inherits("QToolBar")) {
         actionChanged();
         connect(_action, SIGNAL(changed()), this, SLOT(actionChanged()));
+        setupMenuToolButton(w);
         w->addAction(_toolAction);
     }
     else {
@@ -1875,6 +1886,8 @@ void DockWidgetAction::addTo ( QWidget * w )
       connect(_menu, SIGNAL(aboutToShow()), getMainWindow(), SLOT(onDockWindowMenuAboutToShow()));
     }
 
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -1898,6 +1911,8 @@ void ToolBarAction::addTo ( QWidget * w )
       connect(_menu, SIGNAL(aboutToShow()), getMainWindow(), SLOT(onToolBarMenuAboutToShow()));
     }
 
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -1924,6 +1939,8 @@ void WindowAction::addTo ( QWidget * w )
                     getMainWindow(), SLOT(onWindowsMenuAboutToShow()));
         }
 
+        if (qobject_cast<QToolBar*>(w))
+            setupMenuToolButton(w);
         w->addAction(_action);
     }
     else {
@@ -1953,6 +1970,8 @@ void ViewCameraBindingAction::addTo ( QWidget * w )
         connect(_menu, SIGNAL(aboutToShow()), this, SLOT(onShowMenu()));
         connect(_menu, SIGNAL(triggered(QAction*)), this, SLOT(onTriggered(QAction*)));
     }
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -2054,6 +2073,8 @@ void SelUpAction::addTo ( QWidget * w )
         _action->setMenu(_menu);
         connect(_menu, SIGNAL(aboutToShow()), this, SLOT(onShowMenu()));
     }
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -2074,6 +2095,132 @@ void SelUpAction::popup(const QPoint &pt)
         _menu->addAction(_emptyAction);
     }
     TreeWidget::execSelUpMenu(qobject_cast<SelUpMenu*>(_menu), pt);
+}
+
+// --------------------------------------------------------------------
+
+SelStackAction::SelStackAction ( Command* pcCmd, Type type, QObject * parent )
+  : Action(pcCmd, parent), _menu(nullptr), _type(type)
+{
+}
+
+SelStackAction::~SelStackAction()
+{
+    delete _menu;
+}
+
+void SelStackAction::select(int idx, const std::vector<int> &subIndices)
+{
+    if (idx < 0) {
+        Selection().selStackGoForward(-idx, subIndices);
+        return;
+    }
+    if (!Selection().hasSelection())
+        ++idx;
+    Selection().selStackGoBack(idx, subIndices);
+}
+
+void SelStackAction::populate()
+{
+    _menu->clear();
+    int idx, count, step;
+    if (_type == Type::Backward) {
+        count = Selection().selStackBackSize();
+        step = 1;
+        idx = 0;
+    } else {
+        count = Selection().selStackForwardSize();
+        step = -1;
+        idx = -1;
+    }
+    auto doc = App::GetApplication().getActiveDocument();
+    const char *activeDocName = doc ? doc->getName() : nullptr;
+    for (int i=0; i<count; ++i, idx+=step) {
+        auto sels = Selection().selStackGetT(nullptr, 0, idx);
+        if (sels.empty())
+            continue;
+
+        QAction *act;
+        if (sels.size() == 1) {
+            act = _menu->addAction(QString::fromUtf8(
+                        sels[0].getSubObjectFullName(activeDocName).c_str()), [=](){select(idx);});
+        } else {
+            auto sel = sels[0];
+            sel.setSubName(sel.getSubNameNoElement());
+            QMenu *menu = _menu->addMenu(QStringLiteral("%1...").arg(
+                    QString::fromUtf8(sels[0].getSubObjectFullName(activeDocName).c_str())));
+            act = menu->menuAction();
+            QAction *action = menu->addAction(tr("Select all"), [=](){select(idx);});
+            menu->addSeparator();
+            std::map<App::SubObjectT, std::map<std::string, int>> subs;
+            int sidx = -1;
+            for (auto sel  : sels) {
+                ++sidx;
+                auto element = sel.getOldElementName();
+                sel.setSubName(sel.getSubNameNoElement());
+                subs[sel][element] = sidx;
+            }
+            auto elementName = [](const std::string &name) {
+                if (name.empty())
+                    return tr("Whole object");
+                else
+                    return QString::fromUtf8(name.c_str());
+            };
+            if (subs.size() == 1) {
+                for (const auto &v : subs.begin()->second) {
+                    int sidx = v.second;
+                    action = menu->addAction(elementName(v.first.c_str()), [=](){select(idx,{sidx});});
+                }
+            } else {
+                for (const auto &v : subs) {
+                    if (v.second.size() == 1) {
+                        auto &info = *v.second.begin();
+                        int sidx = info.second;
+                        App::SubObjectT objT = v.first;
+                        objT.setSubName(objT.getSubName() + info.first);
+                        action = menu->addAction(QString::fromUtf8(
+                                    objT.getSubObjectFullName(activeDocName).c_str()),
+                                [=](){select(idx,{sidx});});
+                    } else {
+                        auto subMenu = menu->addMenu(QString::fromUtf8(
+                                    v.first.getSubObjectFullName(activeDocName).c_str()));
+                        action = subMenu->menuAction();
+                        subMenu->addAction(tr("Select all"), [&](){
+                            std::vector<int> indices; 
+                            for (const auto &vv : v.second)
+                                indices.push_back(vv.second);
+                            select(idx, indices);
+                        });
+                        subMenu->addSeparator();
+                        for (const auto &vv : v.second) {
+                            int sidx = vv.second;
+                            subMenu->addAction(elementName(vv.first), [=](){select(idx,{sidx});});
+                        }
+                    }
+                    auto vp = Application::Instance->getViewProvider(v.first.getSubObject());
+                    if (vp)
+                        action->setIcon(vp->getIcon());
+                }
+            }
+        }
+
+        auto vp = Application::Instance->getViewProvider(sels[0].getSubObject());
+        if (vp)
+            act->setIcon(vp->getIcon());
+    }
+
+}
+
+void SelStackAction::addTo ( QWidget * w )
+{
+    if (!_menu) {
+        _menu = new QMenu();
+        _action->setMenu(_menu);
+        connect(_menu, &QMenu::aboutToShow, this, [this]() {populate();});
+    }
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
+    w->addAction(_action);
 }
 
 // --------------------------------------------------------------------
@@ -2165,6 +2312,8 @@ void CmdHistoryAction::addTo ( QWidget * w )
         connect(_menu, SIGNAL(aboutToShow()), this, SLOT(onShowMenu()));
     }
 
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -2413,6 +2562,8 @@ void ToolbarMenuAction::addTo ( QWidget * w )
         update();
         connect(_menu, SIGNAL(aboutToShow()), this, SLOT(onShowMenu()));
     }
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -2745,6 +2896,8 @@ void ExpressionAction::addTo ( QWidget * w )
         _pimpl->init(_menu);
     }
 
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
@@ -2786,6 +2939,8 @@ void PresetsAction::addTo ( QWidget * w )
       connect(_menu, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
     }
 
+    if (qobject_cast<QToolBar*>(w))
+        setupMenuToolButton(w);
     w->addAction(_action);
 }
 
