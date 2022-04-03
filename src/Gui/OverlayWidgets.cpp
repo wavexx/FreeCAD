@@ -88,6 +88,7 @@ static std::array<OverlayTabWidget*, 4> _Overlays;
 static OverlayDragFrame *_DragFrame;
 static QDockWidget *_DragFloating;
 static QWidget *_Dragging;
+static bool _ChangingOverlayMode;
 
 static const int _MinimumOverlaySize = 30;
 
@@ -1472,6 +1473,8 @@ void OverlayTabWidget::setOverlayMode(bool enable)
 
     if(!isVisible() || !count())
         return;
+
+    Base::StateLocker guard(_ChangingOverlayMode);
 
     touched = false;
 
@@ -4533,4 +4536,10 @@ void OverlayManager::unregisterDockWidget(const QString &name, OverlayTabWidget 
 {
     d->unregisterDockWidget(name, widget);
 }
+
+bool OverlayManager::isChangingMode() const
+{
+    return _ChangingOverlayMode;
+}
+
 #include "moc_OverlayWidgets.cpp"
