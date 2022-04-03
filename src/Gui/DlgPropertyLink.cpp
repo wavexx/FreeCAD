@@ -514,7 +514,7 @@ void DlgPropertyLink::init(const App::DocumentObjectT &prop, bool tryFilter)
         auto sel = selectionChanged(Gui::SelectionChanges(SelectionChanges::AddSelection,
                                                res.first->getDocument()->getName(),
                                                res.first->getNameInDocument(),
-                                               res.second), false);
+                                               res.second), true);
         if (sel)
             item = sel;
     }
@@ -802,7 +802,7 @@ QTreeWidgetItem *DlgPropertyLink::selectionChanged(const Gui::SelectionChanges& 
         return nullptr;
 
     if(msg.pOriginalMsg)
-        return selectionChanged(*msg.pOriginalMsg);
+        return selectionChanged(*msg.pOriginalMsg, setCurrent);
 
     switch(msg.Type) {
     case SelectionChanges::AddSelection:
@@ -863,8 +863,10 @@ QTreeWidgetItem *DlgPropertyLink::selectionChanged(const Gui::SelectionChanges& 
         item->setCheckState(0, Qt::Checked);
         onItemChanged(item,0);
     }
-    if (setCurrent)
+    if (setCurrent) {
+        ui->treeWidget->scrollToItem(item);
         ui->treeWidget->setCurrentItem(item);
+    }
     return item;
 }
 
