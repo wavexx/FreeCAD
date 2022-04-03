@@ -486,9 +486,6 @@ void DlgPropertyLink::init(const App::DocumentObjectT &prop, bool tryFilter)
         }
     }
 
-    if(oldLinks.isEmpty())
-        return;
-
     if(allowSubObject && !(flags & (NoSyncSubObject|AlwaysSyncSubObject))) {
         if (propLink->testFlag(App::PropertyLinkBase::LinkSyncSubObject))
             ui->checkSubObject->setChecked(true);
@@ -502,6 +499,9 @@ void DlgPropertyLink::init(const App::DocumentObjectT &prop, bool tryFilter)
             }
         }
     }
+
+    if(oldLinks.isEmpty())
+        return;
 
     // Try to select items corresponding to the current links inside the
     // property
