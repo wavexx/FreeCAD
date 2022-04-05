@@ -5034,8 +5034,10 @@ void PropertyXLinkContainer::afterRestore() {
             if(info.docLabel != obj->getDocument()->Label.getValue())
                 _DocMap[App::quote(info.docLabel)] = obj->getDocument()->Label.getValue();
         }
-        if(_Deps.insert(std::make_pair(obj,info.xlink->getScope()==LinkScope::Hidden)).second)
+        if(_Deps.insert(std::make_pair(obj,info.xlink->getScope()==LinkScope::Hidden)).second) {
             _XLinks[obj->getFullName()] = std::move(info.xlink);
+            onAddDep(obj);
+        }
     }
     _XLinkRestores.reset();
 }
@@ -5057,6 +5059,7 @@ void PropertyXLinkContainer::breakLink(App::DocumentObject *obj, bool clear) {
         else if (!it->second)
             obj->_removeBackLink(owner);
         _Deps.erase(it);
+        onRemoveDep(obj);
         hasSetValue();
         return;
     }
@@ -5178,10 +5181,13 @@ void PropertyXLinkContainer::Restore(Base::XMLReader &reader) {
 }
 
 void PropertyXLinkContainer::aboutToSetChildValue(App::Property &prop) {
-    auto xlink = dynamic_cast<App::PropertyXLink*>(&prop);
+    auto xlink = Base::freecad_dynamic_cast<App::PropertyXLink>(&prop);
     if(xlink && xlink->testFlag(LinkDetached)) {
-        if(_Deps.erase(const_cast<App::DocumentObject*>(xlink->getValue())))
+        auto obj = const_cast<App::DocumentObject*>(xlink->getValue());
+        if(_Deps.erase(obj)) {
             _onBreakLink(xlink->getValue());
+            onRemoveDep(obj);
+        }
     }
 }
 
