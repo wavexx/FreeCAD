@@ -2764,6 +2764,8 @@ void ViewProviderLink::setupContextMenu(QMenu* menu, QObject* receiver, const ch
         return;
 
     _setupContextMenu(ext, menu, receiver, member);
+    if (linkingMenu)
+        return;
 
     Gui::ActionFunction* func = nullptr;
     if (ext->isLinkedToConfigurableObject()) {
@@ -2897,11 +2899,15 @@ void ViewProviderLink::_setupContextMenu(
         App::LinkBaseExtension *ext, QMenu* menu, QObject* receiver, const char* member)
 {
     if(linkEdit(ext)) {
-        if (auto linkvp = Base::freecad_dynamic_cast<ViewProviderLink>(linkView->getLinkedView()))
-            linkvp->_setupContextMenu(ext, menu, receiver, member);
-        else
+        if (auto linkvp = Base::freecad_dynamic_cast<ViewProviderLink>(linkView->getLinkedView())) {
+            Base::StateLocker guard(linkvp->linkingMenu);
+            linkvp->setupContextMenu(menu, receiver, member);
+        } else
             linkView->getLinkedView()->setupContextMenu(menu,receiver,member);
     }
+
+    if (linkingMenu)
+        return;
 
     if(ext->getLinkedObjectProperty()
             && ext->_getShowElementProperty()

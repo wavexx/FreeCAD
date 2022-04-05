@@ -374,6 +374,7 @@ protected:
     bool hasSubElement;
     bool useCenterballDragger;
     bool prevColorOverride = false;
+    bool linkingMenu = false;
 
     struct DraggerContext{
         Base::Matrix4D preTransform;
