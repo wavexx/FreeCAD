@@ -318,6 +318,7 @@ private:
         if(colors.empty()) {
             vp->MapFaceColor.setValue(true);
             vp->MapLineColor.setValue(true);
+            vp->MapTransparency.setValue(true);
             vp->updateColors(0,true);
             return;
         }
