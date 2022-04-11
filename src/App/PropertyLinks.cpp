@@ -484,6 +484,8 @@ PropertyLinkBase::tryReplaceLink(const PropertyContainer *owner, DocumentObject 
 {
     std::pair<DocumentObject*, std::string> res;
     res.first = 0;
+    if (!obj)
+        return res;
 
     if(oldObj == obj) {
         if(owner == parent) {
@@ -562,6 +564,8 @@ PropertyLinkBase::tryReplaceLinkSubs(const PropertyContainer *owner,
 {
     std::pair<DocumentObject*,std::vector<std::string> > res;
     res.first = 0;
+    if (!obj)
+        return res;
 
     auto r = tryReplaceLink(owner,obj,parent,oldObj,newObj);
     if(r.first) {
