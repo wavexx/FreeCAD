@@ -44,6 +44,7 @@
 #include <App/Application.h>
 #include "DlgPreferencesImp.h"
 #include "ui_DlgPreferences.h"
+#include "Action.h"
 #include "PropertyPage.h"
 #include "WidgetFactory.h"
 #include "BitmapFactory.h"
@@ -332,6 +333,10 @@ void DlgPreferencesImp::restoreDefaults()
     box.setDefaultButton(QMessageBox::No);
 
     if (box.exec() == QMessageBox::Yes) {
+
+        if (auto action = PresetsAction::instance())
+            action->push(tr("Reset"));
+
         // keep this parameter
         bool saveParameter = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/General")->
                               GetBool("SaveUserParameter", true);
