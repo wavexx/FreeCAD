@@ -354,7 +354,8 @@ QIcon ViewProviderAddSub::getIcon() const
     else
         return PartDesignGui::ViewProvider::getIcon();
 
-    auto pixmap = Gui::BitmapFactory().pixmap(name.c_str(), true);
+    Gui::BitmapCacheContext ctx(getObject() ? getObject()->getTypeId().getName() : getTypeId().getName());
+    auto pixmap = Gui::BitmapFactory().iconFromTheme(name.c_str(), true);
     if (pixmap.isNull())
         return PartDesignGui::ViewProvider::getIcon();
     return pixmap;
