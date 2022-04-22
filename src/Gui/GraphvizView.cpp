@@ -48,6 +48,7 @@
 #include "GraphvizView.h"
 #include "Application.h"
 #include "MainWindow.h"
+#include "FileDialog.h"
 #include <App/Application.h>
 #include <App/Document.h>
 
@@ -326,7 +327,7 @@ void GraphvizView::updateSvgItem(const App::Document &doc)
                 disconnectSignals();
                 return;
             }
-            path = QFileDialog::getExistingDirectory(Gui::getMainWindow(),
+            path = FileDialog::getExistingDirectory(Gui::getMainWindow(),
                                                      tr("Graphviz installation path"));
             if (path.isEmpty()) {
                 disconnectSignals();
