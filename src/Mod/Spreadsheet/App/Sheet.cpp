@@ -1207,6 +1207,8 @@ short Sheet::mustExecute(void) const
 void Sheet::clear(CellAddress address, bool /*all*/)
 {
     Cell * cell = getCell(address);
+    if (!cell)
+        return;
     std::string addr = address.toString();
     Property * prop = props.getDynamicPropertyByName(addr.c_str());
 
