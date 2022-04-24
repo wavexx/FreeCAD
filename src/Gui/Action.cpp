@@ -81,6 +81,7 @@
 #include "ShortcutManager.h"
 #include "CommandCompleter.h"
 #include "ViewProvider.h"
+#include "ToolBarManager.h"
 
 #include <Base/Exception.h>
 #include <App/Application.h>
@@ -121,6 +122,7 @@ Action::~Action()
 void Action::addTo(QWidget *w)
 {
     w->addAction(_action);
+    ToolBarManager::getInstance()->checkToolbarIconSize(qobject_cast<QToolBar*>(w));
 }
 
 /**
@@ -201,6 +203,8 @@ QKeySequence Action::shortcut() const
 void Action::setIcon (const QIcon & icon)
 {
     _action->setIcon(icon);
+    if (!icon.isNull())
+        ToolBarManager::getInstance()->checkToolbarIconSize(_action);
 }
 
 QIcon Action::icon () const
@@ -552,6 +556,7 @@ void ActionGroup::addTo(QWidget *w)
             menu->addActions(actions());
             tb->setMenu(menu);
             //tb->addActions(_group->actions());
+            ToolBarManager::getInstance()->checkToolbarIconSize(static_cast<QToolBar*>(w));
         }
         else {
             w->addActions(actions()); // no drop-down
@@ -997,9 +1002,23 @@ void WorkbenchTabBar::onChangeOrientation()
 void WorkbenchTabBar::updateWorkbenches()
 {
     auto tab = this->tabBar();
+
     int s = std::max(16, this->group->_pimpl->toolbarIconSize());
-    if (this->iconSize() != QSize(s,s))
-        this->setIconSize(QSize(s,s));
+    QSize iconSize(s, s);
+    // Go through all icons and check the aspect ratio to adjust the tab icon size
+    for (auto action : this->group->actions()) {
+        if (!action->isVisible())
+            continue;
+        auto icon = action->icon();
+        if (icon.isNull())
+            continue;
+        auto size = icon.actualSize(iconSize);
+        if (size.height() < iconSize.height())
+            iconSize.setWidth(static_cast<float>(iconSize.height())/size.height()*size.width());
+    }
+
+    if (this->iconSize() != iconSize)
+        this->setIconSize(iconSize);
 
     auto wb = WorkbenchManager::instance()->active();
     QString current;
