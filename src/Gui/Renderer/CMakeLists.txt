@@ -80,7 +80,7 @@ endif(WIN32)
 if (Renderer_Assets)
     install(FILES ${Renderer_Assets} DESTINATION ${CMAKE_INSTALL_DATADIR}/Renderer)
 
-    ADD_CUSTOM_TARGET(Renderer_assets ALL SOURCES ${Assets})
+    ADD_CUSTOM_TARGET(Renderer_assets ALL SOURCES ${Renderer_Assets})
     fc_copy_sources(Renderer_assets
                     "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Renderer"
                     ${Renderer_Assets})
