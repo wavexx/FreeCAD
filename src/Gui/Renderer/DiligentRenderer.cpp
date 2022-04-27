@@ -220,7 +220,7 @@ public:
 
             } else {
                 // window = new QWindow();
-                // window->setObjectName(QLatin1String("DiligentOffscreen"));
+                // window->setObjectName(QStringLiteral("DiligentOffscreen"));
                 // window->setSurfaceType(QSurface::VulkanSurface);
                 // auto pEngineFactory = GetEngineFactoryVulkan();
                 // m_pEngineFactory = pEngineFactory;

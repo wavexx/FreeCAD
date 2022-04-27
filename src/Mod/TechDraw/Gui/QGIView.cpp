@@ -194,11 +194,11 @@ QVariant QGIView::itemChange(GraphicsItemChange change, const QVariant &value)
                 if(alignHash.size() == 1) {   //if aligned.
                     QGraphicsItem* item = alignHash.begin().value();
                     QString alignMode   = alignHash.begin().key();
-                    if(alignMode == QString::fromLatin1("Vertical")) {
+                    if(alignMode == QStringLiteral("Vertical")) {
                         newPos.setX(item->pos().x());
-                    } else if(alignMode == QString::fromLatin1("Horizontal")) {
+                    } else if(alignMode == QStringLiteral("Horizontal")) {
                         newPos.setY(item->pos().y());
-                    } else if(alignMode == QString::fromLatin1("45slash")) {
+                    } else if(alignMode == QStringLiteral("45slash")) {
                          //this logic is wrong since the constrained movement direction is not necessarily 45*
 //                         Base::Console().Message("QGIV::itemChange - oblique BL-TR\n");
 //                        double dist = ( (newPos.x() - item->pos().x()) +
@@ -206,7 +206,7 @@ QVariant QGIView::itemChange(GraphicsItemChange change, const QVariant &value)
 
 //                        newPos.setX( item->pos().x() + dist);
 //                        newPos.setY( item->pos().y() - dist );
-                    } else if(alignMode == QString::fromLatin1("45backslash")) {
+                    } else if(alignMode == QStringLiteral("45backslash")) {
                          //this logic is wrong since the constrained movement direction is not necessarily 45*
 //                         Base::Console().Message("QGIV::itemChange - oblique TL-BR\n");
 //                        double dist = ( (newPos.x() - item->pos().x()) +

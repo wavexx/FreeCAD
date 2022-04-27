@@ -127,11 +127,11 @@ PyMOD_INIT_FUNC(PartGui)
 
     Base::Console().Log("Loading GUI of Part module... done\n");
 
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/booleans"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/create"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/measure"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/parametric"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/tools"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/booleans"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/create"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/measure"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/parametric"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/tools"));
 
     static struct PyModuleDef pAttachEngineTextsModuleDef = {
         PyModuleDef_HEAD_INIT,

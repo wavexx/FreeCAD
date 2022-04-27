@@ -589,10 +589,10 @@ void TaskHoleParameters::threadTypeChanged(int index)
         // the size for ISO type has either the form "M3x0.35" or just "M3"
         // so we need to check if the size contains a 'x'. If yes, check if the string
         // up to the 'x' is exists in the new list
-        if (ThreadSizeString.indexOf(QString::fromLatin1("x")) > -1) {
+        if (ThreadSizeString.indexOf(QStringLiteral("x")) > -1) {
             // we have an ISO fine size
             // cut of the part behind the 'x'
-            ThreadSizeString = ThreadSizeString.left(ThreadSizeString.indexOf(QString::fromLatin1("x")));
+            ThreadSizeString = ThreadSizeString.left(ThreadSizeString.indexOf(QStringLiteral("x")));
         }
         // search if the string exists in the combobox
         int threadSizeIndex = ui->ThreadSize->findText(ThreadSizeString, Qt::MatchContains);
@@ -724,7 +724,7 @@ void TaskHoleParameters::changedObject(const App::Document&, const App::Property
         ui->ThreadSize->clear();
         const char** cursor = pcHole->ThreadSize.getEnums();
         while (*cursor) {
-            ui->ThreadSize->addItem(QString::fromLatin1(*cursor));
+            ui->ThreadSize->addItem(QString::fromUtf8(*cursor));
             ++cursor;
         }
         ui->ThreadSize->setCurrentIndex(pcHole->ThreadSize.getValue());
@@ -735,7 +735,7 @@ void TaskHoleParameters::changedObject(const App::Document&, const App::Property
         ui->HoleCutType->clear();
         cursor = pcHole->HoleCutType.getEnums();
         while (*cursor) {
-            ui->HoleCutType->addItem(QString::fromLatin1(*cursor));
+            ui->HoleCutType->addItem(QString::fromUtf8(*cursor));
             ++cursor;
         }
         ui->HoleCutType->setCurrentIndex(pcHole->HoleCutType.getValue());
@@ -745,7 +745,7 @@ void TaskHoleParameters::changedObject(const App::Document&, const App::Property
         ui->ThreadClass->clear();
         cursor = pcHole->ThreadClass.getEnums();
         while (*cursor) {
-            ui->ThreadClass->addItem(QString::fromLatin1(*cursor));
+            ui->ThreadClass->addItem(QString::fromUtf8(*cursor));
             ++cursor;
         }
         ui->ThreadClass->setCurrentIndex(pcHole->ThreadClass.getValue());

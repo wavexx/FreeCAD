@@ -117,19 +117,19 @@ void TaskSketcherMessages::slotSetUp(const QString& state, const QString& msg, c
 
 void TaskSketcherMessages::on_labelConstrainStatusLink_linkClicked(const QString &str)
 {
-    if( str == QString::fromLatin1("#conflicting"))
+    if( str == QStringLiteral("#conflicting"))
         Gui::Application::Instance->commandManager().runCommandByName("Sketcher_SelectConflictingConstraints");
     else
-    if( str == QString::fromLatin1("#redundant"))
+    if( str == QStringLiteral("#redundant"))
         Gui::Application::Instance->commandManager().runCommandByName("Sketcher_SelectRedundantConstraints");
     else
-    if( str == QString::fromLatin1("#dofs"))
+    if( str == QStringLiteral("#dofs"))
         Gui::Application::Instance->commandManager().runCommandByName("Sketcher_SelectElementsWithDoFs");
     else
-    if( str == QString::fromLatin1("#malformed"))
+    if( str == QStringLiteral("#malformed"))
         Gui::Application::Instance->commandManager().runCommandByName("Sketcher_SelectMalformedConstraints");
     else
-    if( str == QString::fromLatin1("#partiallyredundant"))
+    if( str == QStringLiteral("#partiallyredundant"))
         Gui::Application::Instance->commandManager().runCommandByName("Sketcher_SelectPartiallyRedundantConstraints");
 
 }

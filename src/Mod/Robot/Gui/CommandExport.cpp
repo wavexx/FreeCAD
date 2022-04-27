@@ -85,14 +85,14 @@ void CmdRobotExportKukaCompact::activated(int)
     //std::string TrakName = pcTrajectoryObject->getNameInDocument();
 
     QStringList filter;
-    filter << QString::fromLatin1("%1 (*.src)").arg(QObject::tr("KRL file"));
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export program"), QString(), filter.join(QLatin1String(";;")));
+    filter << QStringLiteral("%1 (*.src)").arg(QObject::tr("KRL file"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export program"), QString(), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty())
         return;
 
     doCommand(Doc,"from KukaExporter import ExportCompactSub");
-    doCommand(Doc,"ExportCompactSub(App.activeDocument().%s,App.activeDocument().%s,'%s')",pcRobotObject->getNameInDocument(),pcTrajectoryObject->getNameInDocument(),(const char*)fn.toLatin1());
+    doCommand(Doc,"ExportCompactSub(App.activeDocument().%s,App.activeDocument().%s,'%s')",pcRobotObject->getNameInDocument(),pcTrajectoryObject->getNameInDocument(),(const char*)fn.toUtf8());
 }
 
 bool CmdRobotExportKukaCompact::isActive(void)
@@ -147,14 +147,14 @@ void CmdRobotExportKukaFull::activated(int)
     //std::string TrakName = pcTrajectoryObject->getNameInDocument();
 
     QStringList filter;
-    filter << QString::fromLatin1("%1 (*.src)").arg(QObject::tr("KRL file"));
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export program"), QString(), filter.join(QLatin1String(";;")));
+    filter << QStringLiteral("%1 (*.src)").arg(QObject::tr("KRL file"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export program"), QString(), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty())
         return;
 
     doCommand(Doc,"from KukaExporter import ExportFullSub");
-    doCommand(Doc,"ExportFullSub(App.activeDocument().%s,App.activeDocument().%s,'%s')",pcRobotObject->getNameInDocument(),pcTrajectoryObject->getNameInDocument(),(const char*)fn.toLatin1());
+    doCommand(Doc,"ExportFullSub(App.activeDocument().%s,App.activeDocument().%s,'%s')",pcRobotObject->getNameInDocument(),pcTrajectoryObject->getNameInDocument(),(const char*)fn.toUtf8());
 }
 
 bool CmdRobotExportKukaFull::isActive(void)

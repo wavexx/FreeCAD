@@ -127,7 +127,7 @@ FillingEdgePanel::FillingEdgePanel(ViewProviderFilling* vp, Surface::Filling* ob
 
     // Create context menu
     QAction* action = new QAction(tr("Remove"), this);
-    action->setShortcut(QString::fromLatin1("Del"));
+    action->setShortcut(QStringLiteral("Del"));
     action->setShortcutContext(Qt::WidgetShortcut);
     ui->listUnbound->addAction(action);
     connect(action, SIGNAL(triggered()), this, SLOT(onDeleteUnboundEdge()));
@@ -177,7 +177,7 @@ void FillingEdgePanel::setEditedObject(Surface::Filling* fea)
         QListWidgetItem* item = new QListWidgetItem(ui->listUnbound);
         ui->listUnbound->addItem(item);
 
-        QString text = QString::fromLatin1("%1.%2")
+        QString text = QStringLiteral("%1.%2")
                 .arg(QString::fromUtf8(obj->Label.getValue()))
                 .arg(QString::fromStdString(edge));
         item->setText(text);
@@ -267,7 +267,7 @@ bool FillingEdgePanel::accept()
         editedObject->recomputeFeature();
     if (!editedObject->isValid()) {
         QMessageBox::warning(this, tr("Invalid object"),
-            QString::fromLatin1(editedObject->getStatusString()));
+            QString::fromUtf8(editedObject->getStatusString()));
         return false;
     }
 
@@ -334,15 +334,15 @@ void FillingEdgePanel::on_listUnbound_itemDoubleClicked(QListWidgetItem* item)
                     // fill up the combo boxes
                     modifyBoundary(true);
                     ui->comboBoxUnboundFaces->addItem(tr("None"), QByteArray(""));
-                    ui->comboBoxUnboundCont->addItem(QString::fromLatin1("C0"), static_cast<int>(GeomAbs_C0));
-                    ui->comboBoxUnboundCont->addItem(QString::fromLatin1("G1"), static_cast<int>(GeomAbs_G1));
-                    ui->comboBoxUnboundCont->addItem(QString::fromLatin1("G2"), static_cast<int>(GeomAbs_G2));
+                    ui->comboBoxUnboundCont->addItem(QStringLiteral("C0"), static_cast<int>(GeomAbs_C0));
+                    ui->comboBoxUnboundCont->addItem(QStringLiteral("G1"), static_cast<int>(GeomAbs_G1));
+                    ui->comboBoxUnboundCont->addItem(QStringLiteral("G2"), static_cast<int>(GeomAbs_G2));
                     TopTools_ListIteratorOfListOfShape it(adj_faces);
                     for (; it.More(); it.Next()) {
                         const TopoDS_Shape& F = it.Value();
                         int index = faces.FindIndex(F);
-                        QString text = QString::fromLatin1("Face%1").arg(index);
-                        ui->comboBoxUnboundFaces->addItem(text, text.toLatin1());
+                        QString text = QStringLiteral("Face%1").arg(index);
+                        ui->comboBoxUnboundFaces->addItem(text, text.toUtf8());
                     }
 
                     // activate face and continuity
@@ -379,9 +379,9 @@ void FillingEdgePanel::onSelectionChanged(const Gui::SelectionChanges& msg)
             ui->listUnbound->addItem(item);
 
             Gui::SelectionObject sel(msg);
-            QString text = QString::fromLatin1("%1.%2")
+            QString text = QStringLiteral("%1.%2")
                     .arg(QString::fromUtf8(sel.getObject()->Label.getValue()))
-                    .arg(QString::fromLatin1(msg.pSubName));
+                    .arg(QString::fromUtf8(msg.pSubName));
             item->setText(text);
 
             QList<QVariant> data;

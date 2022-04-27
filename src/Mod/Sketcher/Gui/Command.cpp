@@ -173,7 +173,7 @@ void CmdSketcherNewSketch::activated(int iMsg)
             items.push_back(QObject::tr("Don't attach"));
             int iSugg = 0;//index of the auto-suggested mode in the list of valid modes
             for (size_t i = 0  ;  i < validModes.size()  ;  ++i){
-                items.push_back(QString::fromLatin1(AttachEngine::getModeName(validModes[i]).c_str()));
+                items.push_back(QString::fromUtf8(AttachEngine::getModeName(validModes[i]).c_str()));
                 if (validModes[i] == mapmode)
                     iSugg = items.size()-1;
             }
@@ -592,7 +592,7 @@ void CmdSketcherMapSketch::activated(int iMsg)
         int iSugg = 0; //index of the auto-suggested mode in the list of valid modes
         int iCurr = 0; //index of current mode in the list of valid modes
         for (size_t i = 0; i < validModes.size(); ++i) {
-            items.push_back(QString::fromLatin1(AttachEngine::getModeName(validModes[i]).c_str()));
+            items.push_back(QString::fromUtf8(AttachEngine::getModeName(validModes[i]).c_str()));
             if (validModes[i] == curMapMode) {
                 iCurr = items.size() - 1;
                 items.back().append(bCurIncompatible?

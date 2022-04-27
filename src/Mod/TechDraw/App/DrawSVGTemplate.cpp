@@ -235,13 +235,13 @@ QString DrawSVGTemplate::processTemplate(QString fileSpec)
 	Base::Quantity quantity;
 
 	// Obtain the width
-	QString str = docElement.attribute(QString::fromLatin1("width"));
+	QString str = docElement.attribute(QStringLiteral("width"));
 	quantity = Base::Quantity::parse(str);
 	quantity.setUnit(Base::Unit::Length);
 
 	Width.setValue(quantity.getValue());
 
-	str = docElement.attribute(QString::fromLatin1("height"));
+	str = docElement.attribute(QStringLiteral("height"));
 	quantity = Base::Quantity::parse(str);
 	quantity.setUnit(Base::Unit::Length);
 

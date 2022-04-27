@@ -239,7 +239,7 @@ TStringMap Translator::supportedLocales() const
     for (const auto& domainMap : d->mapLanguageTopLevelDomain) {
         for (const auto& directoryName : d->paths) {
             QDir dir(directoryName);
-            QString filter = QString::fromLatin1("*_%1.qm").arg(QString::fromStdString(domainMap.second));
+            QString filter = QStringLiteral("*_%1.qm").arg(QString::fromStdString(domainMap.second));
             QStringList fileNames = dir.entryList(QStringList(filter), QDir::Files, QDir::Name);
             if (!fileNames.isEmpty()) {
                 d->mapSupportedLocales[domainMap.first] = domainMap.second;
@@ -256,7 +256,7 @@ static bool _detectRTLLanguage()
     return QGuiApplication::tr("QT_LAYOUT_DIRECTION",
                          "Translate this string to the string 'LTR' in left-to-right"
                          " languages or to 'RTL' in right-to-left languages (such as Hebrew"
-                         " and Arabic) to get proper widget layout.") == QLatin1String("RTL");
+                         " and Arabic) to get proper widget layout.") == QStringLiteral("RTL");
 }
 
 bool Translator::eventFilter(QObject *o, QEvent *ev)
@@ -319,10 +319,10 @@ QStringList Translator::directories() const
     if (!dir.empty())
         list.push_back(QString::fromStdString(dir));
     QDir home(QString::fromUtf8(App::Application::getUserAppDataDir().c_str()));
-    list.push_back(home.absoluteFilePath(QLatin1String("translations")));
+    list.push_back(home.absoluteFilePath(QStringLiteral("translations")));
     QDir resc(QString::fromUtf8(App::Application::getResourceDir().c_str()));
-    list.push_back(resc.absoluteFilePath(QLatin1String("translations")));
-    list.push_back(QLatin1String(":/translations"));
+    list.push_back(resc.absoluteFilePath(QStringLiteral("translations")));
+    list.push_back(QStringLiteral(":/translations"));
     
     return list;
 }
@@ -335,7 +335,7 @@ void Translator::addPath(const QString& path)
 
 void Translator::installQMFiles(const QDir& dir, const char* locale)
 {
-    QString filter = QString::fromLatin1("*_%1.qm").arg(QLatin1String(locale));
+    QString filter = QStringLiteral("*_%1.qm").arg(QString::fromUtf8(locale));
     QStringList fileNames = dir.entryList(QStringList(filter), QDir::Files, QDir::Name);
     for (QStringList::Iterator it = fileNames.begin(); it != fileNames.end(); ++it){
         bool ok=false;

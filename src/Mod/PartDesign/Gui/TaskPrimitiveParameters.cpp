@@ -707,7 +707,7 @@ void TaskBoxPrimitives::onWedgeZmaxChanged(double v) {
 bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
 {
     try {
-        QString name(QString::fromLatin1(Gui::Command::getObjectCmd(obj).c_str()));
+        QString name(QString::fromUtf8(Gui::Command::getObjectCmd(obj).c_str()));
         QString cmd;
         App::Document* doc = App::GetApplication().getActiveDocument();
         if (!doc) {
@@ -717,7 +717,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
         Base::QuantityFormat format(Base::QuantityFormat::Fixed, Base::UnitsApi::getDecimals());
         switch(ui->widgetStack->currentIndex()) {
             case 1:         // box
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Length=%2\n"
                     "%1.Width=%3\n"
                     "%1.Height=%4\n")
@@ -728,7 +728,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                 break;
 
             case 2:  // cylinder
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Radius=%2\n"
                     "%1.Height=%3\n"
                     "%1.Angle=%4\n"
@@ -749,7 +749,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                         tr("The radii for cones must not be equal!"));
                     return false;
                 }
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Radius1=%2\n"
                     "%1.Radius2=%3\n"
                     "%1.Height=%4\n"
@@ -762,7 +762,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                  break;
 
             case 4:  // sphere
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Radius=%2\n"
                     "%1.Angle1=%3\n"
                     "%1.Angle2=%4\n"
@@ -774,7 +774,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                     .arg(Base::UnitsApi::toNumber(ui->sphereAngle3->value(), format));
                 break;
             case 5:  // ellipsoid
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Radius1=%2\n"
                     "%1.Radius2=%3\n"
                     "%1.Radius3=%4\n"
@@ -791,7 +791,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                 break;
 
             case 6:  // torus
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Radius1=%2\n"
                     "%1.Radius2=%3\n"
                     "%1.Angle1=%4\n"
@@ -805,7 +805,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                     .arg(Base::UnitsApi::toNumber(ui->torusAngle3->value(), format));
                 break;
             case 7:  // prism
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Polygon=%2\n"
                     "%1.Circumradius=%3\n"
                     "%1.Height=%4\n"
@@ -835,7 +835,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
                         tr("Z min must not be equal to Z max!"));
                     return false;
                 }
-                cmd = QString::fromLatin1(
+                cmd = QStringLiteral(
                     "%1.Xmin=%2\n"
                     "%1.Ymin=%3\n"
                     "%1.Zmin=%4\n"
@@ -870,7 +870,7 @@ bool TaskBoxPrimitives::setPrimitive(App::DocumentObject *obj)
         Gui::Command::runCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");
     }
     catch (const Base::PyException& e) {
-        QMessageBox::warning(this, tr("Create primitive"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(this, tr("Create primitive"), QString::fromUtf8(e.what()));
         return false;
     }
     return true;

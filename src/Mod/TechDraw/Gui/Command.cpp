@@ -157,8 +157,8 @@ void CmdTechDrawPageDefault::activated(int iMsg)
         }
     } else {
         QMessageBox::critical(Gui::getMainWindow(),
-            QLatin1String("No template"),
-            QLatin1String("No default template found"));
+            QStringLiteral("No template"),
+            QStringLiteral("No default template found"));
     }
 }
 
@@ -236,8 +236,8 @@ void CmdTechDrawPageTemplate::activated(int iMsg)
     }
     else {
         QMessageBox::critical(Gui::getMainWindow(),
-            QLatin1String("No template"),
-            QLatin1String("Template file is invalid"));
+            QStringLiteral("No template"),
+            QStringLiteral("Template file is invalid"));
     }
 }
 
@@ -1051,7 +1051,7 @@ void CmdTechDrawSymbol::activated(int iMsg)
     // Reading an image
     QString filename = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(),
         QObject::tr("Choose an SVG file to open"), QString::null,
-        QString::fromLatin1("%1 (*.svg *.svgz);;%2 (*.*)").
+        QStringLiteral("%1 (*.svg *.svgz);;%2 (*.*)").
         arg(QObject::tr("Scalable Vector Graphic")).
         arg(QObject::tr("All Files")));
 

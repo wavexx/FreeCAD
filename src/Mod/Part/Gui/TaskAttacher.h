@@ -62,7 +62,7 @@ public:
 
     TaskAttacher(Gui::ViewProviderDocumentObject *ViewProvider, QWidget *parent = 0,
                  QString picture = QString(),
-                 QString text = QString::fromLatin1("Attachment"), VisibilityFunction func = 0);
+                 QString text = QStringLiteral("Attachment"), VisibilityFunction func = 0);
     ~TaskAttacher();
 
     void editAfterClose(bool enable = true) {editOnClose = enable;}

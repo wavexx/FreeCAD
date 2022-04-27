@@ -56,7 +56,7 @@ using namespace Gui::DockWnd;
 ReportView::ReportView( QWidget* parent )
   : QWidget(parent)
 {
-    setObjectName(QLatin1String("ReportOutput"));
+    setObjectName(QStringLiteral("ReportOutput"));
 
     resize( 529, 162 );
     QGridLayout* tabLayout = new QGridLayout( this );
@@ -64,7 +64,7 @@ ReportView::ReportView( QWidget* parent )
     tabLayout->setMargin( 0 );
 
     tabWidget = new QTabWidget( this );
-    tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
+    tabWidget->setObjectName(QStringLiteral("tabWidget"));
     tabWidget->setTabPosition(QTabWidget::South);
     tabWidget->setTabShape(QTabWidget::Rounded);
     tabLayout->addWidget( tabWidget, 0, 0 );
@@ -452,7 +452,7 @@ ReportOutput::~ReportOutput()
 
 void ReportOutput::restoreFont()
 {
-    QFont serifFont(QLatin1String("Courier"), 10, QFont::Normal);
+    QFont serifFont(QStringLiteral("Courier"), 10, QFont::Normal);
     setFont(serifFont);
 }
 
@@ -480,7 +480,7 @@ void ReportOutput::SendLog(const std::string& msg, Base::LogStyle level)
     if (style == ReportHighlighter::LogText) {
         if (messageSize > 0 && qMsg.size()>messageSize) {
             qMsg.truncate(messageSize);
-            qMsg += QString::fromLatin1("...\n");
+            qMsg += QStringLiteral("...\n");
         }
     }
 
@@ -502,7 +502,7 @@ void ReportOutput::customEvent ( QEvent* ev )
         // The time code can only be set when the cursor is at the block start
         if (showTimecode && blockStart) {
             QTime time = QTime::currentTime();
-            text.prepend(time.toString(QLatin1String("hh:mm:ss  ")));
+            text.prepend(time.toString(QStringLiteral("hh:mm:ss  ")));
         }
 
         QTextCursor cursor(this->document());
@@ -614,11 +614,11 @@ void ReportOutput::contextMenuEvent ( QContextMenuEvent * e )
 void ReportOutput::onSaveAs()
 {
     QString fn = FileDialog::getSaveFileName(this, tr("Save Report Output"), QString(),
-        QString::fromLatin1("%1 (*.txt *.log)").arg(tr("Plain Text Files")));
+        QStringLiteral("%1 (*.txt *.log)").arg(tr("Plain Text Files")));
     if (!fn.isEmpty()) {
         QFileInfo fi(fn);
         if (fi.completeSuffix().isEmpty())
-            fn += QLatin1String(".log");
+            fn += QStringLiteral(".log");
         QFile f(fn);
         if (f.open(QIODevice::WriteOnly)) {
             QTextStream t (&f);
@@ -767,12 +767,12 @@ void ReportOutput::OnChange(Base::Subject<const char*> &rCaller, const char * sR
     }
     else if (strcmp(sReason, "FontSize") == 0 || strcmp(sReason, "Font") == 0) {
         int fontSize = rclGrp.GetInt("FontSize", 10);
-        QString fontFamily = QString::fromLatin1(rclGrp.GetASCII("Font", "Courier").c_str());
+        QString fontFamily = QString::fromUtf8(rclGrp.GetASCII("Font", "Courier").c_str());
 
         QFont font(fontFamily, fontSize);
         setFont(font);
         QFontMetrics metric(font);
-        int width = QtTools::horizontalAdvance(metric, QLatin1String("0000"));
+        int width = QtTools::horizontalAdvance(metric, QStringLiteral("0000"));
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
         setTabStopWidth(width);
 #else

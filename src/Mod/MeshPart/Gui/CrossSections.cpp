@@ -319,30 +319,30 @@ void CrossSections::apply()
             App::Document* doc = (*it)->getDocument();
             std::string s = (*it)->getNameInDocument();
             s += "_cs";
-            Gui::Command::runCommand(Gui::Command::App, QString::fromLatin1(
+            Gui::Command::runCommand(Gui::Command::App, QStringLiteral(
                 "points=FreeCAD.getDocument(\"%1\").%2.Mesh.crossSections(%3, %4, %5)\n"
                 "wires=[]\n"
                 "for i in points:\n"
                 "    wires.extend([Part.makePolygon(j) for j in i])\n")
-                .arg(QLatin1String(doc->getName()))
-                .arg(QLatin1String((*it)->getNameInDocument()))
+                .arg(QString::fromUtf8(doc->getName()))
+                .arg(QString::fromUtf8((*it)->getNameInDocument()))
                 .arg(planes)
                 .arg(eps)
-                .arg(connectEdges ? QLatin1String("True") : QLatin1String("False"))
-                .toLatin1());
+                .arg(connectEdges ? QStringLiteral("True") : QStringLiteral("False"))
+                .toUtf8());
 
-            Gui::Command::runCommand(Gui::Command::App, QString::fromLatin1(
+            Gui::Command::runCommand(Gui::Command::App, QStringLiteral(
                 "comp=Part.Compound(wires)\n"
                 "slice=FreeCAD.getDocument(\"%1\").addObject(\"Part::Feature\",\"%2\")\n"
                 "slice.Shape=comp\n"
                 "slice.purgeTouched()\n"
                 "del slice,comp,wires,points")
-                .arg(QLatin1String(doc->getName()))
-                .arg(QLatin1String(s.c_str())).toLatin1());
+                .arg(QString::fromUtf8(doc->getName()))
+                .arg(QString::fromUtf8(s.c_str())).toUtf8());
         }
     }
     catch (const Base::Exception& e) {
-        QMessageBox::critical(this, tr("Failure"), QString::fromLatin1(e.what()));
+        QMessageBox::critical(this, tr("Failure"), QString::fromUtf8(e.what()));
     }
 #endif
 }

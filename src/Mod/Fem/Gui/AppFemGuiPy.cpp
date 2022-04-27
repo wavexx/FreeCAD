@@ -132,7 +132,7 @@ private:
             }
         }
 
-        if (ext == QLatin1String("inp")) {
+        if (ext == QStringLiteral("inp")) {
             Gui::TextEditor* editor = new Gui::TextEditor();
             editor->setWindowIcon(Gui::BitmapFactory().pixmap(":/icons/fem-solver-inp-editor.svg"));
             Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());
@@ -143,7 +143,7 @@ private:
             Gui::getMainWindow()->addWindow(edit);
 
             QFont font = editor->font();
-            font.setFamily(QString::fromLatin1("Arial"));
+            font.setFamily(QStringLiteral("Arial"));
             editor->setFont(font);
         }
 

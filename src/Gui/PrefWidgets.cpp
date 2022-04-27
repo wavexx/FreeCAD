@@ -470,7 +470,7 @@ void PrefWidget::onRestore()
 
 void PrefWidget::failedToSave(const QString& name) const
 {
-    QByteArray objname = name.toLatin1();
+    QByteArray objname = name.toUtf8();
     if (objname.isEmpty())
         objname = "Undefined";
     Console().Warning("Cannot save %s (%s)\n", typeid(*this).name(), objname.constData());
@@ -478,7 +478,7 @@ void PrefWidget::failedToSave(const QString& name) const
 
 void PrefWidget::failedToRestore(const QString& name) const
 {
-    QByteArray objname = name.toLatin1();
+    QByteArray objname = name.toUtf8();
     if (objname.isEmpty())
         objname = "Undefined";
     Console().Warning("Cannot restore %s (%s)\n", typeid(*this).name(), objname.constData());
@@ -1188,7 +1188,7 @@ void PrefQuantitySpinBox::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu *editMenu = lineEdit()->createStandardContextMenu();
     editMenu->setTitle(tr("Edit"));
-    QMenu* menu = new QMenu(QString::fromLatin1("PrefQuantitySpinBox"));
+    QMenu* menu = new QMenu(QStringLiteral("PrefQuantitySpinBox"));
 
     menu->addMenu(editMenu);
 
@@ -1210,11 +1210,11 @@ void PrefQuantitySpinBox::contextMenuEvent(QContextMenuEvent *event)
     for (QStringList::const_iterator it = history.begin();it!= history.end();++it) {
         QAction *action;
         if (it->size() > 50) {
-            action = menu->addAction(QString::fromLatin1("%1...%2").arg(it->left(22), it->right(22)));
+            action = menu->addAction(QStringLiteral("%1...%2").arg(it->left(22), it->right(22)));
             if (it->size() < 1024)
                 action->setToolTip(*it);
             else
-                action->setToolTip(QString::fromLatin1("%1\n\n...\n\n%2").arg(
+                action->setToolTip(QStringLiteral("%1\n\n...\n\n%2").arg(
                             it->left(500), it->right(500)));
         } else
             action = menu->addAction(*it);
@@ -1279,7 +1279,7 @@ void PrefQuantitySpinBox::pushToHistory()
 {
     QString val;
     if (hasExpression(false))
-        val = QString::fromLatin1("=%1").arg(QString::fromUtf8(getExpressionString().c_str()));
+        val = QStringLiteral("=%1").arg(QString::fromUtf8(getExpressionString().c_str()));
     else
         val = this->text();
 

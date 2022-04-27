@@ -44,8 +44,8 @@ namespace {
 QWidget* createFromWidgetFactory(const QString & className, QWidget * parent, const QString& name)
 {
     QWidget* widget = nullptr;
-    if (WidgetFactory().CanProduce((const char*)className.toLatin1()))
-        widget = WidgetFactory().createWidget((const char*)className.toLatin1(), parent);
+    if (WidgetFactory().CanProduce((const char*)className.toUtf8()))
+        widget = WidgetFactory().createWidget((const char*)className.toUtf8(), parent);
     if (widget)
         widget->setObjectName(name);
     return widget;
@@ -74,8 +74,8 @@ Py::Object wrapFromWidgetFactory(const Py::Tuple& args, const std::function<QWid
         objectName = str.as_std_string("utf-8");
     }
 
-    QWidget* widget = callableFunc(QString::fromLatin1(className.c_str()), parent,
-                                   QString::fromLatin1(objectName.c_str()));
+    QWidget* widget = callableFunc(QString::fromUtf8(className.c_str()), parent,
+                                   QString::fromUtf8(objectName.c_str()));
     if (!widget) {
         return Py::None();
     //    std::string err = "No such widget class '";
@@ -140,7 +140,7 @@ Py::Object PySideUicModule::loadUiType(const Py::Tuple& args)
         << "    form_class = frame['Ui_%s'%form_class]\n"
         << "    base_class = eval('QtWidgets.%s'%widget_class)\n";
 
-    PyObject* result = PyRun_String((const char*)cmd.toLatin1(), Py_file_input, d.ptr(), d.ptr());
+    PyObject* result = PyRun_String((const char*)cmd.toUtf8(), Py_file_input, d.ptr(), d.ptr());
     if (result) {
         Py_DECREF(result);
         if (d.hasKey("form_class") && d.hasKey("base_class")) {
@@ -205,7 +205,7 @@ Py::Object PySideUicModule::loadUi(const Py::Tuple& args)
         << "\n";
 #endif
 
-    PyObject* result = PyRun_String((const char*)cmd.toLatin1(), Py_file_input, d.ptr(), d.ptr());
+    PyObject* result = PyRun_String((const char*)cmd.toUtf8(), Py_file_input, d.ptr(), d.ptr());
     if (result) {
         Py_DECREF(result);
         if (d.hasKey("widget")) {

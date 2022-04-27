@@ -157,8 +157,8 @@ QTabWidget* DlgPreferencesImp::createTabForGroup(const std::string &groupName)
 
     QListWidgetItem* item = new QListWidgetItem(ui->listBox);
     item->setData(GroupNameRole, QVariant(groupNameQString));
-    item->setText(QObject::tr(groupNameQString.toLatin1()));
-    item->setToolTip(QObject::tr(groupNameQString.toLatin1()));
+    item->setText(QObject::tr(groupNameQString.toUtf8()));
+    item->setToolTip(QObject::tr(groupNameQString.toUtf8()));
     std::string fileName = groupName;
     for (auto & ch : fileName) {
         if (ch == ' ') ch = '_';
@@ -438,7 +438,7 @@ void DlgPreferencesImp::applyChanges()
                 catch (const Base::Exception& e) {
                     ui->listBox->setCurrentRow(i);
                     tabWidget->setCurrentIndex(j);
-                    QMessageBox::warning(this, tr("Wrong parameter"), QString::fromLatin1(e.what()));
+                    QMessageBox::warning(this, tr("Wrong parameter"), QString::fromUtf8(e.what()));
                     throw;
                 }
             }

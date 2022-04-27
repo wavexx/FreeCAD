@@ -1203,7 +1203,7 @@ ParameterManager *Application::AddParameterSet(std::string &name, const std::str
     QFileInfo fdest;
     std::string basename(name);
     for (int i=1; ;++i) {
-        fdest = QFileInfo(QString::fromLatin1("%1/settings/%2.FCParam").arg(
+        fdest = QFileInfo(QStringLiteral("%1/settings/%2.FCParam").arg(
                     QString::fromUtf8(pathPrefix.c_str()), QString::fromUtf8(name.c_str())));
         if (!fdest.exists() && !mpcPramManager.count(name.c_str()))
             break;
@@ -1242,7 +1242,7 @@ bool Application::RenameParameterSet(const char *sName, ParameterManager *hManag
                 mpcPramManager.erase(it);
                 if (hManager->HasSerializer()) {
                     QFileInfo fi(QString::fromUtf8(hManager->GetSerializeFileName().c_str()));
-                    QFileInfo fdest(QString::fromLatin1("%1/%2.FCParam").arg(
+                    QFileInfo fdest(QStringLiteral("%1/%2.FCParam").arg(
                                 fi.absolutePath(), QString::fromUtf8(sName)));
                     if (fi.exists())
                         QFile::rename(fi.absoluteFilePath(), fdest.absoluteFilePath());
@@ -2151,7 +2151,7 @@ void Application::initConfig(int argc, char ** argv)
     // Now it's time to read-in the file branding.xml if it exists
     Branding brand;
     QString binDir = QString::fromUtf8((mConfig["AppHomePath"] + "bin").c_str());
-    QFileInfo fi(binDir, QString::fromLatin1("branding.xml"));
+    QFileInfo fi(binDir, QStringLiteral("branding.xml"));
     if (fi.exists() && brand.readFile(fi.absoluteFilePath())) {
         Branding::XmlConfig cfg = brand.getUserDefines();
         for (Branding::XmlConfig::iterator it = cfg.begin(); it != cfg.end(); ++it) {
@@ -2995,9 +2995,9 @@ void Application::ExtractUserPath()
 
     // this is to support a portable version of FreeCAD
     QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
-    QString userHome = env.value(QString::fromLatin1("FREECAD_USER_HOME"));
-    QString userData = env.value(QString::fromLatin1("FREECAD_USER_DATA"));
-    QString userTemp = env.value(QString::fromLatin1("FREECAD_USER_TEMP"));
+    QString userHome = env.value(QStringLiteral("FREECAD_USER_HOME"));
+    QString userData = env.value(QStringLiteral("FREECAD_USER_DATA"));
+    QString userTemp = env.value(QStringLiteral("FREECAD_USER_TEMP"));
 
     // verify env. variables
     if (!userHome.isEmpty()) {
@@ -3033,8 +3033,8 @@ void Application::ExtractUserPath()
     else if (!userHome.isEmpty()) {
         // if FREECAD_USER_HOME is set but not FREECAD_USER_TEMP
         QDir dir(userHome);
-        dir.mkdir(QString::fromLatin1("temp"));
-        QFileInfo fi(dir, QString::fromLatin1("temp"));
+        dir.mkdir(QStringLiteral("temp"));
+        QFileInfo fi(dir, QStringLiteral("temp"));
         QString tmp(fi.absoluteFilePath());
         tmp += QDir::separator();
         tmp = QDir::toNativeSeparators(tmp);
@@ -3299,7 +3299,7 @@ std::string Application::FindHomePath(const char* sCall)
     //   to locate the correct home directory
     wchar_t szFileName [MAX_PATH];
     QString dll(QString::fromUtf8(sCall));
-    if (Py_IsInitialized() || dll.endsWith(QLatin1String(".dll"))) {
+    if (Py_IsInitialized() || dll.endsWith(QStringLiteral(".dll"))) {
         GetModuleFileNameW(GetModuleHandleA(sCall),szFileName, MAX_PATH-1);
     }
     else {

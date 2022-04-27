@@ -106,7 +106,7 @@ UnitTestDialog::~UnitTestDialog()
  */
 void UnitTestDialog::setProgressColor(const QColor& col)
 {
-    QString qss = QString::fromLatin1(
+    QString qss = QStringLiteral(
         "QProgressBar {\n"
         "    border: 2px solid grey;\n"
         "    border-radius: 5px;\n"
@@ -137,7 +137,7 @@ void UnitTestDialog::on_treeViewFailure_itemDoubleClicked(QTreeWidgetItem * item
     if (text.count(QLatin1Char('\n')) > 20) {
         QStringList lines = text.split(QLatin1Char('\n'));
         lines.erase(lines.begin()+20, lines.end());
-        text = lines.join(QLatin1String("\n"));
+        text = lines.join(QStringLiteral("\n"));
     }
 
     msgBox.setText(text);
@@ -206,7 +206,7 @@ void UnitTestDialog::on_startButton_clicked()
  */
 void UnitTestDialog::showErrorDialog(const char* title, const char* message)
 {
-    QMessageBox::critical(this, QString::fromLatin1(title), QString::fromLatin1(message));
+    QMessageBox::critical(this, QString::fromUtf8(title), QString::fromUtf8(message));
 }
 
 /**
@@ -225,10 +225,10 @@ void UnitTestDialog::reset()
 {
     ui->progressBar->reset();
     ui->treeViewFailure->clear();
-    ui->textLabelRunCt->setText (QString::fromLatin1("<font color=\"#0000ff\">0</font>"));
-    ui->textLabelFailCt->setText(QString::fromLatin1("<font color=\"#0000ff\">0</font>"));
-    ui->textLabelErrCt->setText (QString::fromLatin1("<font color=\"#0000ff\">0</font>"));
-    ui->textLabelRemCt->setText (QString::fromLatin1("<font color=\"#0000ff\">0</font>"));
+    ui->textLabelRunCt->setText (QStringLiteral("<font color=\"#0000ff\">0</font>"));
+    ui->textLabelFailCt->setText(QStringLiteral("<font color=\"#0000ff\">0</font>"));
+    ui->textLabelErrCt->setText (QStringLiteral("<font color=\"#0000ff\">0</font>"));
+    ui->textLabelRemCt->setText (QStringLiteral("<font color=\"#0000ff\">0</font>"));
 }
 
 /**
@@ -294,7 +294,7 @@ void UnitTestDialog::setProgressFraction(float fraction, const QString& color)
         ui->progressBar->setRange(0, 100);
     }
     else {
-        if (color == QLatin1String("red")) {
+        if (color == QStringLiteral("red")) {
             setProgressColor(Qt::red);
         }
 
@@ -327,7 +327,7 @@ void UnitTestDialog::insertError(const QString& failure, const QString& details)
  */
 void UnitTestDialog::setRunCount(int ct)
 {
-    ui->textLabelRunCt->setText(QString::fromLatin1("<font color=\"#0000ff\">%1</font>").arg(ct));
+    ui->textLabelRunCt->setText(QStringLiteral("<font color=\"#0000ff\">%1</font>").arg(ct));
 }
 
 /**
@@ -335,7 +335,7 @@ void UnitTestDialog::setRunCount(int ct)
  */
 void UnitTestDialog::setFailCount(int ct)
 {
-    ui->textLabelFailCt->setText(QString::fromLatin1("<font color=\"#0000ff\">%1</font>").arg(ct));
+    ui->textLabelFailCt->setText(QStringLiteral("<font color=\"#0000ff\">%1</font>").arg(ct));
 }
 
 /**
@@ -343,7 +343,7 @@ void UnitTestDialog::setFailCount(int ct)
  */
 void UnitTestDialog::setErrorCount(int ct)
 {
-    ui->textLabelErrCt->setText(QString::fromLatin1("<font color=\"#0000ff\">%1</font>").arg(ct));
+    ui->textLabelErrCt->setText(QStringLiteral("<font color=\"#0000ff\">%1</font>").arg(ct));
 }
 
 /**
@@ -351,7 +351,7 @@ void UnitTestDialog::setErrorCount(int ct)
  */
 void UnitTestDialog::setRemainCount(int ct)
 {
-    ui->textLabelRemCt->setText(QString::fromLatin1("<font color=\"#0000ff\">%1</font>").arg(ct));
+    ui->textLabelRemCt->setText(QStringLiteral("<font color=\"#0000ff\">%1</font>").arg(ct));
 }
 
 #include "moc_UnitTestImp.cpp"

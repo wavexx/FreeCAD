@@ -89,7 +89,7 @@ Branding::XmlConfig Branding::getUserDefines() const
     if (!root.isNull()) {
         child = root.firstChildElement();
         while (!child.isNull()) {
-            std::string name = (const char*)child.localName().toLatin1();
+            std::string name = (const char*)child.localName().toUtf8();
             std::string value = (const char*)child.text().toUtf8();
             if (std::find(filter.begin(), filter.end(), name) != filter.end())
                 cfg[name] = value;
@@ -111,12 +111,12 @@ bool Branding::evaluateXML(QIODevice *device, QDomDocument& xmlDocument)
     }
 
     QDomElement root = xmlDocument.documentElement();
-    if (root.tagName() != QLatin1String("Branding")) {
+    if (root.tagName() != QStringLiteral("Branding")) {
         return false;
     }
-    else if (root.hasAttribute(QLatin1String("version"))) {
-        QString attr = root.attribute(QLatin1String("version"));
-        if (attr != QLatin1String("1.0"))
+    else if (root.hasAttribute(QStringLiteral("version"))) {
+        QString attr = root.attribute(QStringLiteral("version"));
+        if (attr != QStringLiteral("1.0"))
             return false;
     }
 

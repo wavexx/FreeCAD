@@ -801,7 +801,7 @@ void PropertyEditor::contextMenuEvent(QContextMenuEvent *ev) {
 #define ACTION_SETUP(_name) do {\
             _ACTION_SETUP(_name);\
             if(propType & App::Prop_##_name) {\
-                action->setText(text + QString::fromLatin1(" *"));\
+                action->setText(text + QStringLiteral(" *"));\
                 checkbox->setChecked(true);\
                 checkbox->setDisabled(true);\
                 flags.erase(MA_##_name);\

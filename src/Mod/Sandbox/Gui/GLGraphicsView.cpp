@@ -450,7 +450,7 @@ GraphicsScene::setNavigationModeFile(const QUrl & url)
 {
     QString filename;
 
-    if (url.scheme()== QLatin1String("coin")) {
+    if (url.scheme()== QStringLiteral("coin")) {
         filename = url.path();
         //FIXME: This conditional needs to be implemented when the
         //CoinResources systems if working
@@ -461,7 +461,7 @@ GraphicsScene::setNavigationModeFile(const QUrl & url)
         }
         filename = url.scheme() + QLatin1Char(':') + filename;
     }
-    else if (url.scheme() == QLatin1String("file"))
+    else if (url.scheme() == QStringLiteral("file"))
         filename = url.toLocalFile();
     else if (url.isEmpty()) {
         //if (PRIVATE(this)->currentStateMachine) {
@@ -485,7 +485,7 @@ GraphicsScene::setNavigationModeFile(const QUrl & url)
     }
     else {
         //Use Qt to read the file in case it is a Qt resource
-        QFile file(QString::fromLatin1(filenametmp));
+        QFile file(QString::fromUtf8(filenametmp));
         if (file.open(QIODevice::ReadOnly)) {
             QByteArray fileContents = file.readAll();
 #if COIN_MAJOR_VERSION >= 4
@@ -705,7 +705,7 @@ void GraphicsScene::drawBackground(QPainter *painter, const QRectF &)
 
     painter->save();
     painter->fillRect(40,40,40,60,Qt::lightGray);
-    painter->drawText(50,50, QString::fromLatin1("Done with QPainter"));
+    painter->drawText(50,50, QStringLiteral("Done with QPainter"));
     painter->restore();
 
     QTimer::singleShot(20, this, SLOT(update()));
@@ -789,7 +789,7 @@ GraphicsView3D::GraphicsView3D(Gui::Document* doc, QWidget* parent)
     m_view->setViewport(new QGLWidget(f));
     m_view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_view->setScene(m_scene);
-    m_scene->setNavigationModeFile(QUrl(QString::fromLatin1("coin:///scxml/navigation/examiner.xml")));
+    m_scene->setNavigationModeFile(QUrl(QStringLiteral("coin:///scxml/navigation/examiner.xml")));
 
     std::vector<ViewProvider*> v = doc->getViewProvidersOfType(ViewProvider::getClassTypeId());
     SoSeparator* root = new SoSeparator();
@@ -826,9 +826,9 @@ void GraphicsView3D::OnChange(ParameterGrp::SubjectType &rCaller,ParameterGrp::M
     }
     else if (strcmp(Reason,"HeadlightDirection") == 0) {
         std::string pos = rGrp.GetASCII("HeadlightDirection");
-        QString flt = QString::fromLatin1("([-+]?[0-9]+\\.?[0-9]+)");
-        QRegExp rx(QString::fromLatin1("^\\(%1,%1,%1\\)$").arg(flt));
-        if (rx.indexIn(QLatin1String(pos.c_str())) > -1) {
+        QString flt = QStringLiteral("([-+]?[0-9]+\\.?[0-9]+)");
+        QRegExp rx(QStringLiteral("^\\(%1,%1,%1\\)$").arg(flt));
+        if (rx.indexIn(QString::fromUtf8(pos.c_str())) > -1) {
             float x = rx.cap(1).toFloat();
             float y = rx.cap(2).toFloat();
             float z = rx.cap(3).toFloat();
@@ -851,9 +851,9 @@ void GraphicsView3D::OnChange(ParameterGrp::SubjectType &rCaller,ParameterGrp::M
     }
     else if (strcmp(Reason,"BacklightDirection") == 0) {
         std::string pos = rGrp.GetASCII("BacklightDirection");
-        QString flt = QString::fromLatin1("([-+]?[0-9]+\\.?[0-9]+)");
-        QRegExp rx(QString::fromLatin1("^\\(%1,%1,%1\\)$").arg(flt));
-        if (rx.indexIn(QLatin1String(pos.c_str())) > -1) {
+        QString flt = QStringLiteral("([-+]?[0-9]+\\.?[0-9]+)");
+        QRegExp rx(QStringLiteral("^\\(%1,%1,%1\\)$").arg(flt));
+        if (rx.indexIn(QString::fromUtf8(pos.c_str())) > -1) {
             float x = rx.cap(1).toFloat();
             float y = rx.cap(2).toFloat();
             float z = rx.cap(3).toFloat();

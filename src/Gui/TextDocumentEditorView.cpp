@@ -109,7 +109,7 @@ void TextDocumentEditorView::setupEditor()
     connect(getEditor()->document(), SIGNAL(modificationChanged(bool)),
             this, SLOT(setWindowModified(bool)));
     setWindowTitle(QString::fromUtf8(textDocument->Label.getValue())
-            + QString::fromLatin1("[*]"));
+            + QStringLiteral("[*]"));
     getEditor()->setPlainText(
             QString::fromUtf8(textDocument->Text.getValue()));
 }
@@ -135,7 +135,7 @@ void TextDocumentEditorView::sourceChanged()
 void TextDocumentEditorView::labelChanged()
 {
     setWindowTitle(QString::fromUtf8(textDocument->Label.getValue())
-            + QString::fromLatin1("[*]"));
+            + QStringLiteral("[*]"));
 }
 
 void TextDocumentEditorView::refresh()

@@ -74,7 +74,7 @@ QString propertyName(const App::Property &prop)
             if (!upper) {
                 QChar last = display.at(display.length()-1);
                 if (!last.isSpace())
-                    display += QLatin1String(" ");
+                    display += QStringLiteral(" ");
             }
         }
         upper = name[i].isUpper();

@@ -230,7 +230,7 @@ void CmdPartDesignBody::activated(int iMsg)
         QMessageBox box(Gui::getMainWindow());
         box.setIcon(QMessageBox::Question);
         box.setWindowTitle(QObject::tr("Base feature"));
-        box. setText(QString::fromLatin1("%1\n%2\n\n%3").arg(
+        box. setText(QStringLiteral("%1\n%2\n\n%3").arg(
                     QObject::tr("You are about to use the following feature as base for the new body."),
                     QString::fromUtf8(supportNames.c_str()),
                     QObject::tr("Select 'Yes' to continue, 'No' to create the body without base "
@@ -904,7 +904,7 @@ void CmdPartDesignMoveFeature::activated(int iMsg)
             } catch (Base::Exception &) {
                 QMessageBox::warning( Gui::getMainWindow(), QObject::tr("Sketch plane cannot be migrated"),
                         QObject::tr("Please edit '%1' and redefine it to use a Base or Datum plane as the sketch plane.").
-                        arg( QString::fromLatin1( sketch->Label.getValue () ) ) );
+                        arg( QString::fromUtf8( sketch->Label.getValue () ) ) );
             }
         }
 

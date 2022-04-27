@@ -529,7 +529,7 @@ QVariant PropertyItem::expressionEditorData(QWidget *editor) const
 QString PropertyItem::propertyName() const
 {
     if (propName.isEmpty())
-        return QLatin1String(QT_TRANSLATE_NOOP("App::Property", "<empty>"));
+        return QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "<empty>"));
     return propName;
 }
 
@@ -673,7 +673,7 @@ QVariant PropertyItem::data(int column, int role) const
         }
         else if (role == Qt::ToolTipRole) {
             QString type = QStringLiteral("Type: %1\nName: %2").arg(
-                    QString::fromLatin1(propertyItems[0]->getTypeId().getName()), objectName());
+                    QString::fromUtf8(propertyItems[0]->getTypeId().getName()), objectName());
             QString doc = QApplication::translate("App::Property", propertyItems[0]->getDocumentation());
             if (linked && propertyItems[0]->getContainer()
                        && QApplication::queryKeyboardModifiers() == Qt::ControlModifier)
@@ -1451,7 +1451,7 @@ public:
                                 .arg(value.y,0,'f',decimals)
                                 .arg(value.z,0,'f',decimals);
 
-                Gui::Command::doCommand(Gui::Command::Doc, "%s = %s", propName.c_str(), str.toLatin1().constData());
+                Gui::Command::doCommand(Gui::Command::Doc, "%s = %s", propName.c_str(), str.toUtf8().constData());
                 return true;
             }
         }
@@ -2360,11 +2360,11 @@ PropertyRotationItem::PropertyRotationItem()
 {
     m_a = static_cast<PropertyUnitItem*>(PropertyUnitItem::create());
     m_a->setParent(this);
-    m_a->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Angle")));
+    m_a->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Angle")));
     this->appendChild(m_a);
     m_d = static_cast<PropertyVectorItem*>(PropertyVectorItem::create());
     m_d->setParent(this);
-    m_d->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Axis")));
+    m_d->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Axis")));
     m_d->setReadOnly(true);
     this->appendChild(m_d);
 }
@@ -2627,16 +2627,16 @@ PropertyPlacementItem::PropertyPlacementItem()
 {
     m_a = static_cast<PropertyUnitItem*>(PropertyUnitItem::create());
     m_a->setParent(this);
-    m_a->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Angle")));
+    m_a->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Angle")));
     this->appendChild(m_a);
     m_d = static_cast<PropertyVectorItem*>(PropertyVectorItem::create());
     m_d->setParent(this);
-    m_d->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Axis")));
+    m_d->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Axis")));
     m_d->setReadOnly(true);
     this->appendChild(m_d);
     m_p = static_cast<PropertyVectorDistanceItem*>(PropertyVectorDistanceItem::create());
     m_p->setParent(this);
-    m_p->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Position")));
+    m_p->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Position")));
     m_p->setReadOnly(true);
     this->appendChild(m_p);
 
@@ -2877,7 +2877,7 @@ PropertyEnumItem::PropertyEnumItem()
     if(PropertyView::showAll()) {
         m_enum = static_cast<PropertyStringListItem*>(PropertyStringListItem::create());
         m_enum->setParent(this);
-        m_enum->setPropertyName(QLatin1String(QT_TRANSLATE_NOOP("App::Property", "Enum")));
+        m_enum->setPropertyName(QStringLiteral(QT_TRANSLATE_NOOP("App::Property", "Enum")));
         this->appendChild(m_enum);
     }
 }

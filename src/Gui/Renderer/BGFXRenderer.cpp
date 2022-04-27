@@ -227,7 +227,7 @@ public:
                     context->nativeHandle()).context();
             } else {
                 window = new QWindow();
-                window->setObjectName(QLatin1String("bgfxScreenSurface"));
+                window->setObjectName(QStringLiteral("bgfxScreenSurface"));
                 // d->offscreenWindow->setSurfaceType(QWindow::OpenGLSurface);
                 // d->offscreenWindow->setFormat(d->requestedFormat);
                 window->setGeometry(0, 0, widget->width(), widget->height());

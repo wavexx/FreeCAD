@@ -69,7 +69,7 @@ using namespace Attacher;
 /* TRANSLATOR PartDesignGui::TaskDatumParameters */
 
 TaskDatumParameters::TaskDatumParameters(ViewProviderDatum *ViewProvider,QWidget *parent)
-    : PartGui::TaskAttacher(ViewProvider, parent, QString::fromLatin1("PartDesign_") + ViewProvider->datumType,
+    : PartGui::TaskAttacher(ViewProvider, parent, QStringLiteral("PartDesign_") + ViewProvider->datumType,
               ViewProvider->datumText + tr(" parameters"))
 {
     Gui::Selection().addSelectionGate(new NoDependentsSelection(ViewProvider->getObject()));

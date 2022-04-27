@@ -536,13 +536,13 @@ QString ViewProviderSubShapeBinder::getToolTip(const QByteArray &tag) const
         return QString();
 
     if (Gui::isTreeViewDragging()) {
-        return QString::fromLatin1("%1\n%2\n%3").arg(
+        return QStringLiteral("%1\n%2\n%3").arg(
                 QObject::tr("Drop to add more binding, or hold CTRL to clear before assign new bindings."),
                 self->BindMode.getValue() == 1 ? 
                     QObject::tr("Frozen bound objects:") : QObject::tr("Current bound objects:"),
                 QString::fromUtf8(ss.str().c_str()));
     }
-    return QString::fromLatin1("%1 %2\n%3").arg(
+    return QStringLiteral("%1 %2\n%3").arg(
             self->BindMode.getValue() == 1 ?
                 QObject::tr("Frozen bound objects") : QObject::tr("Bound objects"),
             QObject::tr("(ALT + click this icon to select):"),

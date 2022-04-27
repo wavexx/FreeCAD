@@ -205,9 +205,9 @@ public:
         if(marker) {
             auto icon = BitmapFactory().pixmap("Invisible");
             QListWidgetItem* item = new QListWidgetItem(icon,
-                    QString::fromLatin1(std::string(sub,marker-sub).c_str()), ui->elementList);
+                    QString::fromUtf8(std::string(sub,marker-sub).c_str()), ui->elementList);
             item->setData(Qt::UserRole,QColor());
-            item->setData(Qt::UserRole+1,QString::fromLatin1(sub));
+            item->setData(Qt::UserRole+1,QString::fromUtf8(sub));
             elements.emplace(sub,item);
             return;
         }
@@ -224,10 +224,10 @@ public:
             c.setRgbF(color.r,color.g,color.b,1.0-color.a);
             px.fill(c);
             QListWidgetItem* item = new QListWidgetItem(QIcon(px),
-                    QString::fromLatin1(Data::ComplexGeoData::oldElementName(v.first.c_str()).c_str()),
+                    QString::fromUtf8(Data::ComplexGeoData::oldElementName(v.first.c_str()).c_str()),
                     ui->elementList);
             item->setData(Qt::UserRole,c);
-            item->setData(Qt::UserRole+1,QString::fromLatin1(v.first.c_str()));
+            item->setData(Qt::UserRole+1,QString::fromUtf8(v.first.c_str()));
             if(push)
                 items.push_back(item);
             elements.emplace(v.first,item);
@@ -399,7 +399,7 @@ public:
                    boost::starts_with(msg.pSubName,editSub))
                 {
                     for(auto item : ui->elementList->findItems(
-                                QString::fromLatin1(msg.pSubName-editSub.size()), Qt::MatchExactly))
+                                QString::fromUtf8(msg.pSubName-editSub.size()), Qt::MatchExactly))
                         item->setSelected(msg.Type==SelectionChanges::AddSelection);
                 }
             }
@@ -450,7 +450,7 @@ ElementColors::ElementColors(ViewProviderDocumentObject* vp, bool noHide)
 
     std::array<const char *, 4> names = {"MapFaceColor", "MapLineColor", "MapPointColor", "ForceMapColors"};
     for (auto name : names) {
-        auto checkbox = findChild<QCheckBox*>(QString::fromLatin1(name));
+        auto checkbox = findChild<QCheckBox*>(QString::fromUtf8(name));
         if (checkbox) {
             if (auto prop = Base::freecad_dynamic_cast<App::PropertyBool>(vp->getPropertyByName(name))) {
                 checkbox->setChecked(prop->getValue());
@@ -593,7 +593,7 @@ void ElementColors::Private::edit(QWidget *parent, bool elementOnly)
         if (cd.exec()!=QDialog::Accepted) {
             while(ui->elementList->count() > count) {
                 auto item = ui->elementList->takeItem(ui->elementList->count()-1);
-                elements.erase(item->data(Qt::UserRole+1).toString().toLatin1().constData());
+                elements.erase(item->data(Qt::UserRole+1).toString().toUtf8().constData());
             }
             touched = true;
             return;

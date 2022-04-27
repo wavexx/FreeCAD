@@ -637,7 +637,7 @@ bool MDIViewPage::onHasMsg(const char* pMsg) const
 void MDIViewPage::setTabText(std::string t)
 {
     if (!isPassive() && !t.empty()) {
-        QString cap = QString::fromLatin1("%1 [*]")
+        QString cap = QStringLiteral("%1 [*]")
             .arg(QString::fromUtf8(t.c_str()));
         setWindowTitle(cap);
     }
@@ -663,7 +663,7 @@ void MDIViewPage::printPdf()
     filter << QObject::tr("PDF (*.pdf)");
     filter << QObject::tr("All Files (*.*)");
     QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export Page As PDF"),
-                                                  _getDefaultName(m_vpPage), filter.join(QLatin1String(";;")));
+                                                  _getDefaultName(m_vpPage), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty()) {
       return;
     }
@@ -863,7 +863,7 @@ void MDIViewPage::saveSVG()
     filter << QObject::tr("SVG (*.svg)");
     filter << QObject::tr("All Files (*.*)");
     QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page as SVG"),
-                                                  _getDefaultName(m_vpPage), filter.join(QLatin1String(";;")));
+                                                  _getDefaultName(m_vpPage), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty()) {
       return;
     }
@@ -1371,7 +1371,7 @@ bool MDIViewPage::compareSelections(std::vector<Gui::SelectionObject> treeSel, Q
 
 void MDIViewPage::showStatusMsg(const char* s1, const char* s2, const char* s3) const
 {
-    QString msg = QString::fromLatin1("%1 %2.%3.%4 ")
+    QString msg = QStringLiteral("%1 %2.%3.%4 ")
             .arg(tr("Selected:"),
                  QString::fromUtf8(s1),
                  QString::fromUtf8(s2),

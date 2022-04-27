@@ -182,20 +182,20 @@ void DlgSettingsNavigation::on_mouseButton_clicked()
     QVariant data = ui->comboNavigationStyle->itemData(ui->comboNavigationStyle->currentIndex(), Qt::UserRole);
     void* instance = Base::Type::createInstanceByName((const char*)data.toByteArray());
     std::unique_ptr<UserNavigationStyle> ns(static_cast<UserNavigationStyle*>(instance));
-    uimb.groupBox->setTitle(uimb.groupBox->title()+QString::fromLatin1(" ")+ui->comboNavigationStyle->currentText());
+    uimb.groupBox->setTitle(uimb.groupBox->title()+QStringLiteral(" ")+ui->comboNavigationStyle->currentText());
     QString descr;
     descr = qApp->translate((const char*)data.toByteArray(),ns->mouseButtons(NavigationStyle::SELECTION));
-    descr.replace(QLatin1String("\n"), QLatin1String("<p>"));
-    uimb.selectionLabel->setText(QString::fromLatin1("<b>%1</b>").arg(descr));
+    descr.replace(QStringLiteral("\n"), QStringLiteral("<p>"));
+    uimb.selectionLabel->setText(QStringLiteral("<b>%1</b>").arg(descr));
     descr = qApp->translate((const char*)data.toByteArray(),ns->mouseButtons(NavigationStyle::PANNING));
-    descr.replace(QLatin1String("\n"), QLatin1String("<p>"));
-    uimb.panningLabel->setText(QString::fromLatin1("<b>%1</b>").arg(descr));
+    descr.replace(QStringLiteral("\n"), QStringLiteral("<p>"));
+    uimb.panningLabel->setText(QStringLiteral("<b>%1</b>").arg(descr));
     descr = qApp->translate((const char*)data.toByteArray(),ns->mouseButtons(NavigationStyle::DRAGGING));
-    descr.replace(QLatin1String("\n"), QLatin1String("<p>"));
-    uimb.rotationLabel->setText(QString::fromLatin1("<b>%1</b>").arg(descr));
+    descr.replace(QStringLiteral("\n"), QStringLiteral("<p>"));
+    uimb.rotationLabel->setText(QStringLiteral("<b>%1</b>").arg(descr));
     descr = qApp->translate((const char*)data.toByteArray(),ns->mouseButtons(NavigationStyle::ZOOMING));
-    descr.replace(QLatin1String("\n"), QLatin1String("<p>"));
-    uimb.zoomingLabel->setText(QString::fromLatin1("<b>%1</b>").arg(descr));
+    descr.replace(QStringLiteral("\n"), QStringLiteral("<p>"));
+    uimb.zoomingLabel->setText(QStringLiteral("<b>%1</b>").arg(descr));
     dlg.exec();
 }
 
@@ -312,7 +312,7 @@ CameraDialog::CameraDialog(QWidget* parent)
     QPushButton *currentViewButton;
     currentViewButton = new QPushButton(this);
     currentViewButton->setText(tr("Current view"));
-    currentViewButton->setObjectName(QString::fromLatin1("currentView"));
+    currentViewButton->setObjectName(QStringLiteral("currentView"));
     layout->addWidget(currentViewButton, 4, 1, 2, 1);
 
     QObject::connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));

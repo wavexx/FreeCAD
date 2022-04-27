@@ -313,7 +313,7 @@ QVariant TaskSketchBasedParameters::setUpToFace(const QString& text)
 
     QStringList parts = text.split(QChar::fromLatin1(':'));
     if (parts.length() < 2)
-        parts.push_back(QString::fromLatin1(""));
+        parts.push_back(QStringLiteral(""));
 
     // Check whether this is the name of an App::Plane or Part::Datum feature
     App::DocumentObject* obj = vp->getObject()->getDocument()->getObject(parts[0].toUtf8());
@@ -381,7 +381,7 @@ QVariant TaskSketchBasedParameters::objectNameByLabel(const QString& label,
 QString TaskSketchBasedParameters::getFaceReference(const QString& obj, const QString& sub) const
 {
     App::Document* doc = this->vp->getObject()->getDocument();
-    QString o = obj.left(obj.indexOf(QString::fromLatin1(":")));
+    QString o = obj.left(obj.indexOf(QStringLiteral(":")));
 
     if (o.isEmpty())
         return QString();

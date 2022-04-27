@@ -70,7 +70,7 @@ void CmdDrawingOpen::activated(int iMsg)
     Q_UNUSED(iMsg);
     // Reading an image
     QString filename = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QObject::tr("Choose an SVG file to open"), QString(),
-        QString::fromLatin1("%1 (*.svg *.svgz)").arg(QObject::tr("Scalable Vector Graphic")));
+        QStringLiteral("%1 (*.svg *.svgz)").arg(QObject::tr("Scalable Vector Graphic")));
     if (!filename.isEmpty())
     {
         filename = Base::Tools::escapeEncodeFilename(filename);
@@ -116,8 +116,8 @@ void CmdDrawingNewPage::activated(int iMsg)
     }
     else {
         QMessageBox::critical(Gui::getMainWindow(),
-            QLatin1String("No template"),
-            QLatin1String("No template available for this page size"));
+            QStringLiteral("No template"),
+            QStringLiteral("No template available for this page size"));
     }
 }
 
@@ -135,9 +135,9 @@ Gui::Action * CmdDrawingNewPage::createAction(void)
 
     std::string path = App::Application::getResourceDir();
     path += "Mod/Drawing/Templates/";
-    QDir dir(QString::fromUtf8(path.c_str()), QString::fromLatin1("*.svg"));
+    QDir dir(QString::fromUtf8(path.c_str()), QStringLiteral("*.svg"));
     for (unsigned int i=0; i<dir.count(); i++ ) {
-        QRegExp rx(QString::fromLatin1("(A|B|C|D|E)(\\d)_(Landscape|Portrait)(_.*\\.|\\.)svg$"));
+        QRegExp rx(QStringLiteral("(A|B|C|D|E)(\\d)_(Landscape|Portrait)(_.*\\.|\\.)svg$"));
         if (rx.indexIn(dir[i]) > -1) {
             QString paper = rx.cap(1);
             int id = rx.cap(2).toInt();
@@ -163,7 +163,7 @@ Gui::Action * CmdDrawingNewPage::createAction(void)
             lastPaper = paper;
             lastId = id;
 
-            QFile file(QString::fromLatin1(":/icons/actions/drawing-%1-%2%3.svg").arg(orientation.toLower()).arg(paper).arg(id));
+            QFile file(QStringLiteral(":/icons/actions/drawing-%1-%2%3.svg").arg(orientation.toLower()).arg(paper).arg(id));
             QAction* a = pcAction->addAction(QString());
             if (file.open(QFile::ReadOnly)) {
                 QByteArray data = file.readAll();
@@ -215,9 +215,9 @@ void CmdDrawingNewPage::languageChange()
         QString paper = (*it)->property("TemplatePaper").toString();
         int id = (*it)->property("TemplateId").toInt();
         QString orientation = (*it)->property("TemplateOrientation").toString();
-        if (orientation.compare(QLatin1String("landscape"), Qt::CaseInsensitive) == 0)
+        if (orientation.compare(QStringLiteral("landscape"), Qt::CaseInsensitive) == 0)
             orientation = QCoreApplication::translate("Drawing_NewPage", "Landscape");
-        else if (orientation.compare(QLatin1String("portrait"), Qt::CaseInsensitive) == 0)
+        else if (orientation.compare(QStringLiteral("portrait"), Qt::CaseInsensitive) == 0)
             orientation = QCoreApplication::translate("Drawing_NewPage", "Portrait");
         QString info = (*it)->property("TemplateInfo").toString();
 
@@ -589,7 +589,7 @@ void CmdDrawingSymbol::activated(int iMsg)
     }
     // Reading an image
     QString filename = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QObject::tr("Choose an SVG file to open"), QString(),
-        QString::fromLatin1("%1 (*.svg *.svgz)").arg(QObject::tr("Scalable Vector Graphic")));
+        QStringLiteral("%1 (*.svg *.svgz)").arg(QObject::tr("Scalable Vector Graphic")));
     if (!filename.isEmpty())
     {
         std::string PageName = pages.front()->getNameInDocument();
@@ -643,10 +643,10 @@ void CmdDrawingExportPage::activated(int iMsg)
     }
 
     QStringList filter;
-    filter << QString::fromLatin1("%1 (*.svg)").arg(QObject::tr("Scalable Vector Graphic"));
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
+    filter << QStringLiteral("%1 (*.svg)").arg(QObject::tr("Scalable Vector Graphic"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
 
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QLatin1String(";;")));
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QStringLiteral(";;")));
     if (!fn.isEmpty()) {
         std::vector<Gui::SelectionSingleton::SelObj> Sel = getSelection().getSelection();
         openCommand("Drawing export page");

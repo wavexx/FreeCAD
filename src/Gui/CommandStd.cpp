@@ -105,7 +105,7 @@ void StdCmdWorkbench::activated(int i)
     try {
         Workbench* w = WorkbenchManager::instance()->active();
         QList<QAction*> items = static_cast<WorkbenchGroup*>(_pcAction)->actions();
-        std::string switch_to = (const char*)items[i]->objectName().toLatin1();
+        std::string switch_to = (const char*)items[i]->objectName().toUtf8();
         if (w) {
             std::string current_w = w->name();
             if (switch_to == current_w)
@@ -114,10 +114,10 @@ void StdCmdWorkbench::activated(int i)
         doCommand(Gui, "Gui.activateWorkbench(\"%s\")", switch_to.c_str());
     }
     catch(const Base::PyException& e) {
-        QString msg(QLatin1String(e.what()));
+        QString msg(QString::fromUtf8(e.what()));
         // ignore '<type 'exceptions.*Error'>' prefixes
         QRegExp rx;
-        rx.setPattern(QLatin1String("^\\s*<type 'exceptions.\\w*'>:\\s*"));
+        rx.setPattern(QStringLiteral("^\\s*<type 'exceptions.\\w*'>:\\s*"));
         int pos = rx.indexIn(msg);
         if (pos != -1)
             msg = msg.mid(rx.matchedLength());
@@ -139,7 +139,7 @@ Action * StdCmdWorkbench::createAction(void)
     Action *pcAction;
 
     pcAction = new WorkbenchGroup(this,getMainWindow());
-    pcAction->setShortcut(QString::fromLatin1(getAccel()));
+    pcAction->setShortcut(QString::fromUtf8(getAccel()));
     applyCommandData(this->className(), pcAction);
     if (getPixmap())
         pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(getPixmap()));
@@ -188,7 +188,7 @@ void StdCmdRecentFiles::activated(int iMsg)
 Action * StdCmdRecentFiles::createAction(void)
 {
     RecentFilesAction* pcAction = new RecentFilesAction(this, getMainWindow());
-    pcAction->setObjectName(QLatin1String("recentFiles"));
+    pcAction->setObjectName(QStringLiteral("recentFiles"));
     pcAction->setDropDownMenu(true);
     applyCommandData(this->className(), pcAction);
     return pcAction;
@@ -228,7 +228,7 @@ void StdCmdRecentMacros::activated(int iMsg)
 Action * StdCmdRecentMacros::createAction(void)
 {
     RecentMacrosAction* pcAction = new RecentMacrosAction(this, getMainWindow());
-    pcAction->setObjectName(QLatin1String("recentMacros"));
+    pcAction->setObjectName(QStringLiteral("recentMacros"));
     pcAction->setDropDownMenu(true);
     applyCommandData(this->className(), pcAction);
     return pcAction;
@@ -263,9 +263,9 @@ Action * StdCmdAbout::createAction(void)
         this->className(), getToolTipText()).arg(exe));
     pcAction->setStatusTip(QCoreApplication::translate(
         this->className(), getStatusTip()).arg(exe));
-    pcAction->setWhatsThis(QLatin1String(getWhatsThis()));
+    pcAction->setWhatsThis(QString::fromUtf8(getWhatsThis()));
     pcAction->setIcon(QApplication::windowIcon());
-    pcAction->setShortcut(QString::fromLatin1(getAccel()));
+    pcAction->setShortcut(QString::fromUtf8(getAccel()));
     // Needs to have AboutRole set to avoid duplicates if adding the about action more than once on macOS
     pcAction->setMenuRole(QAction::AboutRole);
     return pcAction;
@@ -297,7 +297,7 @@ void StdCmdAbout::languageChange()
             this->className(), getToolTipText()).arg(exe));
         _pcAction->setStatusTip(QCoreApplication::translate(
             this->className(), getStatusTip()).arg(exe));
-        _pcAction->setWhatsThis(QLatin1String(getWhatsThis()));
+        _pcAction->setWhatsThis(QString::fromUtf8(getWhatsThis()));
     }
 }
 
@@ -560,7 +560,7 @@ StdCmdOnlineHelp::StdCmdOnlineHelp()
 void StdCmdOnlineHelp::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    Gui::getMainWindow()->showDocumentation(QString::fromLatin1("Online_Help_Startpage"));
+    Gui::getMainWindow()->showDocumentation(QStringLiteral("Online_Help_Startpage"));
 }
 
 //===========================================================================
@@ -931,7 +931,7 @@ Action * StdCmdHistory::createAction(void)
     Action *pcAction;
     pcAction = new CmdHistoryAction(this, getMainWindow());
     // pcAction->setIcon(BitmapFactory().iconFromTheme(sPixmap));
-    pcAction->setShortcut(QString::fromLatin1(sAccel));
+    pcAction->setShortcut(QString::fromUtf8(sAccel));
     applyCommandData(this->className(), pcAction);
     return pcAction;
 }
@@ -1005,7 +1005,7 @@ Action * StdCmdPresets::createAction(void)
     Action *pcAction;
     pcAction = new PresetsAction(this, getMainWindow());
     if (sAccel)
-        pcAction->setShortcut(QString::fromLatin1(sAccel));
+        pcAction->setShortcut(QString::fromUtf8(sAccel));
     applyCommandData(this->className(), pcAction);
     return pcAction;
 }
@@ -1052,9 +1052,9 @@ Gui::Action * StdCmdUserEditMode::createAction(void)
         QAction* act = pcAction->addAction(QString());
         auto modeName = QString::fromStdString(uem.second);
         act->setCheckable(true);
-        act->setIcon(BitmapFactory().iconFromTheme(qPrintable(QString::fromLatin1("Std_UserEditMode")+modeName)));
-        act->setObjectName(QString::fromLatin1("Std_UserEditMode")+modeName);
-        act->setWhatsThis(QString::fromLatin1(getWhatsThis()));
+        act->setIcon(BitmapFactory().iconFromTheme(qPrintable(QStringLiteral("Std_UserEditMode")+modeName)));
+        act->setObjectName(QStringLiteral("Std_UserEditMode")+modeName);
+        act->setWhatsThis(QString::fromUtf8(getWhatsThis()));
 
         if (uem.first == 0) {
             pcAction->setIcon(act->icon());
@@ -1086,7 +1086,7 @@ void StdCmdUserEditMode::languageChange()
         a[i]->setText(QCoreApplication::translate(
         "EditMode", qPrintable(modeName)));
         a[i]->setToolTip(QCoreApplication::translate(
-        "EditMode", qPrintable(modeName+QString::fromLatin1(" mode"))));
+        "EditMode", qPrintable(modeName+QStringLiteral(" mode"))));
     }
 }
 

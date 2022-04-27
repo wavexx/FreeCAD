@@ -258,7 +258,7 @@ void TaskLinearPatternParameters::onDirectionChanged(int /*num*/)
             pcLinearPattern->Direction.Paste(dirLinks.getCurrentLink());
         }
     } catch (Base::Exception &e) {
-        QMessageBox::warning(0,tr("Error"),QString::fromLatin1(e.what()));
+        QMessageBox::warning(0,tr("Error"),QString::fromUtf8(e.what()));
     }
 
     kickUpdateViewTimer();

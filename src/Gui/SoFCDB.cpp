@@ -436,16 +436,16 @@ bool Gui::SoFCDB::writeToX3D(SoNode* node, bool exportViewpoints, std::string& b
         return false;
 
     QString filename = QDir::tempPath();
-    filename += QLatin1String("/sceneXXXXXX.wrl");
+    filename += QStringLiteral("/sceneXXXXXX.wrl");
     QTemporaryFile wrlFile(filename);
     if (wrlFile.open()) {
         filename = wrlFile.fileName();
         wrlFile.write(buffer.c_str(), buffer.size());
         wrlFile.close();
 
-        QString exe(QLatin1String("tovrmlx3d"));
+        QString exe(QStringLiteral("tovrmlx3d"));
         QStringList args;
-        args << filename << QLatin1String("--encoding") << QLatin1String("xml");
+        args << filename << QStringLiteral("--encoding") << QStringLiteral("xml");
         QProcess proc;
         proc.setEnvironment(QProcess::systemEnvironment());
         proc.start(exe, args);
@@ -466,7 +466,7 @@ bool Gui::SoFCDB::writeToX3D(SoNode* node, bool exportViewpoints, std::string& b
                 const SbVec3f& cnt = bs.getCenter();
                 float dist = bs.getRadius();
 
-                QString vp = QString::fromLatin1("  <Viewpoint id=\"Top\" centerOfRotation=\"%1 %2 %3\" "
+                QString vp = QStringLiteral("  <Viewpoint id=\"Top\" centerOfRotation=\"%1 %2 %3\" "
                                                  "position=\"%1 %2 %4\" orientation=\"0.000000 0.000000 1.000000 0.000000\" "
                                                  "description=\"camera\" fieldOfView=\"0.9\"></Viewpoint>\n")
                              .arg(cnt[0]).arg(cnt[1]).arg(cnt[2]).arg(cnt[2] + 2.0f * dist);

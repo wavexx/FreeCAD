@@ -180,7 +180,7 @@ void PythonEditor::onComment()
             if ( pos+1 > selEnd )
                 break; // end of selection reached
             cursor.setPosition(block.position());
-            cursor.insertText(QLatin1String("#"));
+            cursor.insertText(QStringLiteral("#"));
                 selEnd++;
         }
     }
@@ -202,7 +202,7 @@ void PythonEditor::onUncomment()
         if ( pos >= selStart || pos+off >= selStart) {
             if ( pos+1 > selEnd )
                 break; // end of selection reached
-            if (block.text().startsWith(QLatin1String("#"))) {
+            if (block.text().startsWith(QStringLiteral("#"))) {
                 cursor.setPosition(block.position());
                 cursor.deleteChar();
                 selEnd--;
@@ -221,22 +221,22 @@ class PythonSyntaxHighlighterP
 public:
     PythonSyntaxHighlighterP()
     {
-        keywords << QLatin1String("and") << QLatin1String("as")
-                 << QLatin1String("assert") << QLatin1String("break")
-                 << QLatin1String("class") << QLatin1String("continue")
-                 << QLatin1String("def") << QLatin1String("del")
-                 << QLatin1String("elif") << QLatin1String("else")
-                 << QLatin1String("except") << QLatin1String("exec")
-                 << QLatin1String("finally") << QLatin1String("for")
-                 << QLatin1String("from") << QLatin1String("global")
-                 << QLatin1String("if") << QLatin1String("import")
-                 << QLatin1String("in") << QLatin1String("is")
-                 << QLatin1String("lambda") << QLatin1String("None")
-                 << QLatin1String("not") << QLatin1String("or")
-                 << QLatin1String("pass") << QLatin1String("print")
-                 << QLatin1String("raise") << QLatin1String("return")
-                 << QLatin1String("try") << QLatin1String("while")
-                 << QLatin1String("with") << QLatin1String("yield");
+        keywords << QStringLiteral("and") << QStringLiteral("as")
+                 << QStringLiteral("assert") << QStringLiteral("break")
+                 << QStringLiteral("class") << QStringLiteral("continue")
+                 << QStringLiteral("def") << QStringLiteral("del")
+                 << QStringLiteral("elif") << QStringLiteral("else")
+                 << QStringLiteral("except") << QStringLiteral("exec")
+                 << QStringLiteral("finally") << QStringLiteral("for")
+                 << QStringLiteral("from") << QStringLiteral("global")
+                 << QStringLiteral("if") << QStringLiteral("import")
+                 << QStringLiteral("in") << QStringLiteral("is")
+                 << QStringLiteral("lambda") << QStringLiteral("None")
+                 << QStringLiteral("not") << QStringLiteral("or")
+                 << QStringLiteral("pass") << QStringLiteral("print")
+                 << QStringLiteral("raise") << QStringLiteral("return")
+                 << QStringLiteral("try") << QStringLiteral("while")
+                 << QStringLiteral("with") << QStringLiteral("yield");
     }
 
     QStringList keywords;
@@ -355,9 +355,9 @@ void PythonSyntaxHighlighter::highlightBlock (const QString & text)
               }
 
               if ( d->keywords.contains( buffer ) != 0 ) {
-                if ( buffer == QLatin1String("def"))
+                if ( buffer == QStringLiteral("def"))
                   endStateOfLastPara = DefineName;
-                else if ( buffer == QLatin1String("class"))
+                else if ( buffer == QStringLiteral("class"))
                   endStateOfLastPara = ClassName;
 
                 QTextCharFormat keywordFormat;

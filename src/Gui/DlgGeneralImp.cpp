@@ -81,9 +81,9 @@ DlgGeneralImp::DlgGeneralImp( QWidget* parent )
     }
 
     {   // add special workbench to selection
-        QPixmap px = Application::Instance->workbenchIcon(QString::fromLatin1("NoneWorkbench"));
-        QString key = QString::fromLatin1("<last>");
-        QString value = QString::fromLatin1("$LastModule");
+        QPixmap px = Application::Instance->workbenchIcon(QStringLiteral("NoneWorkbench"));
+        QString key = QStringLiteral("<last>");
+        QString value = QStringLiteral("$LastModule");
         if (px.isNull())
             ui->AutoloadModuleCombo->addItem(key, QVariant(value));
         else
@@ -112,7 +112,7 @@ DlgGeneralImp::~DlgGeneralImp()
  */
 void DlgGeneralImp::setRecentFileSize()
 {
-    RecentFilesAction *recent = getMainWindow()->findChild<RecentFilesAction *>(QLatin1String("recentFiles"));
+    RecentFilesAction *recent = getMainWindow()->findChild<RecentFilesAction *>(QStringLiteral("recentFiles"));
     if (recent) {
         ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("RecentFiles");
         recent->resizeList(hGrp->GetInt("RecentFiles", 4));
@@ -153,7 +153,7 @@ void DlgGeneralImp::saveSettings()
     QVariant data = ui->AutoloadModuleCombo->itemData(index);
     QString startWbName = data.toString();
     App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/General")->
-                          SetASCII("AutoloadModule", startWbName.toLatin1());
+                          SetASCII("AutoloadModule", startWbName.toUtf8());
 
     setRecentFileSize();
 
@@ -192,13 +192,13 @@ void DlgGeneralImp::populateStylesheets(const char *key,
     QMap<QString, QString> cssFiles;
     QDir dir;
     if (filter.isEmpty()) {
-        filter << QString::fromLatin1("*.qss");
-        filter << QString::fromLatin1("*.css");
+        filter << QStringLiteral("*.qss");
+        filter << QStringLiteral("*.css");
     }
     QFileInfoList fileNames;
 
     // read from user, resource and built-in directory
-    QStringList qssPaths = QDir::searchPaths(QString::fromLatin1(path));
+    QStringList qssPaths = QDir::searchPaths(QString::fromUtf8(path));
     for (QStringList::iterator it = qssPaths.begin(); it != qssPaths.end(); ++it) {
         dir.setPath(*it);
         fileNames = dir.entryInfoList(filter, QDir::Files, QDir::Name);
@@ -210,12 +210,12 @@ void DlgGeneralImp::populateStylesheets(const char *key,
     }
 
     // now add all unique items
-    combo->addItem(tr(def), QString::fromLatin1(""));
+    combo->addItem(tr(def), QStringLiteral(""));
     for (QMap<QString, QString>::iterator it = cssFiles.begin(); it != cssFiles.end(); ++it) {
         combo->addItem(it.key(), it.value());
     }
 
-    QString selectedStyleSheet = QString::fromLatin1(hGrp->GetASCII(key).c_str());
+    QString selectedStyleSheet = QString::fromUtf8(hGrp->GetASCII(key).c_str());
     int index = combo->findData(selectedStyleSheet);
 
     // might be an absolute path name
@@ -262,24 +262,24 @@ void DlgGeneralImp::loadSettings()
     std::string start = App::Application::Config()["StartWorkbench"];
     start = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/General")->
                                   GetASCII("AutoloadModule", start.c_str());
-    QString startWbName = QLatin1String(start.c_str());
+    QString startWbName = QString::fromUtf8(start.c_str());
     ui->AutoloadModuleCombo->setCurrentIndex(ui->AutoloadModuleCombo->findData(startWbName));
 
     ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("General");
 
     // search for the language files
     QString langToStr = QLocale::languageToString(QLocale().language());
-    QByteArray language = langToStr.toLatin1();
+    QByteArray language = langToStr.toUtf8();
 
     int index = 1;
     TStringMap list = Translator::instance()->supportedLocales();
     ui->Languages->clear();
-    ui->Languages->addItem(QString::fromLatin1("English"), QByteArray("English"));
+    ui->Languages->addItem(QStringLiteral("English"), QByteArray("English"));
     for (TStringMap::iterator it = list.begin(); it != list.end(); ++it, index++) {
         QByteArray lang = it->first.c_str();
-        QString langname = QString::fromLatin1(lang.constData());
+        QString langname = QString::fromUtf8(lang.constData());
 
-        QLocale locale(QString::fromLatin1(it->second.c_str()));
+        QLocale locale(QString::fromUtf8(it->second.c_str()));
         QString native = locale.nativeLanguageName();
         if (!native.isEmpty()) {
             if (native[0].isLetter())
@@ -410,7 +410,7 @@ bool applyToolbarIconSize(bool, ParameterGrp *hGrp)
 bool applyLanguage(bool, ParameterGrp *hGrp)
 {
     QString lang = QLocale::languageToString(QLocale().language());
-    std::string language = hGrp->GetASCII("Language", (const char*)lang.toLatin1());
+    std::string language = hGrp->GetASCII("Language", (const char*)lang.toUtf8());
     Translator::instance()->activateLanguage(language.c_str());
     return false;
 }

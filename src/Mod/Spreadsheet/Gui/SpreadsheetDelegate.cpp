@@ -82,9 +82,9 @@ QWidget *SpreadsheetDelegate::createEditor(QWidget *parent,
         case Cell::EditLabel: {
             auto editor = new SpreadsheetGui::TextEdit(parent);
             if(cell->isPersistentEditMode())
-                editor->setObjectName(QLatin1String("persistent"));
+                editor->setObjectName(QStringLiteral("persistent"));
             else
-                editor->setObjectName(QLatin1String("label"));
+                editor->setObjectName(QStringLiteral("label"));
             editor->setContextMenuPolicy(Qt::NoContextMenu);
             connect(editor, &SpreadsheetGui::TextEdit::finishedWithKey, this, &SpreadsheetDelegate::on_editorFinishedWithKey);
             lastEditor = editor;
@@ -93,7 +93,7 @@ QWidget *SpreadsheetDelegate::createEditor(QWidget *parent,
         case Cell::EditCombo: {
             auto combo = new QComboBox(parent);
             if(cell->isPersistentEditMode())
-                combo->setObjectName(QLatin1String("persistent"));
+                combo->setObjectName(QStringLiteral("persistent"));
             combo->setContextMenuPolicy(Qt::NoContextMenu);
             connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(commitAndCloseEditor()));
             return combo;
@@ -109,7 +109,7 @@ QWidget *SpreadsheetDelegate::createEditor(QWidget *parent,
         case Cell::EditCheckBox: {
             QWidget *widget = new QWidget(parent);
             QCheckBox *checkbox = new QCheckBox();
-            checkbox->setObjectName(QLatin1String("checkbox"));
+            checkbox->setObjectName(QStringLiteral("checkbox"));
             QHBoxLayout *layout = new QHBoxLayout(widget);
             layout->addWidget(checkbox);
             layout->setAlignment(Qt::AlignCenter);
@@ -230,29 +230,29 @@ void SpreadsheetDelegate::setEditorData(QWidget *editor,
         try {
             Base::Quantity q;
             auto map = data.toHash();
-            auto iter = map.find(QString::fromLatin1("value"));
+            auto iter = map.find(QStringLiteral("value"));
             if(iter == map.end())
                 q = qvariant_cast<Base::Quantity>(data);
             else
                 q = qvariant_cast<Base::Quantity>(iter.value());
             spinbox->setValue(q);
 
-            iter = map.find(QString::fromLatin1("step"));
+            iter = map.find(QStringLiteral("step"));
             if(iter != map.end())
                 spinbox->setSingleStep(iter.value().toDouble());
 
-            iter = map.find(QString::fromLatin1("max"));
+            iter = map.find(QStringLiteral("max"));
             if(iter != map.end())
                 spinbox->setMaximum(iter.value().toDouble());
 
-            iter = map.find(QString::fromLatin1("min"));
+            iter = map.find(QStringLiteral("min"));
             if(iter != map.end())
                 spinbox->setMinimum(iter.value().toDouble());
 
-            iter = map.find(QString::fromLatin1("unit"));
+            iter = map.find(QStringLiteral("unit"));
             if(iter != map.end()) {
                 double scale = 1;
-                auto iter2 = map.find(QString::fromLatin1("scale"));
+                auto iter2 = map.find(QStringLiteral("scale"));
                 if(iter2 != map.end()) {
                     scale = iter2.value().toDouble();
                     if(scale == 0.0)
@@ -268,7 +268,7 @@ void SpreadsheetDelegate::setEditorData(QWidget *editor,
         return;
     }
 
-    auto checkbox = editor->findChild<QCheckBox*>(QLatin1String("checkbox"));
+    auto checkbox = editor->findChild<QCheckBox*>(QStringLiteral("checkbox"));
     if(checkbox) {
         auto list = data.toList();
         if(list.isEmpty())
@@ -317,7 +317,7 @@ void SpreadsheetDelegate::setModelData(QWidget *editor,
     }
     QCheckBox *checkbox = qobject_cast<QCheckBox*>(editor);
     if(!checkbox)
-        checkbox = editor->findChild<QCheckBox*>(QLatin1String("checkbox"));
+        checkbox = editor->findChild<QCheckBox*>(QStringLiteral("checkbox"));
     if(checkbox) {
         model->setData(index, checkbox->isChecked());
         return;

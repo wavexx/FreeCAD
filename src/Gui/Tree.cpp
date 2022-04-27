@@ -2482,7 +2482,7 @@ TreeWidget::TreeWidget(const char *name, QWidget* parent)
     this->showHiddenAction->setCheckable(true);
     connect(this->showHiddenAction, SIGNAL(toggled(bool)),
             this, SLOT(onShowHidden()));
-    this->showHiddenAction->setShortcut(QKeySequence(QString::fromLatin1("T, S")));
+    this->showHiddenAction->setShortcut(QKeySequence(QStringLiteral("T, S")));
     addAction(this->showHiddenAction);
 
     this->showTempDocAction = new QAction(this);
@@ -6916,7 +6916,7 @@ void DocumentItem::setDocumentLabel() {
         return;
     setText(0, QStringLiteral("%1%2").arg(
                 QString::fromUtf8(doc->Label.getValue()),
-                QString::fromLatin1(document()->isModified()?" *":"")));
+                document()->isModified()?QStringLiteral(" *"):QStringLiteral("")));
 }
 
 #define _FOREACH_ITEM(_item, _obj) \

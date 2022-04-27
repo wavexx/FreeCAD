@@ -233,7 +233,7 @@ std::vector<App::DocumentObject*> TaskFeaturePick::getFeatures()
     std::vector<App::DocumentObject*> result;
 
     for (std::vector<QString>::const_iterator s = features.begin(); s != features.end(); ++s)
-        result.push_back(App::GetApplication().getDocument(documentName.c_str())->getObject(s->toLatin1().data()));
+        result.push_back(App::GetApplication().getDocument(documentName.c_str())->getObject(s->toUtf8().data()));
 
     return result;
 }

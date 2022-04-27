@@ -283,9 +283,9 @@ void TaskPadParameters::refresh()
         ui->lineFaceName->setProperty("FaceName", QVariant());
     }
     else if (obj) {
-        ui->lineFaceName->setText(QString::fromLatin1("%1:%2")
+        ui->lineFaceName->setText(QStringLiteral("%1:%2")
                                   .arg(QString::fromUtf8(obj->Label.getValue()))
-                                  .arg(QString::fromLatin1(subStrings.front().c_str())));
+                                  .arg(QString::fromUtf8(subStrings.front().c_str())));
         ui->lineFaceName->setProperty("FeatureName", QByteArray(obj->getNameInDocument()));
         ui->lineFaceName->setProperty("FaceName", QByteArray(subStrings.front().c_str()));
 
@@ -419,7 +419,7 @@ void TaskPadParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
                 ui->lineFaceName->setText(refText);
                 QStringList list(refText.split(QLatin1Char(':')));
                 ui->lineFaceName->setProperty("FeatureName", list[0].toUtf8());
-                ui->lineFaceName->setProperty("FaceName", list.size()>1 ? list[1].toLatin1() : QByteArray());
+                ui->lineFaceName->setProperty("FaceName", list.size()>1 ? list[1].toUtf8() : QByteArray());
                 ui->lineFaceName->blockSignals(false);
                 // Turn off reference selection mode
                 onButtonFace(false);
@@ -753,7 +753,7 @@ void TaskPadParameters::onFaceName(const QString& text)
         QVariant name = objectNameByLabel(label, ui->lineFaceName->property("FeatureName"));
         if (name.isValid()) {
             parts[0] = name.toString();
-            QString uptoface = parts.join(QString::fromLatin1(":"));
+            QString uptoface = parts.join(QStringLiteral(":"));
             ui->lineFaceName->setProperty("FeatureName", name);
             ui->lineFaceName->setProperty("FaceName", setUpToFace(uptoface));
         }
@@ -837,7 +837,7 @@ QString TaskPadParameters::getFaceName(void) const
             return getFaceReference(featureName.toString(), faceName);
         }
     }
-    return QString::fromLatin1("None");
+    return QStringLiteral("None");
 }
 
 bool TaskPadParameters::eventFilter(QObject *o, QEvent *ev)
@@ -972,7 +972,7 @@ void TaskPadParameters::apply()
     FCMD_OBJ_CMD(obj, "AlongSketchNormal = " << (getAlongSketchNormal() ? 1 : 0));
     FCMD_OBJ_CMD(obj,"Type = " << getMode());
     QString facename = getFaceName();
-    FCMD_OBJ_CMD(obj,"UpToFace = " << facename.toLatin1().data());
+    FCMD_OBJ_CMD(obj,"UpToFace = " << facename.toUtf8().data());
     FCMD_OBJ_CMD(obj,"Reversed = " << (getReversed()?1:0));
     FCMD_OBJ_CMD(obj,"Midplane = " << (getMidplane()?1:0));
     FCMD_OBJ_CMD(obj,"Offset = " << getOffset());

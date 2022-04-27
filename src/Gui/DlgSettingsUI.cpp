@@ -114,7 +114,7 @@ public:
     FC_UI_PARAM(_params, _name, _label, Gui::TransparentColorButton, packedColor, setPackedColor)
 
 #define FC_UI_LINEEDIT(_params, _name, _label) \
-    FC_UI_PARAM(_params, _name, _label, Gui::AccelLineEdit, latinText, setLatinText)
+    FC_UI_PARAM(_params, _name, _label, Gui::AccelLineEdit, displayText, setDisplayText)
 
 #define FC_UI_COMBOBOX(_params, _name, _label) \
     FC_UI_PARAM(_params, _name, _label, QComboBox, currentIndex, setCurrentIndex)
@@ -235,22 +235,53 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
 
     vlayout->addStretch();
 
-    const char *_curveTypes[] = {
-        "Linear",
-        "InQuad", "OutQuad", "InOutQuad", "OutInQuad",
-        "InCubic", "OutCubic", "InOutCubic", "OutInCubic",
-        "InQuart", "OutQuart", "InOutQuart", "OutInQuart",
-        "InQuint", "OutQuint", "InOutQuint", "OutInQuint",
-        "InSine", "OutSine", "InOutSine", "OutInSine",
-        "InExpo", "OutExpo", "InOutExpo", "OutInExpo",
-        "InCirc", "OutCirc", "InOutCirc", "OutInCirc",
-        "InElastic", "OutElastic", "InOutElastic", "OutInElastic",
-        "InBack", "OutBack", "InOutBack", "OutInBack",
-        "InBounce", "OutBounce", "InOutBounce", "OutInBounce", };
+    QString _curveTypes[] = {
+        QStringLiteral("Linear"),
+        QStringLiteral("InQuad"),
+        QStringLiteral("OutQuad"),
+        QStringLiteral("InOutQuad"),
+        QStringLiteral("OutInQuad"),
+        QStringLiteral("InCubic"),
+        QStringLiteral("OutCubic"),
+        QStringLiteral("InOutCubic"),
+        QStringLiteral("OutInCubic"),
+        QStringLiteral("InQuart"),
+        QStringLiteral("OutQuart"),
+        QStringLiteral("InOutQuart"),
+        QStringLiteral("OutInQuart"),
+        QStringLiteral("InQuint"),
+        QStringLiteral("OutQuint"),
+        QStringLiteral("InOutQuint"),
+        QStringLiteral("OutInQuint"),
+        QStringLiteral("InSine"),
+        QStringLiteral("OutSine"),
+        QStringLiteral("InOutSine"),
+        QStringLiteral("OutInSine"),
+        QStringLiteral("InExpo"),
+        QStringLiteral("OutExpo"),
+        QStringLiteral("InOutExpo"),
+        QStringLiteral("OutInExpo"),
+        QStringLiteral("InCirc"),
+        QStringLiteral("OutCirc"),
+        QStringLiteral("InOutCirc"),
+        QStringLiteral("OutInCirc"),
+        QStringLiteral("InElastic"),
+        QStringLiteral("OutElastic"),
+        QStringLiteral("InOutElastic"),
+        QStringLiteral("OutInElastic"),
+        QStringLiteral("InBack"),
+        QStringLiteral("OutBack"),
+        QStringLiteral("InOutBack"),
+        QStringLiteral("OutInBack"),
+        QStringLiteral("InBounce"),
+        QStringLiteral("OutBounce"),
+        QStringLiteral("InOutBounce"),
+        QStringLiteral("OutInBounce"),
+    };
 
 	QStringList curveTypes;
     for(unsigned i=0; i<sizeof(_curveTypes)/sizeof(_curveTypes[0]); ++i)
-        curveTypes.append(QLatin1String(_curveTypes[i]));
+        curveTypes.append(_curveTypes[i]);
 
     ui->DockOverlayAnimationCurve->addItems(curveTypes);
     ui->PieMenuAnimationCurve->addItems(curveTypes);

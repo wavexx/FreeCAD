@@ -359,7 +359,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
     d->mdiArea->setBackground(QBrush(QColor(160,160,160)));
     setCentralWidget(d->mdiArea);
 
-    statusBar()->setObjectName(QString::fromLatin1("statusBar"));
+    statusBar()->setObjectName(QStringLiteral("statusBar"));
     connect(statusBar(), SIGNAL(messageChanged(const QString &)), this, SLOT(statusMessageChanged(const QString &)));
 
     // labels and progressbar
@@ -381,17 +381,17 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
 
     // clears the action label
     d->actionTimer = new QTimer( this );
-    d->actionTimer->setObjectName(QString::fromLatin1("actionTimer"));
+    d->actionTimer->setObjectName(QStringLiteral("actionTimer"));
     connect(d->actionTimer, SIGNAL(timeout()), d->actionLabel, SLOT(clear()));
 
     // clear status type
     d->statusTimer = new QTimer( this );
-    d->statusTimer->setObjectName(QString::fromLatin1("statusTimer"));
+    d->statusTimer->setObjectName(QStringLiteral("statusTimer"));
     connect(d->statusTimer, SIGNAL(timeout()), this, SLOT(clearStatus()));
 
     // update gui timer
     d->activityTimer = new QTimer(this);
-    d->activityTimer->setObjectName(QString::fromLatin1("activityTimer"));
+    d->activityTimer->setObjectName(QStringLiteral("activityTimer"));
     connect(d->activityTimer, SIGNAL(timeout()),this, SLOT(_updateActions()));
     d->activityTimer->setSingleShot(false);
     d->activityTimer->start(150);
@@ -430,7 +430,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
     if (d->hiddenDockWindows.find("Std_SelectionView") == std::string::npos) {
         SelectionView* pcSelectionView = new SelectionView(0, this);
         pcSelectionView->setObjectName
-            (QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Selection view")));
+            (QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Selection view")));
         pcSelectionView->setMinimumWidth(210);
         pDockMgr->registerDockWindow("Std_SelectionView", pcSelectionView);
     }
@@ -440,7 +440,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
         ReportOutput* pcReport = new ReportOutput(this);
         pcReport->setWindowIcon(BitmapFactory().pixmap("MacroEditor"));
         pcReport->setObjectName
-            (QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Report view")));
+            (QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Report view")));
         pDockMgr->registerDockWindow("Std_ReportView", pcReport);
         ReportOutputObserver* rvObserver = new ReportOutputObserver(pcReport);
         qApp->installEventFilter(rvObserver);
@@ -460,7 +460,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
 
         pcPython->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
         pcPython->setObjectName
-            (QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Python console")));
+            (QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Python console")));
         pDockMgr->registerDockWindow("Std_PythonView", pcPython);
     }
 
@@ -524,7 +524,7 @@ static inline void _checkDockWidget(const char *name,
     DockWindowManager::instance()->registerDockWindow(name, widget);
     if(show) {
         auto dock = pDockMgr->addDockWindow(
-                widget->objectName().toLatin1().constData(), widget, pos);
+                widget->objectName().toUtf8().constData(), widget, pos);
         if(dock) {
             if(!dock->toggleViewAction()->isChecked())
                 dock->toggleViewAction()->activate(QAction::Trigger);
@@ -553,7 +553,7 @@ void MainWindow::initDockWindows(bool show)
                 if(widget)
                     return widget;
                 TreeDockWidget* tree = new TreeDockWidget(0,getMainWindow());
-                tree->setObjectName(QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Tree view")));
+                tree->setObjectName(QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Tree view")));
                 tree->setMinimumWidth(210);
                 widget = tree;
                 return widget;
@@ -576,7 +576,7 @@ void MainWindow::initDockWindows(bool show)
                 if(widget)
                     return widget;
                 PropertyDockView* pcPropView = new PropertyDockView(0, getMainWindow());
-                pcPropView->setObjectName(QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Property view")));
+                pcPropView->setObjectName(QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Property view")));
                 pcPropView->setMinimumWidth(210);
                 widget = pcPropView;
                 return widget;
@@ -600,7 +600,7 @@ void MainWindow::initDockWindows(bool show)
                     return widget;
                 }
                 pcComboView = new ComboView(enable, 0, getMainWindow());
-                pcComboView->setObjectName(QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Combo View")));
+                pcComboView->setObjectName(QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Combo View")));
                 pcComboView->setMinimumWidth(150);
                 widget = pcComboView;
                 return widget;
@@ -619,7 +619,7 @@ void MainWindow::initDockWindows(bool show)
                 if(widget)
                     return widget;
                 widget = new TaskView::TaskView(getMainWindow());
-                widget->setObjectName(QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","Task List")));
+                widget->setObjectName(QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","Task List")));
                 return widget;
             });
     }
@@ -646,7 +646,7 @@ void MainWindow::initDockWindows(bool show)
                 if(widget)
                     return widget;
                 DAG::DockWindow *dagDockWindow = new DAG::DockWindow(nullptr, getMainWindow());
-                dagDockWindow->setObjectName(QString::fromLatin1(QT_TRANSLATE_NOOP("QDockWidget","DAG View")));
+                dagDockWindow->setObjectName(QStringLiteral(QT_TRANSLATE_NOOP("QDockWidget","DAG View")));
                 widget = dagDockWindow;
                 return widget;
             });
@@ -1387,16 +1387,16 @@ void MainWindow::onWindowsMenuAboutToShow()
         QAction* action = actions.at(index);
         QString text;
         QString title = child->windowTitle();
-        int lastIndex = title.lastIndexOf(QString::fromLatin1("[*]"));
+        int lastIndex = title.lastIndexOf(QStringLiteral("[*]"));
         if (lastIndex > 0) {
             title = title.left(lastIndex);
             if (child->isWindowModified())
-                title = QString::fromLatin1("%1*").arg(title);
+                title = QStringLiteral("%1*").arg(title);
         }
         if (index < 9)
-            text = QString::fromLatin1("&%1 %2").arg(index+1).arg(title);
+            text = QStringLiteral("&%1 %2").arg(index+1).arg(title);
         else
-            text = QString::fromLatin1("%1 %2").arg(index+1).arg(title);
+            text = QStringLiteral("%1 %2").arg(index+1).arg(title);
         action->setText(text);
         action->setVisible(true);
         action->setChecked(child == active);
@@ -1572,7 +1572,7 @@ void MainWindow::delayedStartup()
 void MainWindow::appendRecentFile(const QString& filename)
 {
     RecentFilesAction *recent = this->findChild<RecentFilesAction *>
-        (QString::fromLatin1("recentFiles"));
+        (QStringLiteral("recentFiles"));
     if (recent) {
         recent->appendFile(filename);
     }
@@ -1581,7 +1581,7 @@ void MainWindow::appendRecentFile(const QString& filename)
 void MainWindow::appendRecentMacro(const QString& filename)
 {
     RecentMacrosAction *recent = this->findChild<RecentMacrosAction *>
-        (QString::fromLatin1("recentMacros"));
+        (QStringLiteral("recentMacros"));
     if (recent) {
         recent->appendFile(filename);
     }
@@ -1672,21 +1672,21 @@ void MainWindow::switchToDockedMode()
 
 void MainWindow::loadWindowSettings()
 {
-    QString vendor = QString::fromLatin1(App::Application::Config()["ExeVendor"].c_str());
-    QString application = QString::fromLatin1(App::Application::Config()["ExeName"].c_str());
+    QString vendor = QString::fromUtf8(App::Application::Config()["ExeVendor"].c_str());
+    QString application = QString::fromUtf8(App::Application::Config()["ExeName"].c_str());
     int major = (QT_VERSION >> 0x10) & 0xff;
     int minor = (QT_VERSION >> 0x08) & 0xff;
-    QString qtver = QString::fromLatin1("Qt%1.%2").arg(major).arg(minor);
+    QString qtver = QStringLiteral("Qt%1.%2").arg(major).arg(minor);
     QSettings config(vendor, application);
 
     QRect rect = QApplication::desktop()->availableGeometry(d->screen);
 
     config.beginGroup(qtver);
-    QPoint pos = config.value(QString::fromLatin1("Position"), this->pos()).toPoint();
-    QSize size = config.value(QString::fromLatin1("Size"), rect.size()).toSize();
-    bool max = config.value(QString::fromLatin1("Maximized"), false).toBool();
-    bool showStatusBar = config.value(QString::fromLatin1("StatusBar"), true).toBool();
-    QByteArray windowState = config.value(QString::fromLatin1("MainWindowState")).toByteArray();
+    QPoint pos = config.value(QStringLiteral("Position"), this->pos()).toPoint();
+    QSize size = config.value(QStringLiteral("Size"), rect.size()).toSize();
+    bool max = config.value(QStringLiteral("Maximized"), false).toBool();
+    bool showStatusBar = config.value(QStringLiteral("StatusBar"), true).toBool();
+    QByteArray windowState = config.value(QStringLiteral("MainWindowState")).toByteArray();
     config.endGroup();
 
     std::string geometry = d->hGrp->GetASCII("Geometry");
@@ -1769,20 +1769,20 @@ void MainWindow::saveWindowSettings(bool canDelay)
         return;
     }
 
-    QString vendor = QString::fromLatin1(App::Application::Config()["ExeVendor"].c_str());
-    QString application = QString::fromLatin1(App::Application::Config()["ExeName"].c_str());
+    QString vendor = QString::fromUtf8(App::Application::Config()["ExeVendor"].c_str());
+    QString application = QString::fromUtf8(App::Application::Config()["ExeName"].c_str());
     int major = (QT_VERSION >> 0x10) & 0xff;
     int minor = (QT_VERSION >> 0x08) & 0xff;
-    QString qtver = QString::fromLatin1("Qt%1.%2").arg(major).arg(minor);
+    QString qtver = QStringLiteral("Qt%1.%2").arg(major).arg(minor);
     QSettings config(vendor, application);
 
 #if 0
     config.beginGroup(qtver);
-    config.setValue(QString::fromLatin1("Size"), this->size());
-    config.setValue(QString::fromLatin1("Position"), this->pos());
-    config.setValue(QString::fromLatin1("Maximized"), this->isMaximized());
-    config.setValue(QString::fromLatin1("MainWindowState"), this->saveState());
-    config.setValue(QString::fromLatin1("StatusBar"), this->statusBar()->isVisible());
+    config.setValue(QStringLiteral("Size"), this->size());
+    config.setValue(QStringLiteral("Position"), this->pos());
+    config.setValue(QStringLiteral("Maximized"), this->isMaximized());
+    config.setValue(QStringLiteral("MainWindowState"), this->saveState());
+    config.setValue(QStringLiteral("StatusBar"), this->statusBar()->isVisible());
     config.endGroup();
 #else
     // We are migrating from saving qt main window layout state in QSettings to
@@ -1839,7 +1839,7 @@ QPixmap MainWindow::aboutImage() const
 {
     // See if we have a custom About screen image set
     QPixmap about_image;
-    QFileInfo fi(QString::fromLatin1("images:about_image.png"));
+    QFileInfo fi(QStringLiteral("images:about_image.png"));
     if (fi.isFile() && fi.exists())
         about_image.load(fi.filePath(), "PNG");
 
@@ -1865,7 +1865,7 @@ QPixmap MainWindow::splashImage() const
 {
     // search in the UserAppData dir as very first
     QPixmap splash_image;
-    QFileInfo fi(QString::fromLatin1("images:splash_image.png"));
+    QFileInfo fi(QStringLiteral("images:splash_image.png"));
     if (fi.isFile() && fi.exists())
         splash_image.load(fi.filePath(), "PNG");
 
@@ -1890,9 +1890,9 @@ QPixmap MainWindow::splashImage() const
     std::map<std::string,std::string>::const_iterator tc = App::Application::Config().find("SplashInfoColor");
     if (tc != App::Application::Config().end()) {
         QString title = qApp->applicationName();
-        QString major   = QString::fromLatin1(App::Application::Config()["BuildVersionMajor"].c_str());
-        QString minor   = QString::fromLatin1(App::Application::Config()["BuildVersionMinor"].c_str());
-        QString version = QString::fromLatin1("%1.%2").arg(major, minor);
+        QString major   = QString::fromUtf8(App::Application::Config()["BuildVersionMajor"].c_str());
+        QString minor   = QString::fromUtf8(App::Application::Config()["BuildVersionMinor"].c_str());
+        QString version = QStringLiteral("%1.%2").arg(major, minor);
         QString position, fontFamily;
 
         std::map<std::string,std::string>::const_iterator te = App::Application::Config().find("SplashInfoExeName");
@@ -1939,7 +1939,7 @@ QPixmap MainWindow::splashImage() const
         }
 
         int x = -1, y = -1;
-        QRegExp rx(QLatin1String("(\\d+).(\\d+)"));
+        QRegExp rx(QStringLiteral("(\\d+).(\\d+)"));
         if (rx.indexIn(position) != -1) {
             x = rx.cap(1).toInt();
             y = rx.cap(2).toInt();
@@ -1950,7 +1950,7 @@ QPixmap MainWindow::splashImage() const
         }
 
         QColor color;
-        color.setNamedColor(QString::fromLatin1(tc->second.c_str()));
+        color.setNamedColor(QString::fromUtf8(tc->second.c_str()));
         if (color.isValid()) {
             painter.setPen(color);
             painter.setFont(fontExe);
@@ -1988,7 +1988,7 @@ void MainWindow::dragEnterEvent (QDragEnterEvent * e)
 #ifdef QT_NO_OPENSSL
         QList<QUrl> urls = data->urls();
         for (QList<QUrl>::ConstIterator it = urls.begin(); it != urls.end(); ++it) {
-            if (it->scheme().toLower() == QLatin1String("https")) {
+            if (it->scheme().toLower() == QStringLiteral("https")) {
                 e->ignore();
                 return;
             }
@@ -2002,10 +2002,10 @@ void MainWindow::dragEnterEvent (QDragEnterEvent * e)
     }
 }
 
-static QLatin1String _MimeDocObj("application/x-documentobject");
-static QLatin1String _MimeDocObjX("application/x-documentobject-x");
-static QLatin1String _MimeDocObjFile("application/x-documentobject-file");
-static QLatin1String _MimeDocObjXFile("application/x-documentobject-x-file");
+static QString _MimeDocObj = QStringLiteral("application/x-documentobject");
+static QString _MimeDocObjX = QStringLiteral("application/x-documentobject-x");
+static QString _MimeDocObjFile = QStringLiteral("application/x-documentobject-file");
+static QString _MimeDocObjXFile = QStringLiteral("application/x-documentobject-x-file");
 
 QMimeData * MainWindow::createMimeDataFromSelection () const
 {
@@ -2192,10 +2192,10 @@ void MainWindow::loadUrls(App::Document* doc, const QList<QUrl>& urls)
             if (info.isSymLink())
                 info.setFile(info.symLinkTarget());
             std::vector<std::string> module = App::GetApplication()
-                .getImportModules(info.completeSuffix().toLatin1());
+                .getImportModules(info.completeSuffix().toUtf8());
             if (module.empty()) {
                 module = App::GetApplication()
-                    .getImportModules(info.suffix().toLatin1());
+                    .getImportModules(info.suffix().toUtf8());
             }
             if (!module.empty()) {
                 // ok, we support files with this extension
@@ -2206,24 +2206,24 @@ void MainWindow::loadUrls(App::Document* doc, const QList<QUrl>& urls)
                     (const char*)info.absoluteFilePath().toUtf8());
             }
         }
-        else if (it->scheme().toLower() == QLatin1String("http")) {
+        else if (it->scheme().toLower() == QStringLiteral("http")) {
             Gui::Dialog::DownloadManager* dm = Gui::Dialog::DownloadManager::getInstance();
             dm->download(dm->redirectUrl(*it));
         }
 //#ifndef QT_NO_OPENSSL
-        else if (it->scheme().toLower() == QLatin1String("https")) {
+        else if (it->scheme().toLower() == QStringLiteral("https")) {
             QUrl url = *it;
             QUrlQuery urlq(url);
-            if (urlq.hasQueryItem(QLatin1String("sid"))) {
-                urlq.removeAllQueryItems(QLatin1String("sid"));
+            if (urlq.hasQueryItem(QStringLiteral("sid"))) {
+                urlq.removeAllQueryItems(QStringLiteral("sid"));
                 url.setQuery(urlq);
-                url.setScheme(QLatin1String("http"));
+                url.setScheme(QStringLiteral("http"));
             }
             Gui::Dialog::DownloadManager* dm = Gui::Dialog::DownloadManager::getInstance();
             dm->download(dm->redirectUrl(url));
         }
 //#endif
-        else if (it->scheme().toLower() == QLatin1String("ftp")) {
+        else if (it->scheme().toLower() == QStringLiteral("ftp")) {
             Gui::Dialog::DownloadManager::getInstance()->download(*it);
         }
     }
@@ -2233,7 +2233,7 @@ void MainWindow::loadUrls(App::Document* doc, const QList<QUrl>& urls)
     // load the files with the associated modules
     for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
         // if the passed document name doesn't exist the module should create it, if needed
-        Application::Instance->importFrom(it.key().toUtf8(), docName, it.value().toLatin1());
+        Application::Instance->importFrom(it.key().toUtf8(), docName, it.value().toUtf8());
     }
 }
 
@@ -2284,7 +2284,7 @@ void MainWindowP::applyOverrideIcons(const QString &icons)
             FC_WARN("Invalid icon override in stylesheet: " << s.toUtf8().constData());
             continue;
         }
-        QByteArray name = pair[0].trimmed().toLatin1();
+        QByteArray name = pair[0].trimmed().toUtf8();
         QPixmap icon;
         if (pair.size() >= 2) {
             QString path = pair[1].trimmed();
@@ -2299,7 +2299,7 @@ void MainWindowP::applyOverrideIcons(const QString &icons)
                     }
                 }
                 QFileInfo fi(path);
-                if (fi.exists() && fi.suffix().toLower() == QLatin1String("svg"))
+                if (fi.exists() && fi.suffix().toLower() == QStringLiteral("svg"))
                     icon = BitmapFactory().pixmapFromSvg(path.toUtf8().constData(), size);
                 else
                     BitmapFactory().loadPixmap(path, icon);
@@ -2362,7 +2362,7 @@ void MainWindow::changeEvent(QEvent *e)
 
 void MainWindow::clearStatus() {
     d->currentStatusType = 100;
-    statusBar()->setStyleSheet(QString::fromLatin1("#statusBar{}"));
+    statusBar()->setStyleSheet(QStringLiteral("#statusBar{}"));
 }
 
 void MainWindow::statusMessageChanged(const QString &msg) {
@@ -2417,7 +2417,7 @@ void MainWindow::showStatus(int type, const QString& message)
         statusBar()->setStyleSheet(d->status->wrn);
         break;
     case MainWindow::Pane:
-        statusBar()->setStyleSheet(QString::fromLatin1("#statusBar{}"));
+        statusBar()->setStyleSheet(QStringLiteral("#statusBar{}"));
         break;
     default:
         statusBar()->setStyleSheet(d->status->msg);
@@ -2447,12 +2447,12 @@ void MainWindow::customEvent(QEvent* e)
         QString msg = ce->message();
         switch(ce->type()) {
         case MainWindow::Log: {
-            if (msg.startsWith(QLatin1String("#Inventor V2.1 ascii "))) {
+            if (msg.startsWith(QStringLiteral("#Inventor V2.1 ascii "))) {
                 Gui::Document *d = Application::Instance->activeDocument();
                 if (d) {
                     ViewProviderExtern *view = new ViewProviderExtern();
                     try {
-                        view->setModeByString("1",msg.toLatin1().constData());
+                        view->setModeByString("1",msg.toUtf8().constData());
                         d->setAnnotationViewProvider("Vdbg",view);
                     }
                     catch (...) {
@@ -2493,9 +2493,9 @@ QMdiArea *MainWindow::getMdiArea() const
 StatusBarObserver::StatusBarObserver()
   : WindowParameter("OutputWindow")
 {
-    msg = QString::fromLatin1("#statusBar{color: #000000}"); // black
-    wrn = QString::fromLatin1("#statusBar{color: #ffaa00}"); // orange
-    err = QString::fromLatin1("#statusBar{color: #ff0000}"); // red
+    msg = QStringLiteral("#statusBar{color: #000000}"); // black
+    wrn = QStringLiteral("#statusBar{color: #ffaa00}"); // orange
+    err = QStringLiteral("#statusBar{color: #ff0000}"); // red
     Base::Console().AttachObserver(this);
     getWindowParameter()->Attach(this);
     getWindowParameter()->NotifyAll();
@@ -2510,7 +2510,7 @@ StatusBarObserver::~StatusBarObserver()
 void StatusBarObserver::OnChange(Base::Subject<const char*> &rCaller, const char * sReason)
 {
     ParameterGrp& rclGrp = ((ParameterGrp&)rCaller);
-    auto format = QString::fromLatin1("#statusBar{color: %1}");
+    auto format = QStringLiteral("#statusBar{color: %1}");
     if (strcmp(sReason, "colorText") == 0) {
         unsigned long col = rclGrp.GetUnsigned( sReason );
         this->msg = format.arg(QColor((col >> 24) & 0xff,(col >> 16) & 0xff,(col >> 8) & 0xff).name());

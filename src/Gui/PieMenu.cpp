@@ -656,24 +656,24 @@ PieMenu::PieMenu(QMenu *menu, const char *param, QWidget *parent)
     }
 
     QString stylesheet = qApp->styleSheet();
-    if (stylesheet.isEmpty() || stylesheet.indexOf(QLatin1String("Gui--PieButton")) < 0) {
-        QLatin1String key("background-color: #");
+    if (stylesheet.isEmpty() || stylesheet.indexOf(QStringLiteral("Gui--PieButton")) < 0) {
+        QString key = QStringLiteral("background-color: #");
         int index = stylesheet.indexOf(key);
         QString color;
         if (index >= 0) {
             bool ok = false;
             ulong c = stylesheet.midRef(index+key.size()).toUInt(&ok, 16);
-            if (ok) color = QString::fromLatin1("#%1").arg(c, 0, 16);
+            if (ok) color = QStringLiteral("#%1").arg(c, 0, 16);
         }
         if (color.isEmpty()) {
             auto hGrp = App::GetApplication().GetParameterGroupByPath(
                     "User parameter:BaseApp/Preferences/MainWindow");
             if (hGrp->GetASCII("StyleSheet", "").find("Dark") != std::string::npos)
-                color = QString::fromLatin1("#6e6e6e");
+                color = QStringLiteral("#6e6e6e");
             else
-                color = QString::fromLatin1("palette(window)");
+                color = QStringLiteral("palette(window)");
         }
-        stylesheet = QString::fromLatin1(
+        stylesheet = QStringLiteral(
                 "Gui--PieButton {"
                     "color: %3;"
                     "background-color: %1;"
@@ -687,8 +687,8 @@ PieMenu::PieMenu(QMenu *menu, const char *param, QWidget *parent)
                 "Gui--PieButton:disabled {"
                     "color: palette(mid);}")
             .arg(color)
-            .arg(QLatin1String(color>0xa0a0a0?"palette(mid)":"palette(shadow)"))
-            .arg(QLatin1String(color>0xa0a0a0?"palette(bright-text)":"palette(text)"));
+            .arg(color>0xa0a0a0?QStringLiteral("palette(mid)"):QStringLiteral("palette(shadow)"))
+            .arg(color>0xa0a0a0?QStringLiteral("palette(bright-text)"):QStringLiteral("palette(text)"));
 
         setStyleSheet(stylesheet);
     }

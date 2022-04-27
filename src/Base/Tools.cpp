@@ -195,11 +195,11 @@ QString Base::Tools::escapeEncodeString(const QString& s)
     result.reserve(int(len * 1.1));
     for (int i = 0; i < len; ++i) {
         if (s.at(i) == QLatin1Char('\\'))
-            result += QLatin1String("\\\\");
+            result += QStringLiteral("\\\\");
         else if (s.at(i) == QLatin1Char('\"'))
-            result += QLatin1String("\\\"");
+            result += QStringLiteral("\\\"");
         else if (s.at(i) == QLatin1Char('\''))
-            result += QLatin1String("\\\'");
+            result += QStringLiteral("\\\'");
         else
             result += s.at(i);
     }

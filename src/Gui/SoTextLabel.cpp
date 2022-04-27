@@ -210,12 +210,12 @@ void SoTextLabel::GLRender(SoGLRenderAction *action)
         // The font name is of the form "family:style". If 'style' is given it can be
         // 'Bold', 'Italic' or 'Bold Italic'.
         QFont font;
-        QString fn = QString::fromLatin1(fontname.getString());
-        int pos = fn.indexOf(QLatin1Char(':'));
+        QString fn = QString::fromUtf8(fontname.getString());
+        int pos = fn.indexOf(QStringLiteral(':'));
         if (pos > -1) {
-            if (fn.indexOf(QLatin1String("Bold"),pos,Qt::CaseInsensitive) > pos)
+            if (fn.indexOf(QStringLiteral("Bold"),pos,Qt::CaseInsensitive) > pos)
                 font.setBold(true);
-            if (fn.indexOf(QLatin1String("Italic"),pos,Qt::CaseInsensitive) > pos)
+            if (fn.indexOf(QStringLiteral("Italic"),pos,Qt::CaseInsensitive) > pos)
                 font.setItalic(true);
             fn = fn.left(pos);
         }
@@ -228,7 +228,7 @@ void SoTextLabel::GLRender(SoGLRenderAction *action)
         float hh=0;
         for (int i = 0; i < lines; i++) {
             SbString str = this->string[i];
-            float w = fm.width(QLatin1String(this->string[i].getString()));
+            float w = fm.width(QString::fromUtf8(this->string[i].getString()));
             width = std::max<float>(width, w);
             hh = fm.height();
         }
@@ -345,7 +345,7 @@ void SoStringLabel::GLRender(SoGLRenderAction *action)
 
     QFont font;
     font.setStyleStrategy(QFont::NoAntialias);
-    font.setFamily(QLatin1String(this->name.getValue()));
+    font.setFamily(QString::fromUtf8(this->name.getValue()));
     font.setPixelSize(this->size.getValue());
 
     glBlendFunc(GL_ONE,GL_SRC_ALPHA);
@@ -368,7 +368,7 @@ void SoStringLabel::GLRender(SoGLRenderAction *action)
     // text color
     SbColor color = this->textColor.getValue();
     glColor4f(color[0], color[1], color[2],1);
-    //window->renderText(20,20/*startPos+ 1*ls*/,QLatin1String(this->string[0].getString()),font);
+    //window->renderText(20,20/*startPos+ 1*ls*/,QString::fromUtf8(this->string[0].getString()),font);
     const SbMatrix & mat = SoModelMatrixElement::get(state);
     const SbMatrix & projmatrix = (mat * SoViewingMatrixElement::get(state) *
                                    SoProjectionMatrixElement::get(state));
@@ -376,9 +376,9 @@ void SoStringLabel::GLRender(SoGLRenderAction *action)
     projmatrix.multVecMatrix(nil, nil);
     QStringList list;
     for (int i=0; i<this->string.getNum(); i++)
-        list << QLatin1String(this->string[i].getString());
+        list << QString::fromUtf8(this->string[i].getString());
 #if !defined(HAVE_QT5_OPENGL)
-    window->renderText(nil[0],nil[1],nil[2],list.join(QLatin1String("\n")),font);
+    window->renderText(nil[0],nil[1],nil[2],list.join(QStringLiteral("\n")),font);
 #else
     //FIXME: HAVE_QT5_OPENGL
 #endif
@@ -439,7 +439,7 @@ void SoFrameLabel::drawImage()
         return;
     }
 
-    QFont font(QString::fromLatin1(name.getValue()), size.getValue());
+    QFont font(QString::fromUtf8(name.getValue()), size.getValue());
     QFontMetrics fm(font);
     int w = 0;
     int h = fm.height() * num;
@@ -480,7 +480,7 @@ void SoFrameLabel::drawImage()
         align = Qt::AlignVCenter | Qt::AlignRight;
     else
         align = Qt::AlignVCenter | Qt::AlignHCenter;
-    QString text = lines.join(QLatin1String("\n"));
+    QString text = lines.join(QStringLiteral("\n"));
     painter.setFont(font);
     painter.drawText(5,5,w,h,align,text);
     painter.end();
@@ -523,7 +523,7 @@ void SoFrameLabel::GLRender(SoGLRenderAction *action)
 
     QFont font;
     font.setStyleStrategy(QFont::NoAntialias);
-    font.setFamily(QLatin1String(this->name.getValue()));
+    font.setFamily(QString::fromUtf8(this->name.getValue()));
     font.setPixelSize(this->size.getValue());
 
     glBlendFunc(GL_ONE,GL_SRC_ALPHA);
@@ -546,7 +546,7 @@ void SoFrameLabel::GLRender(SoGLRenderAction *action)
     // text color
     SbColor color = this->textColor.getValue();
     glColor4f(color[0], color[1], color[2],1);
-    //window->renderText(20,20/*startPos+ 1*ls*/,QLatin1String(this->string[0].getString()),font);
+    //window->renderText(20,20/*startPos+ 1*ls*/,QString::fromUtf8(this->string[0].getString()),font);
     const SbMatrix & mat = SoModelMatrixElement::get(state);
     const SbMatrix & projmatrix = (mat * SoViewingMatrixElement::get(state) *
                                    SoProjectionMatrixElement::get(state));
@@ -554,8 +554,8 @@ void SoFrameLabel::GLRender(SoGLRenderAction *action)
     projmatrix.multVecMatrix(nil, nil);
     QStringList list;
     for (int i=0; i<this->string.getNum(); i++)
-        list << QLatin1String(this->string[i].getString());
-    window->renderText(nil[0],nil[1],nil[2],list.join(QLatin1String("\n")),font);
+        list << QString::fromUtf8(this->string[i].getString());
+    window->renderText(nil[0],nil[1],nil[2],list.join(QStringLiteral("\n")),font);
 
     // Leave 2D screen mode
     glPopAttrib();

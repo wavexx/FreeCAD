@@ -965,7 +965,7 @@ int SelectionSingleton::setPreselect(const char* pDocName, const char* pObjectNa
                 msg = QCoreApplication::translate("SelectionFilter","Not allowed:");
             }
             auto sobjT = App::SubObjectT(pDocName, pObjectName, pSubName);
-            msg.append(QString::fromLatin1(" %1").arg(
+            msg.append(QStringLiteral(" %1").arg(
                         QString::fromUtf8(sobjT.getSubObjectFullName().c_str())));
 
             if (getMainWindow()) {

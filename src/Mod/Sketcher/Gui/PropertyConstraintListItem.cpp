@@ -91,7 +91,7 @@ void PropertyConstraintListItem::initialize()
             PropertyUnitItem* item = static_cast<PropertyUnitItem*>(PropertyUnitItem::create());
 
             // Get the name
-            QString internalName = QString::fromLatin1("Constraint%1").arg(id);
+            QString internalName = QStringLiteral("Constraint%1").arg(id);
             QString name = QString::fromUtf8((*it)->Name.c_str());
             if (name.isEmpty()) {
                 name = internalName;
@@ -214,7 +214,7 @@ void PropertyConstraintListItem::assignProperty(const App::Property* prop)
             }
 
             // Get the name
-            QString internalName = QString::fromLatin1("Constraint%1").arg(id);
+            QString internalName = QStringLiteral("Constraint%1").arg(id);
             QString name = QString::fromUtf8((*it)->Name.c_str());
             if (name.isEmpty()) {
                 name = internalName;
@@ -273,7 +273,7 @@ QVariant PropertyConstraintListItem::value(const App::Property* prop) const
 
             // Use a 7-bit ASCII string for the internal name.
             // See also comment in PropertyConstraintListItem::initialize()
-            QString internalName = QString::fromLatin1("Constraint%1").arg(id);
+            QString internalName = QStringLiteral("Constraint%1").arg(id);
 
             if ((*it)->Name.empty() && !onlyUnnamed) {
                 onlyNamed = false;
@@ -282,7 +282,7 @@ QVariant PropertyConstraintListItem::value(const App::Property* prop) const
                 PropertyConstraintListItem* unnamednode = qobject_cast<PropertyConstraintListItem*>(child);
                 if (unnamednode) {
                     unnamednode->blockEvent = true;
-                    unnamednode->setProperty(internalName.toLatin1(), QVariant::fromValue<Base::Quantity>(quant));
+                    unnamednode->setProperty(internalName.toUtf8(), QVariant::fromValue<Base::Quantity>(quant));
                     unnamednode->blockEvent = false;
                 }
                 else {
@@ -292,7 +292,7 @@ QVariant PropertyConstraintListItem::value(const App::Property* prop) const
             }
             else {
                 self->blockEvent = true;
-                self->setProperty(internalName.toLatin1(), QVariant::fromValue<Base::Quantity>(quant));
+                self->setProperty(internalName.toUtf8(), QVariant::fromValue<Base::Quantity>(quant));
                 self->blockEvent = false;
             }
         }
@@ -338,7 +338,7 @@ bool PropertyConstraintListItem::event (QEvent* ev)
                     (*it)->Type == Sketcher::Angle ) {
 
                     // Get the internal name
-                    QString internalName = QString::fromLatin1("Constraint%1").arg(id+1);
+                    QString internalName = QStringLiteral("Constraint%1").arg(id+1);
                     if (internalName == propName) {
                         double datum = quant.getValue();
                         if ((*it)->Type == Sketcher::Angle)

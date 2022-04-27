@@ -46,7 +46,7 @@ FC_LOG_LEVEL_INIT("Gui", true, true);
 
 using namespace Gui::Dialog;
 
-const QString DlgWorkbenchesImp::all_workbenches = QString::fromLatin1("ALL");
+const QString DlgWorkbenchesImp::all_workbenches = QStringLiteral("ALL");
 
 /* TRANSLATOR Gui::Dialog::DlgWorkbenchesImp */
 
@@ -230,9 +230,9 @@ QStringList DlgWorkbenchesImp::load_enabled_workbenches(bool filter)
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Workbenches");
     enabled_wbs = QString::fromStdString(hGrp->GetASCII("Enabled", all_workbenches.toStdString().c_str()).c_str());
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
-    enabled_wbs_list = enabled_wbs.split(QLatin1String(","), Qt::SkipEmptyParts);
+    enabled_wbs_list = enabled_wbs.split(QStringLiteral(","), Qt::SkipEmptyParts);
 #else
-    enabled_wbs_list = enabled_wbs.split(QLatin1String(","), QString::SkipEmptyParts);
+    enabled_wbs_list = enabled_wbs.split(QStringLiteral(","), QString::SkipEmptyParts);
 #endif
 
     if (enabled_wbs_list.at(0) == all_workbenches) {
@@ -267,9 +267,9 @@ QStringList DlgWorkbenchesImp::load_disabled_workbenches(bool filter)
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Workbenches");
     disabled_wbs = QString::fromStdString(hGrp->GetASCII("Disabled", ""));
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
-    disabled_wbs_list = disabled_wbs.split(QLatin1String(","), Qt::SkipEmptyParts);
+    disabled_wbs_list = disabled_wbs.split(QStringLiteral(","), Qt::SkipEmptyParts);
 #else
-    disabled_wbs_list = disabled_wbs.split(QLatin1String(","), QString::SkipEmptyParts);
+    disabled_wbs_list = disabled_wbs.split(QStringLiteral(","), QString::SkipEmptyParts);
 #endif
     if (filter) {
         std::set<QString> wbset;
@@ -311,35 +311,35 @@ void DlgWorkbenchesImp::save_workbenches(const QStringList &enabled, const QStri
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Workbenches");
     std::set<QString> wbset;
     if (enabled.isEmpty()) {
-        enabled_wbs.append(QString::fromLatin1("NoneWorkbench"));
+        enabled_wbs.append(QStringLiteral("NoneWorkbench"));
     } else if (enabled[0] == all_workbenches) {
         enabled_wbs = all_workbenches;
     } else {
         for (auto &wb : enabled) {
             if (wbset.insert(wb).second)
-                enabled_wbs.append(wb + QLatin1String(","));
+                enabled_wbs.append(wb + QStringLiteral(","));
             else if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG))
                 FC_WARN("duplicated enabled workbench " << wb.toUtf8().constData());
         }
     }
-    hGrp->SetASCII("Enabled", enabled_wbs.toLatin1());
+    hGrp->SetASCII("Enabled", enabled_wbs.toUtf8());
 
     if (enabled_wbs != all_workbenches) {
         if (disabled.isEmpty()) {
             for (auto &wb : Application::Instance->workbenches()) {
                 if (wbset.insert(wb).second)
-                    disabled_wbs.append(wb + QString::fromLatin1(","));
+                    disabled_wbs.append(wb + QStringLiteral(","));
             }
         } else {
             for (auto &wb : disabled) {
                 if (wbset.insert(wb).second)
-                    disabled_wbs.append(wb + QString::fromLatin1(","));
+                    disabled_wbs.append(wb + QStringLiteral(","));
                 else if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG))
                     FC_WARN("duplicated disabled workbench " << wb.toUtf8().constData());
             }
         }
     }
-    hGrp->SetASCII("Disabled", disabled_wbs.toLatin1());
+    hGrp->SetASCII("Disabled", disabled_wbs.toUtf8());
 }
 
 #include "moc_DlgWorkbenchesImp.cpp"

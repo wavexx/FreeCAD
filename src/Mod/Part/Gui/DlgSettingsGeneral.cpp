@@ -168,7 +168,7 @@ DlgImportExportIges::DlgImportExportIges(QWidget* parent)
     bg->addButton(ui->radioButtonBRepOn, 1);
 
     QRegExp rx;
-    rx.setPattern(QString::fromLatin1("[\\x00-\\x7F]+"));
+    rx.setPattern(QStringLiteral("[\\x00-\\x7F]+"));
     QRegExpValidator* companyValidator = new QRegExpValidator(ui->lineEditCompany);
     companyValidator->setRegExp(rx);
     ui->lineEditCompany->setValidator(companyValidator);
@@ -210,13 +210,13 @@ void DlgImportExportIges::saveSettings()
     hGrp->SetBool("SkipBlankEntities", ui->checkSkipBlank->isChecked());
 
     // header info
-    hGrp->SetASCII("Company", ui->lineEditCompany->text().toLatin1());
-    hGrp->SetASCII("Author", ui->lineEditAuthor->text().toLatin1());
-  //hGrp->SetASCII("Product", ui->lineEditProduct->text().toLatin1());
+    hGrp->SetASCII("Company", ui->lineEditCompany->text().toUtf8());
+    hGrp->SetASCII("Author", ui->lineEditAuthor->text().toUtf8());
+  //hGrp->SetASCII("Product", ui->lineEditProduct->text().toUtf8());
 
-    Interface_Static::SetCVal("write.iges.header.company", ui->lineEditCompany->text().toLatin1());
-    Interface_Static::SetCVal("write.iges.header.author", ui->lineEditAuthor->text().toLatin1());
-  //Interface_Static::SetCVal("write.iges.header.product", ui->lineEditProduct->text().toLatin1());
+    Interface_Static::SetCVal("write.iges.header.company", ui->lineEditCompany->text().toUtf8());
+    Interface_Static::SetCVal("write.iges.header.author", ui->lineEditAuthor->text().toUtf8());
+  //Interface_Static::SetCVal("write.iges.header.product", ui->lineEditProduct->text().toUtf8());
 }
 
 void DlgImportExportIges::loadSettings()
@@ -242,7 +242,7 @@ void DlgImportExportIges::loadSettings()
     ui->lineEditAuthor->setText(QString::fromStdString(hGrp->GetASCII("Author",
         Interface_Static::CVal("write.iges.header.author"))));
   //ui->lineEditProduct->setText(QString::fromStdString(hGrp->GetASCII("Product")));
-    ui->lineEditProduct->setText(QString::fromLatin1(
+    ui->lineEditProduct->setText(QString::fromUtf8(
         Interface_Static::CVal("write.iges.header.product")));
 }
 
@@ -281,7 +281,7 @@ DlgImportExportStep::DlgImportExportStep(QWidget* parent)
                                        "the size of the resulting STEP file."));
 
     QRegExp rx;
-    rx.setPattern(QString::fromLatin1("[\\x00-\\x7F]+"));
+    rx.setPattern(QStringLiteral("[\\x00-\\x7F]+"));
     QRegExpValidator* companyValidator = new QRegExpValidator(ui->lineEditCompany);
     companyValidator->setRegExp(rx);
     ui->lineEditCompany->setValidator(companyValidator);
@@ -332,9 +332,9 @@ void DlgImportExportStep::saveSettings()
     hStepGrp->SetASCII("Scheme", schema);
 
     // header info
-    hStepGrp->SetASCII("Company", ui->lineEditCompany->text().toLatin1());
-    hStepGrp->SetASCII("Author", ui->lineEditAuthor->text().toLatin1());
-  //hStepGrp->SetASCII("Product", ui->lineEditProduct->text().toLatin1());
+    hStepGrp->SetASCII("Company", ui->lineEditCompany->text().toUtf8());
+    hStepGrp->SetASCII("Author", ui->lineEditAuthor->text().toUtf8());
+  //hStepGrp->SetASCII("Product", ui->lineEditProduct->text().toUtf8());
 
     // (h)STEP of Import module
     ui->checkBoxMergeCompound->onSave();
@@ -376,7 +376,7 @@ void DlgImportExportStep::loadSettings()
     // header info
     ui->lineEditCompany->setText(QString::fromStdString(hStepGrp->GetASCII("Company")));
     ui->lineEditAuthor->setText(QString::fromStdString(hStepGrp->GetASCII("Author")));
-    ui->lineEditProduct->setText(QString::fromLatin1(
+    ui->lineEditProduct->setText(QString::fromUtf8(
         Interface_Static::CVal("write.step.product.name")));
 
     // (h)STEP of Import module

@@ -190,7 +190,7 @@ void TaskMirroredParameters::onPlaneChanged(int /*num*/)
             pcMirrored->MirrorPlane.Paste(planeLinks.getCurrentLink());
         }
     } catch (Base::Exception &e) {
-        QMessageBox::warning(0,tr("Error"),QString::fromLatin1(e.what()));
+        QMessageBox::warning(0,tr("Error"),QString::fromUtf8(e.what()));
     }
 
     recomputeFeature();

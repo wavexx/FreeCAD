@@ -87,7 +87,7 @@ void DlgDecimating::on_checkAbsolueNumber_toggled(bool on)
     else {
         ui->spinBoxReduction->setRange(0, 100);
         ui->spinBoxReduction->setValue(ui->sliderReduction->value());
-        ui->spinBoxReduction->setSuffix(QString::fromLatin1("%"));
+        ui->spinBoxReduction->setSuffix(QStringLiteral("%"));
         ui->checkAbsolueNumber->setText(tr("Absolute number"));
         connect(ui->sliderReduction, SIGNAL(valueChanged(int)), ui->spinBoxReduction, SLOT(setValue(int)));
         connect(ui->spinBoxReduction, SIGNAL(valueChanged(int)), ui->sliderReduction, SLOT(setValue(int)));

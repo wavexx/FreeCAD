@@ -101,7 +101,7 @@ void CommandIconView::startDrag (Qt::DropActions supportedActions)
     }
 
     QMimeData *mimeData = new QMimeData;
-    mimeData->setData(QString::fromLatin1("text/x-action-items"), itemData);
+    mimeData->setData(QStringLiteral("text/x-action-items"), itemData);
 
     QDrag *drag = new QDrag(this);
     drag->setMimeData(mimeData);
@@ -129,7 +129,7 @@ ActionSelector::ActionSelector(QWidget* parent)
   : QWidget(parent)
 {
     addButton = new QPushButton(this);
-    addButton->setObjectName(QLatin1String("addButton"));
+    addButton->setObjectName(QStringLiteral("addButton"));
     addButton->setMinimumSize(QSize(30, 30));
     addButton->setIcon(BitmapFactory().pixmap("button_right"));
     gridLayout = new QGridLayout(this);
@@ -141,7 +141,7 @@ ActionSelector::ActionSelector(QWidget* parent)
     gridLayout->addItem(spacerItem1, 0, 1, 1, 1);
 
     removeButton = new QPushButton(this);
-    removeButton->setObjectName(QLatin1String("removeButton"));
+    removeButton->setObjectName(QStringLiteral("removeButton"));
     removeButton->setMinimumSize(QSize(30, 30));
     removeButton->setIcon(BitmapFactory().pixmap("button_left"));
     removeButton->setAutoDefault(true);
@@ -150,14 +150,14 @@ ActionSelector::ActionSelector(QWidget* parent)
     gridLayout->addWidget(removeButton, 2, 1, 1, 1);
 
     upButton = new QPushButton(this);
-    upButton->setObjectName(QLatin1String("upButton"));
+    upButton->setObjectName(QStringLiteral("upButton"));
     upButton->setMinimumSize(QSize(30, 30));
     upButton->setIcon(BitmapFactory().pixmap("button_up"));
 
     gridLayout->addWidget(upButton, 3, 1, 1, 1);
 
     downButton = new QPushButton(this);
-    downButton->setObjectName(QLatin1String("downButton"));
+    downButton->setObjectName(QStringLiteral("downButton"));
     downButton->setMinimumSize(QSize(30, 30));
     downButton->setIcon(BitmapFactory().pixmap("button_down"));
     downButton->setAutoDefault(true);
@@ -170,7 +170,7 @@ ActionSelector::ActionSelector(QWidget* parent)
     vboxLayout->addWidget(labelAvailable);
 
     availableWidget = new QTreeWidget(this);
-    availableWidget->setObjectName(QLatin1String("availableTreeWidget"));
+    availableWidget->setObjectName(QStringLiteral("availableTreeWidget"));
     availableWidget->setRootIsDecorated(false);
     availableWidget->setHeaderLabels(QStringList() << QString());
     availableWidget->header()->hide();
@@ -184,7 +184,7 @@ ActionSelector::ActionSelector(QWidget* parent)
     vboxLayout1->addWidget(labelSelected);
 
     selectedWidget = new QTreeWidget(this);
-    selectedWidget->setObjectName(QLatin1String("selectedTreeWidget"));
+    selectedWidget->setObjectName(QStringLiteral("selectedTreeWidget"));
     selectedWidget->setRootIsDecorated(false);
     selectedWidget->setHeaderLabels(QStringList() << QString());
     selectedWidget->header()->hide();
@@ -456,7 +456,7 @@ void AccelLineEdit::keyPressEvent ( QKeyEvent * e)
             txtLine.clear();
             break;
         default:
-            txtLine += QString::fromLatin1(",");
+            txtLine += QStringLiteral(",");
             break;
         }
     }
@@ -493,7 +493,7 @@ void AccelLineEdit::keyPressEvent ( QKeyEvent * e)
 ClearLineEdit::ClearLineEdit (QWidget * parent)
   : QLineEdit(parent)
 {
-    clearAction = this->addAction(QIcon(QString::fromLatin1(":/icons/edit-cleartext.svg")),
+    clearAction = this->addAction(QIcon(QStringLiteral(":/icons/edit-cleartext.svg")),
                                         QLineEdit::TrailingPosition);
     connect(clearAction, SIGNAL(triggered()), this, SLOT(clear()));
     connect(this, SIGNAL(textChanged(const QString&)),
@@ -520,13 +520,13 @@ ClearLineEdit::ClearLineEdit (QWidget * parent)
     clearButton->setIcon(QIcon(pixmap));
     clearButton->setIconSize(pixmap.size());
     clearButton->setCursor(Qt::ArrowCursor);
-    clearButton->setStyleSheet(QString::fromLatin1("QToolButton { border: none; padding: 0px; }"));
+    clearButton->setStyleSheet(QStringLiteral("QToolButton { border: none; padding: 0px; }"));
     clearButton->hide();
     connect(clearButton, SIGNAL(clicked()), this, SLOT(clear()));
     connect(this, SIGNAL(textChanged(const QString&)),
             this, SLOT(updateClearButton(const QString&)));
     int frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-    setStyleSheet(QString::fromLatin1("QLineEdit { padding-right: %1px; } ")
+    setStyleSheet(QStringLiteral("QLineEdit { padding-right: %1px; } ")
                   .arg(clearButton->sizeHint().width() + frameWidth + 1));
     QSize msz = minimumSizeHint();
     setMinimumSize(qMax(msz.width(), clearButton->sizeHint().height() + frameWidth * 2 + 2),
@@ -1124,7 +1124,7 @@ LabelButton::LabelButton (QWidget * parent)
     label->setAutoFillBackground(true);
     layout->addWidget(label);
 
-    button = new QPushButton(QLatin1String("..."), this);
+    button = new QPushButton(QStringLiteral("..."), this);
 #if defined (Q_OS_MAC)
     button->setAttribute(Qt::WA_LayoutUsesWidgetRect); // layout size from QMacStyle was not correct
 #endif
@@ -1613,7 +1613,7 @@ public:
         if (edit) {
             QString inputText = edit->toPlainText();
             if (!inputText.isEmpty()) // let pass empty input, regardless of the type, so user can void the value
-                lines = inputText.split(QString::fromLatin1("\n"));
+                lines = inputText.split(QStringLiteral("\n"));
         }
         if (!lines.isEmpty()) {
             if (type == 1) { // floats
@@ -1660,7 +1660,7 @@ LabelEditor::LabelEditor (QWidget * parent)
     connect(lineEdit, SIGNAL(textChanged(const QString &)),
             this, SLOT(validateText(const QString &)));
 
-    button = new QPushButton(QLatin1String("..."), this);
+    button = new QPushButton(QStringLiteral("..."), this);
 #if defined (Q_OS_MAC)
     button->setAttribute(Qt::WA_LayoutUsesWidgetRect); // layout size from QMacStyle was not correct
 #endif
@@ -1690,7 +1690,7 @@ void LabelEditor::setText(const QString& s)
 {
     this->plainText = s;
 
-    QString text = QString::fromLatin1("[%1]").arg(this->plainText);
+    QString text = QStringLiteral("[%1]").arg(this->plainText);
     lineEdit->setText(text);
 }
 
@@ -1711,7 +1711,7 @@ void LabelEditor::changeText()
     connect(buttonBox, SIGNAL(rejected()), &dlg, SLOT(reject()));
     if (dlg.exec() == QDialog::Accepted) {
         QString inputText = edit->toPlainText();
-        QString text = QString::fromLatin1("[%1]").arg(inputText);
+        QString text = QStringLiteral("[%1]").arg(inputText);
         lineEdit->setText(text);
     }
 }
@@ -1721,7 +1721,7 @@ void LabelEditor::changeText()
  */
 void LabelEditor::validateText(const QString& text)
 {
-    if (text.startsWith(QLatin1String("[")) && text.endsWith(QLatin1String("]"))) {
+    if (text.startsWith(QStringLiteral("[")) && text.endsWith(QStringLiteral("]"))) {
         this->plainText = text.mid(1, text.size()-2);
         Q_EMIT textChanged(this->plainText);
     }
@@ -1734,7 +1734,7 @@ void LabelEditor::setButtonText(const QString& txt)
 {
     button->setText(txt);
     int w1 = 2 * QtTools::horizontalAdvance(button->fontMetrics(), txt);
-    int w2 = 2 * QtTools::horizontalAdvance(button->fontMetrics(), QLatin1String(" ... "));
+    int w2 = 2 * QtTools::horizontalAdvance(button->fontMetrics(), QStringLiteral(" ... "));
     button->setFixedWidth((w1 > w2 ? w1 : w2));
 }
 

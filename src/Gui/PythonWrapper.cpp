@@ -560,7 +560,7 @@ const char* PythonWrapper::getWrapperName(QObject* obj) const
     const QMetaObject* meta = obj->metaObject();
     while (meta) {
         const char* typeName = meta->className();
-        if (names.indexOf(QLatin1String(typeName)) >= 0)
+        if (names.indexOf(QString::fromUtf8(typeName)) >= 0)
             return typeName;
         meta = meta->superClass();
     }

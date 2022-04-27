@@ -236,7 +236,7 @@ QVariant SheetModel::data(const QModelIndex &index, int role) const
         switch (role) {
         case Qt::ToolTipRole: {
             QString txt(Base::Tools::fromStdString(cell->getException()).toHtmlEscaped());
-            return QVariant(QString::fromLatin1("<pre>%1</pre>").arg(txt));
+            return QVariant(QStringLiteral("<pre>%1</pre>").arg(txt));
         }
         case Qt::DisplayRole: {
 #ifdef DEBUG_DEPS
@@ -330,7 +330,7 @@ QVariant SheetModel::data(const QModelIndex &index, int role) const
         }
         case Qt::DisplayRole:
             if(cell->getExpression())
-                return QVariant(QLatin1String("#PENDING"));
+                return QVariant(QStringLiteral("#PENDING"));
             else
                 return QVariant();
         default:

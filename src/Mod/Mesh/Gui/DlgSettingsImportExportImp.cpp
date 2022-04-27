@@ -54,8 +54,8 @@ void DlgSettingsImportExport::saveSettings()
     ui->exportAmfCompressed->onSave();
 
     ParameterGrp::handle asy = handle->GetGroup("Asymptote");
-    asy->SetASCII("Width", ui->asymptoteWidth->text().toLatin1());
-    asy->SetASCII("Height", ui->asymptoteHeight->text().toLatin1());
+    asy->SetASCII("Width", ui->asymptoteWidth->text().toUtf8());
+    asy->SetASCII("Height", ui->asymptoteHeight->text().toUtf8());
 
     MeshCore::MeshOutput::SetAsymptoteSize(ui->asymptoteWidth->text().toStdString(),
                                            ui->asymptoteHeight->text().toStdString());

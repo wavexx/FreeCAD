@@ -81,7 +81,7 @@ FeaturePickDialog::FeaturePickDialog(std::vector<App::DocumentObject*>& objects,
     std::vector<featureStatus>::const_iterator st = status.begin();
     for (std::vector<App::DocumentObject*>::const_iterator o = objects.begin(); o != objects.end(); ++o) {
         QListWidgetItem* item = new QListWidgetItem(QString::fromUtf8((*o)->getNameInDocument()) +
-                                                    QString::fromLatin1(" (") + getFeatureStatusString(*st) + QString::fromLatin1(")"));
+                                                    QStringLiteral(" (") + getFeatureStatusString(*st) + QStringLiteral(")"));
         ui->listWidget->addItem(item);
         st++;
     }
@@ -154,7 +154,7 @@ std::vector<App::DocumentObject*> FeaturePickDialog::getFeatures() {
     std::vector<App::DocumentObject*> result;
 
     for (std::vector<QString>::const_iterator s = features.begin(); s != features.end(); ++s)
-        result.push_back(App::GetApplication().getActiveDocument()->getObject(s->toLatin1().data()));
+        result.push_back(App::GetApplication().getActiveDocument()->getObject(s->toUtf8().data()));
 
     return result;
 }
@@ -167,7 +167,7 @@ void FeaturePickDialog::accept()
     QListIterator<QListWidgetItem*> i(ui->listWidget->selectedItems());
     while (i.hasNext()) {
         QString t = i.next()->text();
-        t = t.left(t.indexOf(QString::fromLatin1("(")) - 1);
+        t = t.left(t.indexOf(QStringLiteral("(")) - 1);
         features.push_back(t);
     }
 

@@ -71,7 +71,7 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
     ui->comboLinePattern->setIconSize (QSize(80,12));
     for(auto &v : _LinePatterns) {
         if(!v.value) {
-            ui->comboLinePattern->addItem(QString::fromLatin1(v.name),v.value);
+            ui->comboLinePattern->addItem(QString::fromUtf8(v.name),v.value);
             continue;
         }
         QPixmap px(ui->comboLinePattern->iconSize());
@@ -87,7 +87,7 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
         painter.drawLine(0, mid, ui->comboLinePattern->iconSize().width(), mid);
         painter.end();
 
-        ui->comboLinePattern->addItem(QIcon(px),QString::fromLatin1(v.name),v.value);
+        ui->comboLinePattern->addItem(QIcon(px),QString::fromUtf8(v.name),v.value);
     }
     ui->comboLinePattern->setEditable(true);
     
@@ -104,7 +104,7 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
     }
     if(!found) {
         ui->comboLinePattern->setEditText(
-                QString::fromLatin1("0x%1").arg(pattern,0,16));
+                QStringLiteral("0x%1").arg(pattern,0,16));
     }
 
     ui->ShadowDisplayMode->addItem(tr("Flat Lines"));
@@ -164,7 +164,7 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
         QString tooltip = QCoreApplication::translate("ViewParams", ViewParams::doc##_name()); \
         if (!tooltip.isEmpty()) {\
             ui->_name->setToolTip(tooltip); \
-            if (QLabel *child = findChild<QLabel*>(QString::fromLatin1("label" #_name))) \
+            if (QLabel *child = findChild<QLabel*>(QStringLiteral("label" #_name))) \
                 child->setToolTip(tooltip);\
         }\
     }while(0);
@@ -219,7 +219,7 @@ void DlgSettingsDrawStyles::loadSettings()
         }
     }
     if(!found)
-        ui->comboLinePattern->setEditText(QString::fromLatin1("0x%1").arg(pattern));
+        ui->comboLinePattern->setEditText(QStringLiteral("0x%1").arg(pattern));
 
     FC_DRAW_STYLE_PARAMS;
 }
@@ -236,7 +236,7 @@ void DlgSettingsDrawStyles::saveSettings()
         ViewParams::setSelectionLinePattern(pattern.toInt(&res,0));
         if(!res) {
             Base::Console().Warning("Invalid line pattern: %s'\n",
-                    pattern.toLatin1().constData());
+                    pattern.toUtf8().constData());
         }
     }
 

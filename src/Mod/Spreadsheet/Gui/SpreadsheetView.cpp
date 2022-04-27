@@ -116,11 +116,11 @@ SheetView::SheetView(Gui::Document *pcDocument, App::DocumentObject *docObj, QWi
     palette.setColor(QPalette::Text, QColor(0, 0, 0));
     ui->cells->setPalette(palette);
 
-    QList<QtColorPicker*> bgList = Gui::getMainWindow()->findChildren<QtColorPicker*>(QString::fromLatin1("Spreadsheet_BackgroundColor"));
+    QList<QtColorPicker*> bgList = Gui::getMainWindow()->findChildren<QtColorPicker*>(QStringLiteral("Spreadsheet_BackgroundColor"));
     if (bgList.size() > 0)
         bgList[0]->setCurrentColor(palette.color(QPalette::Base));
 
-    QList<QtColorPicker*> fgList = Gui::getMainWindow()->findChildren<QtColorPicker*>(QString::fromLatin1("Spreadsheet_ForegroundColor"));
+    QList<QtColorPicker*> fgList = Gui::getMainWindow()->findChildren<QtColorPicker*>(QStringLiteral("Spreadsheet_ForegroundColor"));
     if (fgList.size() > 0)
         fgList[0]->setCurrentColor(palette.color(QPalette::Text));
 

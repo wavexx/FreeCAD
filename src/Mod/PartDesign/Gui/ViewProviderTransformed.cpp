@@ -102,7 +102,7 @@ void ViewProviderTransformed::recomputeFeature(bool recompute)
     auto error = pcTransformed->getDocument()->getErrorDescription(pcTransformed);
     if(rejected>0 || error) {
         if (rejected>0) {
-            msg = QString::fromLatin1("<font color='orange'>%1</font>");
+            msg = QStringLiteral("<font color='orange'>%1</font>");
             if (rejected == 1)
                 msg = msg.arg(QObject::tr("One transformed shape is causing error"));
             else {
@@ -112,8 +112,8 @@ void ViewProviderTransformed::recomputeFeature(bool recompute)
         }
         if(error) {
             if(msg.size())
-                msg += QLatin1String("</br></br>");
-            msg += QString::fromLatin1("<font color='red'>%1</font>").arg(QObject::tr(error));
+                msg += QStringLiteral("</br></br>");
+            msg += QStringLiteral("<font color='red'>%1</font>").arg(QObject::tr(error));
         }
     }
 

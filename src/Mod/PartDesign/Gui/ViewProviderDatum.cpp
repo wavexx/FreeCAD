@@ -121,19 +121,19 @@ void ViewProviderDatum::attach(App::DocumentObject *obj)
     // TODO remove this field (2015-09-08, Fat-Zer)
     App::DocumentObject* o = getObject();
     if (o->getTypeId() == PartDesign::Plane::getClassTypeId()) {
-        datumType = QString::fromLatin1("Plane");
+        datumType = QStringLiteral("Plane");
         datumText = QObject::tr("Plane");
     }
     else if (o->getTypeId() == PartDesign::Line::getClassTypeId()) {
-        datumType = QString::fromLatin1("Line");
+        datumType = QStringLiteral("Line");
         datumText = QObject::tr("Line");
     }
     else if (o->getTypeId() == PartDesign::Point::getClassTypeId()) {
-        datumType = QString::fromLatin1("Point");
+        datumType = QStringLiteral("Point");
         datumText = QObject::tr("Point");
     }
     else if (o->getTypeId() == PartDesign::CoordinateSystem::getClassTypeId()) {
-        datumType = QString::fromLatin1("CoordinateSystem");
+        datumType = QStringLiteral("CoordinateSystem");
         datumText = QObject::tr("Coordinate System");
     }
 
@@ -208,7 +208,7 @@ std::string ViewProviderDatum::getElement(const SoDetail* detail) const
 
 SoDetail* ViewProviderDatum::getDetail(const char* subelement) const
 {
-    QString subelem = QString::fromLatin1(subelement);
+    QString subelem = QString::fromUtf8(subelement);
 
     if (subelem == QObject::tr("Line")) {
          SoLineDetail* detail = new SoLineDetail();

@@ -286,7 +286,7 @@ ViewProviderAnnotationLabel::ViewProviderAnnotationLabel()
     Justification.setEnums(JustificationEnums);
     QFont fn;
     ADD_PROPERTY(FontSize,(fn.pointSize()));
-    ADD_PROPERTY(FontName,((const char*)fn.family().toLatin1()));
+    ADD_PROPERTY(FontName,((const char*)fn.family().toUtf8()));
     ADD_PROPERTY(Frame,(true));
 
     pColor = new SoBaseColor();
@@ -480,7 +480,7 @@ void ViewProviderAnnotationLabel::drawImage(const std::vector<std::string>& s)
         return;
     }
 
-    QFont font(QString::fromLatin1(this->FontName.getValue()), (int)this->FontSize.getValue());
+    QFont font(QString::fromUtf8(this->FontName.getValue()), (int)this->FontSize.getValue());
     QFontMetrics fm(font);
     int w = 0;
     int h = fm.height() * s.size();
@@ -521,7 +521,7 @@ void ViewProviderAnnotationLabel::drawImage(const std::vector<std::string>& s)
         align = Qt::AlignVCenter | Qt::AlignRight;
     else
         align = Qt::AlignVCenter | Qt::AlignHCenter;
-    QString text = lines.join(QLatin1String("\n"));
+    QString text = lines.join(QStringLiteral("\n"));
     painter.setFont(font);
     painter.drawText(5,5,w,h,align,text);
     painter.end();

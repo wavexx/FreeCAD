@@ -439,7 +439,7 @@ ViewProviderSketch::ViewProviderSketch()
 
         // well it is not visibility automation but a good place nevertheless
         this->ShowGrid.setValue(hGrp->GetBool("ShowGrid", false));
-        this->GridSize.setValue(Base::Quantity::parse(QString::fromLatin1(hGrp->GetGroup("GridSize")->GetASCII("Hist0", "10.0").c_str())).getValue());
+        this->GridSize.setValue(Base::Quantity::parse(QString::fromUtf8(hGrp->GetGroup("GridSize")->GetASCII("Hist0", "10.0").c_str())).getValue());
         this->GridSnap.setValue(hGrp->GetBool("GridSnap", false));
         this->Autoconstraints.setValue(hGrp->GetBool("AutoConstraints", true));
         this->AvoidRedundant.setValue(hGrp->GetBool("AvoidRedundantAutoconstraints", true));
@@ -1976,7 +1976,7 @@ void ViewProviderSketch::onSelectionChanged(const Gui::SelectionChanges& msg)
             //        temp += ".";
             //        temp += it->SubName;
             //    }
-            //    new QListWidgetItem(QString::fromLatin1(temp.c_str()), selectionView);
+            //    new QListWidgetItem(QString::fromUtf8(temp.c_str()), selectionView);
             //}
         }
         else if (msg.Type == Gui::SelectionChanges::SetPreselect) {
@@ -2092,7 +2092,7 @@ std::set<int> ViewProviderSketch::detectPreselectionConstr(const SoPickedPoint *
                 }
 
                 if (constrIds) {
-                    QString constrIdsStr = QString::fromLatin1(constrIds->string.getValue().getString());
+                    QString constrIdsStr = QString::fromUtf8(constrIds->string.getValue().getString());
                     if (edit->combinedConstrBoxes.count(constrIdsStr) && tail->isOfType(SoImage::getClassTypeId())) {
                         // If it's a combined constraint icon
 
@@ -2194,7 +2194,7 @@ std::set<int> ViewProviderSketch::detectPreselectionConstr(const SoPickedPoint *
                     }
                     else {
                         // It's a constraint icon, not a combined one
-                        QStringList constrIdStrings = constrIdsStr.split(QString::fromLatin1(","));
+                        QStringList constrIdStrings = constrIdsStr.split(QStringLiteral(","));
                         while (!constrIdStrings.empty())
                             constrIndices.insert(constrIdStrings.takeAt(0).toInt());
                     }
@@ -3533,7 +3533,7 @@ QString ViewProviderSketch::getPresentationString(const Constraint *constraint)
     Base::UnitSystem                unitSys; // current unit system
 
     if(!constraint->isActive)
-        return QString::fromLatin1(" ");
+        return QStringLiteral(" ");
 
     // get parameter group for Sketcher display settings
     hGrpSketcher = App::GetApplication().GetUserParameter().GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/Sketcher");
@@ -3566,19 +3566,19 @@ QString ViewProviderSketch::getPresentationString(const Constraint *constraint)
         {
             case Base::UnitSystem::SI1:
             case Base::UnitSystem::MmMin:
-                baseUnitStr = QString::fromLatin1("mm");
+                baseUnitStr = QStringLiteral("mm");
                 break;
 
             case Base::UnitSystem::SI2:
-                baseUnitStr = QString::fromLatin1("m");
+                baseUnitStr = QStringLiteral("m");
                 break;
 
             case Base::UnitSystem::ImperialDecimal:
-                baseUnitStr = QString::fromLatin1("in");
+                baseUnitStr = QStringLiteral("in");
                 break;
 
             case Base::UnitSystem::Centimeters:
-                baseUnitStr = QString::fromLatin1("cm");
+                baseUnitStr = QStringLiteral("cm");
                 break;
 
             default:
@@ -3613,16 +3613,16 @@ QString ViewProviderSketch::getPresentationString(const Constraint *constraint)
     */
     if (iShowDimName && !nameStr.isEmpty())
     {
-        if (formatStr.contains(QLatin1String("%V")) || formatStr.contains(QLatin1String("%N")))
+        if (formatStr.contains(QStringLiteral("%V")) || formatStr.contains(QStringLiteral("%N")))
         {
             presentationStr = formatStr;
-            presentationStr.replace(QLatin1String("%N"), nameStr);
-            presentationStr.replace(QLatin1String("%V"), valueStr);
+            presentationStr.replace(QStringLiteral("%N"), nameStr);
+            presentationStr.replace(QStringLiteral("%V"), valueStr);
         }
         else
         {
             // user defined format string does not contain any valid parameter, using default format "%N = %V"
-            presentationStr = nameStr + QLatin1String(" = ") + valueStr;
+            presentationStr = nameStr + QStringLiteral(" = ") + valueStr;
             FC_WARN("When parsing dimensional format string \""
                     << QString(formatStr).toStdString()
                     << "\", no valid parameter found, using default format.");
@@ -3639,25 +3639,25 @@ QString ViewProviderSketch::iconTypeFromConstraint(Constraint *constraint)
     /*! TODO: Consider pushing this functionality up into Constraint */
     switch(constraint->Type) {
     case Horizontal:
-        return QString::fromLatin1("Constraint_Horizontal");
+        return QStringLiteral("Constraint_Horizontal");
     case Vertical:
-        return QString::fromLatin1("Constraint_Vertical");
+        return QStringLiteral("Constraint_Vertical");
     case PointOnObject:
-        return QString::fromLatin1("Constraint_PointOnObject");
+        return QStringLiteral("Constraint_PointOnObject");
     case Tangent:
-        return QString::fromLatin1("Constraint_Tangent");
+        return QStringLiteral("Constraint_Tangent");
     case Parallel:
-        return QString::fromLatin1("Constraint_Parallel");
+        return QStringLiteral("Constraint_Parallel");
     case Perpendicular:
-        return QString::fromLatin1("Constraint_Perpendicular");
+        return QStringLiteral("Constraint_Perpendicular");
     case Equal:
-        return QString::fromLatin1("Constraint_EqualLength");
+        return QStringLiteral("Constraint_EqualLength");
     case Symmetric:
-        return QString::fromLatin1("Constraint_Symmetric");
+        return QStringLiteral("Constraint_Symmetric");
     case SnellsLaw:
-        return QString::fromLatin1("Constraint_SnellsLaw");
+        return QStringLiteral("Constraint_SnellsLaw");
     case Block:
-        return QString::fromLatin1("Constraint_Block");
+        return QStringLiteral("Constraint_Block");
     default:
         return QString();
     }
@@ -3898,7 +3898,7 @@ void ViewProviderSketch::combineConstraintIcons(IconQueue &&iconQueue)
 
         // we group only icons not being Symmetry icons, because we want those on the line
         // and only icons that are visible
-        if(init.type != QString::fromLatin1("Constraint_Symmetric") && init.visible){
+        if(init.type != QStringLiteral("Constraint_Symmetric") && init.visible){
 
             IconQueue::iterator i = iconQueue.begin();
 
@@ -3910,7 +3910,7 @@ void ViewProviderSketch::combineConstraintIcons(IconQueue &&iconQueue)
                     for(IconQueue::iterator j = thisGroup.begin();
                         j != thisGroup.end(); ++j) {
                         float distSquared = pow(i->position[0]-j->position[0],2) + pow(i->position[1]-j->position[1],2);
-                        if(distSquared <= maxDistSquared && (*i).type != QString::fromLatin1("Constraint_Symmetric")) {
+                        if(distSquared <= maxDistSquared && (*i).type != QStringLiteral("Constraint_Symmetric")) {
                             // Found an icon in iconQueue that's close enough to
                             // a member of thisGroup, so move it into thisGroup
                             thisGroup.push_back(*i);
@@ -3989,7 +3989,7 @@ void ViewProviderSketch::drawMergedConstraintIcons(IconQueue &&iconQueue)
         maxColorPriority = constrColorPriority(i->constraintId);
 
         if(idString.length())
-            idString.append(QString::fromLatin1(","));
+            idString.append(QStringLiteral(","));
         idString.append(QString::number(i->constraintId));
 
         i = iconQueue.erase(i);
@@ -4008,7 +4008,7 @@ void ViewProviderSketch::drawMergedConstraintIcons(IconQueue &&iconQueue)
                 iconColor= constrColor(i->constraintId);
             }
 
-            idString.append(QString::fromLatin1(",") +
+            idString.append(QStringLiteral(",") +
                             QString::number(i->constraintId));
 
             i = iconQueue.erase(i);
@@ -4084,7 +4084,7 @@ void ViewProviderSketch::drawMergedConstraintIcons(IconQueue &&iconQueue)
     }
 
     edit->combinedConstrBoxes[idString] = boundingBoxes;
-    thisInfo->string.setValue(idString.toLatin1().data());
+    thisInfo->string.setValue(idString.toUtf8().data());
     sendConstraintIconToCoin(compositeIcon, thisDest);
 }
 
@@ -4100,13 +4100,13 @@ QImage ViewProviderSketch::renderConstrIcon(const QString &type,
                                             int *vPad)
 {
     // Constants to help create constraint icons
-    QString joinStr = QString::fromLatin1(", ");
+    QString joinStr = QStringLiteral(", ");
 
     QPixmap pxMap;
     std::stringstream constraintName;
-    constraintName << type.toLatin1().data() << edit->constraintIconSize; // allow resizing by embedding size
+    constraintName << type.toUtf8().data() << edit->constraintIconSize; // allow resizing by embedding size
     if (! Gui::BitmapFactory().findPixmapInCache(constraintName.str().c_str(), pxMap)) {
-        pxMap = Gui::BitmapFactory().pixmapFromSvg(type.toLatin1().data(),QSizeF(edit->constraintIconSize,edit->constraintIconSize));
+        pxMap = Gui::BitmapFactory().pixmapFromSvg(type.toUtf8().data(),QSizeF(edit->constraintIconSize,edit->constraintIconSize));
         Gui::BitmapFactory().addPixmapToCache(constraintName.str().c_str(), pxMap); // Cache for speed, avoiding pixmapFromSvg
     }
     QImage icon = pxMap.toImage();
@@ -4192,7 +4192,7 @@ void ViewProviderSketch::drawTypicalConstraintIcon(const constrIconQueueItem &i)
                                     QList<QColor>() << color,
                                     i.iconRotation);
 
-    i.infoPtr->string.setValue(QString::number(i.constraintId).toLatin1().data());
+    i.infoPtr->string.setValue(QString::number(i.constraintId).toUtf8().data());
     sendConstraintIconToCoin(image, i.destination);
 }
 
@@ -5342,7 +5342,7 @@ void ViewProviderSketch::draw(bool temp /*=false*/, bool rebuildinformationlayer
                 translate->translation.setValue(poleposition.x, poleposition.y, zInfo);
 
                 // set up string with weight value and the user-defined number of decimals
-                QString WeightString  = QString::fromLatin1("%1").arg(weights[index], 0, 'f', Base::UnitsApi::getDecimals());
+                QString WeightString  = QStringLiteral("%1").arg(weights[index], 0, 'f', Base::UnitsApi::getDecimals());
 
                 SoText2* WeightText = new SoText2;
                 // since the first and last control point of a spline is also treated as knot and thus
@@ -5382,7 +5382,7 @@ void ViewProviderSketch::draw(bool temp /*=false*/, bool rebuildinformationlayer
                     ->translation.setValue(poleposition.x, poleposition.y, zInfo);
 
                 // set up string with weight value and the user-defined number of decimals
-                QString WeightString = QString::fromLatin1("%1").arg(weights[index], 0, 'f', Base::UnitsApi::getDecimals());
+                QString WeightString = QStringLiteral("%1").arg(weights[index], 0, 'f', Base::UnitsApi::getDecimals());
 
                 // since the first and last control point of a spline is also treated as knot and thus
                 // can also have a displayed multiplicity, we must assure the multiplicity is not visibly overwritten

@@ -60,8 +60,8 @@ void Assistant::showDocumentation(const QString &page)
         return;
     if (!page.isEmpty()) {
         QTextStream str(proc);
-        str << QLatin1String("setSource qthelp://org.freecad.usermanual/doc/")
-            << page << QLatin1String("\n\n");
+        str << QStringLiteral("setSource qthelp://org.freecad.usermanual/doc/")
+            << page << QStringLiteral("\n\n");
     }
 }
 
@@ -86,18 +86,18 @@ bool Assistant::startAssistant()
 #ifdef Q_OS_WIN
         QString app;
         app = QDir::toNativeSeparators(QString::fromUtf8
-            (App::GetApplication().getHomePath()) + QLatin1String("bin/"));
+            (App::GetApplication().getHomePath()) + QStringLiteral("bin/"));
 #elif defined(Q_OS_MAC)
         QString app = QCoreApplication::applicationDirPath() + QDir::separator();
 #else
         QString app = QLibraryInfo::location(QLibraryInfo::BinariesPath) + QDir::separator();
 #endif
-        app += QLatin1String("assistant");
+        app += QStringLiteral("assistant");
 
         // get the name of the executable and the doc path
         QString exe = QString::fromUtf8(App::GetApplication().getExecutableName());
         QString doc = QString::fromUtf8(App::Application::getHelpDir().c_str());
-        QString qhc = doc + exe.toLower() + QLatin1String(".qhc");
+        QString qhc = doc + exe.toLower() + QStringLiteral(".qhc");
 
 
         QFileInfo fi(qhc);
@@ -121,15 +121,15 @@ bool Assistant::startAssistant()
         if (start) {
             char* appimage = getenv("APPIMAGE");
             if (appimage) {
-                QString qch = doc + exe.toLower() + QLatin1String(".qch");
+                QString qch = doc + exe.toLower() + QStringLiteral(".qch");
                 QFileInfo fi(qch);
                 if (fi.isReadable()) {
                     // Assume documentation is embedded
                     // Unregister qch file (path) from previous AppImage run
                     QStringList args;
 
-                    args << QLatin1String("-collectionFile") << qhc
-                         << QLatin1String("-unregister") << qch;
+                    args << QStringLiteral("-collectionFile") << qhc
+                         << QStringLiteral("-unregister") << qch;
 
                     proc->start(app, args);
 
@@ -142,8 +142,8 @@ bool Assistant::startAssistant()
                     // Register qch file (path) for current AppImage run
                     args.clear();
 
-                    args << QLatin1String("-collectionFile") << qhc
-                         << QLatin1String("-register") << qch;
+                    args << QStringLiteral("-collectionFile") << qhc
+                         << QStringLiteral("-register") << qch;
 
                     proc->start(app, args);
 
@@ -160,8 +160,8 @@ bool Assistant::startAssistant()
 
         QStringList args;
 
-        args << QLatin1String("-collectionFile") << qhc
-             << QLatin1String("-enableRemoteControl");
+        args << QStringLiteral("-collectionFile") << qhc
+             << QStringLiteral("-enableRemoteControl");
 
         proc->start(app, args);
 

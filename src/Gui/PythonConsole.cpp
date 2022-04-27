@@ -109,21 +109,21 @@ struct PythonConsoleP
         callTipsList = 0;
         interactive = false;
         historyFile = QString::fromUtf8((App::Application::getUserAppDataDir() + "PythonHistory.log").c_str());
-        colormap[QLatin1String("Text")] = Qt::black;
-        colormap[QLatin1String("Bookmark")] = Qt::cyan;
-        colormap[QLatin1String("Breakpoint")] = Qt::red;
-        colormap[QLatin1String("Keyword")] = Qt::blue;
-        colormap[QLatin1String("Comment")] = QColor(0, 170, 0);
-        colormap[QLatin1String("Block comment")] = QColor(160, 160, 164);
-        colormap[QLatin1String("Number")] = Qt::blue;
-        colormap[QLatin1String("String")] = Qt::red;
-        colormap[QLatin1String("Character")] = Qt::red;
-        colormap[QLatin1String("Class name")] = QColor(255, 170, 0);
-        colormap[QLatin1String("Define name")] = QColor(255, 170, 0);
-        colormap[QLatin1String("Operator")] = QColor(160, 160, 164);
-        colormap[QLatin1String("Python output")] = QColor(170, 170, 127);
-        colormap[QLatin1String("Python error")] = Qt::red;
-        colormap[QLatin1String("Background")] = Qt::black;
+        colormap[QStringLiteral("Text")] = Qt::black;
+        colormap[QStringLiteral("Bookmark")] = Qt::cyan;
+        colormap[QStringLiteral("Breakpoint")] = Qt::red;
+        colormap[QStringLiteral("Keyword")] = Qt::blue;
+        colormap[QStringLiteral("Comment")] = QColor(0, 170, 0);
+        colormap[QStringLiteral("Block comment")] = QColor(160, 160, 164);
+        colormap[QStringLiteral("Number")] = Qt::blue;
+        colormap[QStringLiteral("String")] = Qt::red;
+        colormap[QStringLiteral("Character")] = Qt::red;
+        colormap[QStringLiteral("Class name")] = QColor(255, 170, 0);
+        colormap[QStringLiteral("Define name")] = QColor(255, 170, 0);
+        colormap[QStringLiteral("Operator")] = QColor(160, 160, 164);
+        colormap[QStringLiteral("Python output")] = QColor(170, 170, 127);
+        colormap[QStringLiteral("Python error")] = Qt::red;
+        colormap[QStringLiteral("Background")] = Qt::black;
     }
 };
 struct InteractiveInterpreterP
@@ -366,11 +366,10 @@ void InteractiveInterpreter::runCode(PyCodeObject* code) const
  */
 bool InteractiveInterpreter::push(const char* line)
 {
-    d->buffer.append(QString::fromLatin1(line));
-    QString source = d->buffer.join(QLatin1String("\n"));
+    d->buffer.append(QString::fromUtf8(line));
+    QString source = d->buffer.join(QStringLiteral("\n"));
     try {
-        // Source is already UTF-8, so we can use toLatin1()
-        bool more = runSource(source.toLatin1());
+        bool more = runSource(source.toUtf8());
         if (!more)
             d->buffer.clear();
         return more;
@@ -425,7 +424,7 @@ PythonConsole::PythonConsole(QWidget *parent)
     try {
         d->interpreter = new InteractiveInterpreter();
     } catch (const Base::Exception& e) {
-        setPlainText(QString::fromLatin1(e.what()));
+        setPlainText(QString::fromUtf8(e.what()));
         setEnabled(false);
     }
 
@@ -442,7 +441,7 @@ PythonConsole::PythonConsole(QWidget *parent)
     d->callTipsList->setSelectionMode( QAbstractItemView::SingleSelection );
     d->callTipsList->hide();
 
-    QFont serifFont(QLatin1String("Courier"), 10, QFont::Normal);
+    QFont serifFont(QStringLiteral("Courier"), 10, QFont::Normal);
     setFont(serifFont);
 
     // set colors and font from settings
@@ -464,9 +463,9 @@ PythonConsole::PythonConsole(QWidget *parent)
 
     const char* version  = PyUnicode_AsUTF8(PySys_GetObject("version"));
     const char* platform = PyUnicode_AsUTF8(PySys_GetObject("platform"));
-    d->info = QString::fromLatin1("Python %1 on %2\n"
+    d->info = QStringLiteral("Python %1 on %2\n"
     "Type 'help', 'copyright', 'credits' or 'license' for more information.")
-    .arg(QString::fromLatin1(version), QString::fromLatin1(platform));
+    .arg(QString::fromUtf8(version), QString::fromUtf8(platform));
     d->output = d->info;
     printPrompt(PythonConsole::Complete);
     loadHistory();
@@ -503,19 +502,19 @@ void PythonConsole::OnChange( Base::Subject<const char*> &rCaller,const char* sR
 
     if (strcmp(sReason, "FontSize") == 0 || strcmp(sReason, "Font") == 0) {
         int fontSize = hPrefGrp->GetInt("FontSize", 10);
-        QString fontFamily = QString::fromLatin1(hPrefGrp->GetASCII("Font", "Courier").c_str());
+        QString fontFamily = QString::fromUtf8(hPrefGrp->GetASCII("Font", "Courier").c_str());
 
         QFont font(fontFamily, fontSize);
         setFont(font);
         QFontMetrics metric(font);
-        int width = QtTools::horizontalAdvance(metric, QLatin1String("0000"));
+        int width = QtTools::horizontalAdvance(metric, QStringLiteral("0000"));
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
         setTabStopWidth(width);
 #else
         setTabStopDistance(width);
 #endif
     } else {
-        QMap<QString, QColor>::ConstIterator it = d->colormap.find(QString::fromLatin1(sReason));
+        QMap<QString, QColor>::ConstIterator it = d->colormap.find(QString::fromUtf8(sReason));
         if (it != d->colormap.end()) {
             QColor color = it.value();
             unsigned int col = (color.red() << 24) | (color.green() << 16) | (color.blue() << 8);
@@ -524,7 +523,7 @@ void PythonConsole::OnChange( Base::Subject<const char*> &rCaller,const char* sR
             col = static_cast<unsigned int>(value);
             color.setRgb((col>>24)&0xff, (col>>16)&0xff, (col>>8)&0xff);
             if (it.key() != QStringLiteral("Background"))
-                pythonSyntax->setColor(QString::fromLatin1(sReason), color);
+                pythonSyntax->setColor(QString::fromUtf8(sReason), color);
             else if (value)
                 setStyleSheet(QStringLiteral("Gui--PythonConsole {background: %1}").arg(
                             color.name(QColor::HexRgb)));
@@ -601,8 +600,8 @@ void PythonConsole::keyPressEvent(QKeyEvent * e)
               // disable current input string - i.e. put it to history but don't execute it.
               if (!inputStrg.isEmpty())
               {
-                  d->history.append( QLatin1String("# ") + inputStrg );  //< put commented string to history ...
-                  inputLineBegin.insertText( QString::fromLatin1("# ") ); //< and comment it on console
+                  d->history.append( QStringLiteral("# ") + inputStrg );  //< put commented string to history ...
+                  inputLineBegin.insertText( QStringLiteral("# ") ); //< and comment it on console
                   setTextCursor( inputLineBegin );
                   printPrompt(d->interpreter->hasPendingInput()          //< print adequate prompt
                       ? PythonConsole::Incomplete
@@ -622,7 +621,7 @@ void PythonConsole::keyPressEvent(QKeyEvent * e)
               // In Qt 4.8 there is a strange behaviour because when pressing ":"
               // then key is also set to 'Period' instead of 'Colon'. So we have
               // to make sure we only handle the period.
-              if (e->text() == QLatin1String(".")) {
+              if (e->text() == QStringLiteral(".")) {
                   // analyse context and show available call tips
                   int contextLength = cursor.position() - inputLineBegin.position();
                   TextEdit::keyPressEvent(e);
@@ -763,10 +762,10 @@ void PythonConsole::printPrompt(PythonConsole::Prompt mode)
       switch (mode)
       {
       case PythonConsole::Incomplete:
-          cursor.insertText(QString::fromLatin1("... "));
+          cursor.insertText(QStringLiteral("... "));
           break;
       case PythonConsole::Complete:
-          cursor.insertText(QString::fromLatin1(">>> "));
+          cursor.insertText(QStringLiteral(">>> "));
           break;
       default:
           break;
@@ -909,7 +908,7 @@ void PythonConsole::printStatement( const QString& cmd )
     }
 
     QTextCursor cursor = textCursor();
-    QStringList statements = cmd.split(QLatin1String("\n"));
+    QStringList statements = cmd.split(QStringLiteral("\n"));
     for (QStringList::Iterator it = statements.begin(); it != statements.end(); ++it) {
         // go to the end before inserting new text
         cursor.movePosition(QTextCursor::End);
@@ -998,15 +997,15 @@ void PythonConsole::mouseReleaseEvent( QMouseEvent *e )
 void PythonConsole::dropEvent (QDropEvent * e)
 {
     const QMimeData* mimeData = e->mimeData();
-    if (mimeData->hasFormat(QLatin1String("text/x-action-items"))) {
-        QByteArray itemData = mimeData->data(QLatin1String("text/x-action-items"));
+    if (mimeData->hasFormat(QStringLiteral("text/x-action-items"))) {
+        QByteArray itemData = mimeData->data(QStringLiteral("text/x-action-items"));
         QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
         int ctActions; dataStream >> ctActions;
         for (int i=0; i<ctActions; i++) {
             QString action;
             dataStream >> action;
-            printStatement(QString::fromLatin1("Gui.runCommand(\"%1\")").arg(action));
+            printStatement(QStringLiteral("Gui.runCommand(\"%1\")").arg(action));
         }
 
         e->setDropAction(Qt::CopyAction);
@@ -1020,7 +1019,7 @@ void PythonConsole::dropEvent (QDropEvent * e)
 void PythonConsole::dragMoveEvent( QDragMoveEvent *e )
 {
     const QMimeData* mimeData = e->mimeData();
-    if (mimeData->hasFormat(QLatin1String("text/x-action-items")))
+    if (mimeData->hasFormat(QStringLiteral("text/x-action-items")))
         e->accept();
     else // this will call canInsertFromMimeData
         QPlainTextEdit::dragMoveEvent(e);
@@ -1030,7 +1029,7 @@ void PythonConsole::dragMoveEvent( QDragMoveEvent *e )
 void PythonConsole::dragEnterEvent (QDragEnterEvent * e)
 {
     const QMimeData* mimeData = e->mimeData();
-    if (mimeData->hasFormat(QLatin1String("text/x-action-items")))
+    if (mimeData->hasFormat(QStringLiteral("text/x-action-items")))
         e->accept();
     else // this will call canInsertFromMimeData
         QPlainTextEdit::dragEnterEvent(e);
@@ -1046,7 +1045,7 @@ bool PythonConsole::canInsertFromMimeData (const QMimeData * source) const
             QFileInfo info((*it).toLocalFile());
             if (info.exists() && info.isFile()) {
                 QString ext = info.suffix().toLower();
-                if (ext == QLatin1String("py") || ext == QLatin1String("fcmacro"))
+                if (ext == QStringLiteral("py") || ext == QStringLiteral("fcmacro"))
                     return true;
             }
         }
@@ -1073,7 +1072,7 @@ void PythonConsole::insertFromMimeData (const QMimeData * source)
             QString ext = info.suffix().toLower();
             if (info.exists()) {
                 existingFile = true;
-                if (info.isFile() && (ext == QLatin1String("py") || ext == QLatin1String("fcmacro"))) {
+                if (info.isFile() && (ext == QStringLiteral("py") || ext == QStringLiteral("fcmacro"))) {
                     // load the file and read-in the source code
                     QFile file(info.absoluteFilePath());
                     if (file.open(QIODevice::ReadOnly)) {
@@ -1135,13 +1134,13 @@ QMimeData * PythonConsole::createMimeDataFromSelection () const
                     }
                 }
 
-                QString text = lines.join(QLatin1String("\n"));
+                QString text = lines.join(QStringLiteral("\n"));
                 mime->setText(text);
             }   break;
         case PythonConsoleP::History:
             {
                 const QStringList& hist = d->history.values();
-                QString text = hist.join(QLatin1String("\n"));
+                QString text = hist.join(QStringLiteral("\n"));
                 mime->setText(text);
             }   break;
     }
@@ -1165,10 +1164,10 @@ void PythonConsole::runSourceFromMimeData(const QString& source)
 
 #if defined (Q_OS_LINUX)
     // Need to convert CRLF to LF
-    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
+    text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
 #elif defined(Q_OS_WIN32)
     // Need to convert CRLF to LF
-    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
+    text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
 #elif defined(Q_OS_MAC)
     //need to convert CR to LF
     text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
@@ -1206,7 +1205,7 @@ void PythonConsole::runSourceFromMimeData(const QString& source)
         d->history.append(line);
 
         buffer.append(line);
-        int ret = d->interpreter->compileCommand(buffer.join(QLatin1String("\n")).toUtf8());
+        int ret = d->interpreter->compileCommand(buffer.join(QStringLiteral("\n")).toUtf8());
         if (ret == 1) { // incomplete
             printPrompt(PythonConsole::Incomplete);
         }
@@ -1228,12 +1227,12 @@ void PythonConsole::runSourceFromMimeData(const QString& source)
                 printPrompt(PythonConsole::Incomplete);
             }
             else {
-                runSource(buffer.join(QLatin1String("\n")));
+                runSource(buffer.join(QStringLiteral("\n")));
                 buffer.clear();
             }
         }
         else { // invalid
-            runSource(buffer.join(QLatin1String("\n")));
+            runSource(buffer.join(QStringLiteral("\n")));
             ensureCursorVisible();
             return; // exit the method on error
         }
@@ -1341,7 +1340,7 @@ void PythonConsole::onSaveHistoryAs()
     QString cMacroPath = QString::fromUtf8(getDefaultParameter()->GetGroup( "Macro" )->
         GetASCII("MacroPath",App::Application::getUserMacroDir().c_str()).c_str());
     QString fn = FileDialog::getSaveFileName(this, tr("Save History"), cMacroPath,
-        QString::fromLatin1("%1 (*.FCMacro *.py)").arg(tr("Macro Files")));
+        QStringLiteral("%1 (*.FCMacro *.py)").arg(tr("Macro Files")));
     if (!fn.isEmpty()) {
         int dot = fn.indexOf(QLatin1Char('.'));
         if (dot != -1) {
@@ -1360,7 +1359,7 @@ void PythonConsole::onSaveHistoryAs()
 void PythonConsole::onInsertFileName()
 {
     QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), tr("Insert file name"), QString(),
-        QString::fromLatin1("%1 (*.*)").arg(tr("All Files")));
+        QStringLiteral("%1 (*.*)").arg(tr("All Files")));
     if ( fn.isEmpty() )
         return;
     insertPlainText(fn);
@@ -1482,7 +1481,7 @@ void PythonConsoleHighlighter::highlightBlock(const QString& text)
         {
             // Error output
             QTextCharFormat errorFormat;
-            errorFormat.setForeground(color(QLatin1String("Python error")));
+            errorFormat.setForeground(color(QStringLiteral("Python error")));
             errorFormat.setFontItalic(true);
             setFormat( 0, text.length(), errorFormat);
         }   break;
@@ -1490,7 +1489,7 @@ void PythonConsoleHighlighter::highlightBlock(const QString& text)
         {
             // Normal output
             QTextCharFormat outputFormat;
-            outputFormat.setForeground(color(QLatin1String("Python output")));
+            outputFormat.setForeground(color(QStringLiteral("Python output")));
             setFormat( 0, text.length(), outputFormat);
         }   break;
     default:

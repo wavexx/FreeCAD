@@ -444,7 +444,7 @@ std::size_t Unit::hash() const {
 }
 
 QString Unit::getTypeString(void) const {
-    return QString::fromLatin1(getType());
+    return QString::fromUtf8(getType());
 }
 
 const std::vector<std::pair<Unit, const char *> > &Unit::unitTypes() {

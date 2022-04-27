@@ -129,35 +129,35 @@ void DlgRegularSolidImp::on_createSolidButton_clicked()
         }
         if (ui->comboBox1->currentIndex() == 0) {         // cube
             name = doc->getUniqueObjectName("Cube");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Cube\",\"%1\")\n"
                 "App.ActiveDocument.%1.Length=%2\n"
                 "App.ActiveDocument.%1.Width=%3\n"
                 "App.ActiveDocument.%1.Height=%4\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->boxLength->value()))
                 .arg(Base::UnitsApi::toNumber(ui->boxWidth->value()))
                 .arg(Base::UnitsApi::toNumber(ui->boxHeight->value()));
         }
         else if (ui->comboBox1->currentIndex() == 1) {  // cylinder
             name = doc->getUniqueObjectName("Cylinder");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Cylinder\",\"%1\")\n"
                 "App.ActiveDocument.%1.Radius=%2\n"
                 "App.ActiveDocument.%1.Length=%3\n"
                 "App.ActiveDocument.%1.EdgeLength=%4\n"
                 "App.ActiveDocument.%1.Closed=%5\n"
                 "App.ActiveDocument.%1.Sampling=%6\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->cylinderRadius->value()))
                 .arg(Base::UnitsApi::toNumber(ui->cylinderLength->value()))
                 .arg(Base::UnitsApi::toNumber(ui->cylinderEdgeLength->value()))
-                .arg(QLatin1String((ui->cylinderClosed->isChecked()?"True":"False")))
+                .arg(ui->cylinderClosed->isChecked()?QStringLiteral("True"):QStringLiteral("False"))
                 .arg(ui->cylinderCount->value());
         }
         else if (ui->comboBox1->currentIndex() == 2) {  // cone
             name = doc->getUniqueObjectName("Cone");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Cone\",\"%1\")\n"
                 "App.ActiveDocument.%1.Radius1=%2\n"
                 "App.ActiveDocument.%1.Radius2=%3\n"
@@ -165,44 +165,44 @@ void DlgRegularSolidImp::on_createSolidButton_clicked()
                 "App.ActiveDocument.%1.EdgeLength=%5\n"
                 "App.ActiveDocument.%1.Closed=%6\n"
                 "App.ActiveDocument.%1.Sampling=%7\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->coneRadius1->value()))
                 .arg(Base::UnitsApi::toNumber(ui->coneRadius2->value()))
                 .arg(Base::UnitsApi::toNumber(ui->coneLength->value()))
                 .arg(Base::UnitsApi::toNumber(ui->coneEdgeLength->value()))
-                .arg(QLatin1String((ui->coneClosed->isChecked()?"True":"False")))
+                .arg(ui->coneClosed->isChecked()?QStringLiteral("True"):QStringLiteral("False"))
                 .arg(ui->coneCount->value());
         }
         else if (ui->comboBox1->currentIndex() == 3) {  // sphere
             name = doc->getUniqueObjectName("Sphere");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Sphere\",\"%1\")\n"
                 "App.ActiveDocument.%1.Radius=%2\n"
                 "App.ActiveDocument.%1.Sampling=%3\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->sphereRadius->value()))
                 .arg(ui->sphereCount->value());
         }
         else if (ui->comboBox1->currentIndex() == 4) {  // ellipsoid
             name = doc->getUniqueObjectName("Ellipsoid");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Ellipsoid\",\"%1\")\n"
                 "App.ActiveDocument.%1.Radius1=%2\n"
                 "App.ActiveDocument.%1.Radius2=%3\n"
                 "App.ActiveDocument.%1.Sampling=%4\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->ellipsoidRadius1->value()))
                 .arg(Base::UnitsApi::toNumber(ui->ellipsoidRadius2->value()))
                 .arg(ui->ellipsoidCount->value());
         }
         else if (ui->comboBox1->currentIndex() == 5) {  // toroid
             name = doc->getUniqueObjectName("Torus");
-            cmd = QString(QLatin1String(
+            cmd = QString(QStringLiteral(
                 "App.ActiveDocument.addObject(\"Mesh::Torus\",\"%1\")\n"
                 "App.ActiveDocument.%1.Radius1=%2\n"
                 "App.ActiveDocument.%1.Radius2=%3\n"
                 "App.ActiveDocument.%1.Sampling=%4\n"))
-                .arg(QLatin1String(name.c_str()))
+                .arg(QString::fromUtf8(name.c_str()))
                 .arg(Base::UnitsApi::toNumber(ui->toroidRadius1->value()))
                 .arg(Base::UnitsApi::toNumber(ui->toroidRadius2->value()))
                 .arg(ui->toroidCount->value());
@@ -211,14 +211,14 @@ void DlgRegularSolidImp::on_createSolidButton_clicked()
         // Execute the Python block
         QString solid = tr("Create %1").arg(ui->comboBox1->currentText());
         Gui::Application::Instance->activeDocument()->openCommand(solid.toUtf8());
-        Gui::Command::doCommand(Gui::Command::Doc, (const char*)cmd.toLatin1());
+        Gui::Command::doCommand(Gui::Command::Doc, (const char*)cmd.toUtf8());
         Gui::Application::Instance->activeDocument()->commitCommand();
         Gui::Command::doCommand(Gui::Command::Doc, "App.activeDocument().recompute()");
         Gui::Command::doCommand(Gui::Command::Gui, "Gui.SendMsgToActiveView(\"ViewFit\")");
     }
     catch (const Base::PyException& e) {
         QMessageBox::warning(this, tr("Create %1").arg(ui->comboBox1->currentText()),
-            QString::fromLatin1(e.what()));
+            QString::fromUtf8(e.what()));
     }
 }
 

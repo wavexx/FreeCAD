@@ -102,14 +102,14 @@ PyMOD_INIT_FUNC(SketcherGui)
     PyObject* mod = SketcherGui::initModule();
     Base::Console().Log("Loading GUI of Sketcher module... done\n");
 
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/constraints"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/elements"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/general"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/geometry"));
-  //Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/obsolete"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/pointers"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/splines"));
-    Gui::BitmapFactory().addPath(QString::fromLatin1(":/icons/tools"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/constraints"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/elements"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/general"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/geometry"));
+  //Gui::BitmapFactory().addPath(QStringLiteral(":/icons/obsolete"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/pointers"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/splines"));
+    Gui::BitmapFactory().addPath(QStringLiteral(":/icons/tools"));
 
     // instantiating the commands
     CreateSketcherCommands();

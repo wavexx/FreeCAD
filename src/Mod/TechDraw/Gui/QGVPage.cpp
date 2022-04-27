@@ -975,7 +975,7 @@ void QGVPage::postProcessXml(QTemporaryFile& temporaryFile, QString fileName, QS
                         QString().sprintf("scale(%f, %f)", Rez::guiX(1.0), Rez::guiX(1.0)));
 #else
                     templateGroup.setAttribute(QString::fromUtf8("transform"),
-                        QString::fromLatin1("scale(%1, %2)").arg(Rez::guiX(1.0), 0, 'f').arg(Rez::guiX(1.0), 0, 'f'));
+                        QStringLiteral("scale(%1, %2)").arg(Rez::guiX(1.0), 0, 'f').arg(Rez::guiX(1.0), 0, 'f'));
 #endif
 
                     // Finally, transfer all template document child nodes under the template group
@@ -1282,7 +1282,7 @@ QPixmap QGVPage::prepareCursorPixmap(const char *iconName, QPoint &hotspot) {
     // On XCB platform, the pixmap device pixel ratio is not taken into account for cursor hot spot,
     // therefore we must take care of the transformation ourselves...
     // Refer to QTBUG-68571 - https://bugreports.qt.io/browse/QTBUG-68571
-    if (qGuiApp->platformName() == QLatin1String("xcb")) {
+    if (qGuiApp->platformName() == QStringLiteral("xcb")) {
         floatHotspot *= pixelRatio;
     }
 #endif

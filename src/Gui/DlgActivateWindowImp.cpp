@@ -67,9 +67,9 @@ DlgActivateWindowImp::DlgActivateWindowImp(QWidget* parent, Qt::WindowFlags fl)
     for (QList<QWidget*>::ConstIterator it = windows.begin(); it != windows.end(); ++it) {
         QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
         QString title = (*it)->windowTitle();
-        title.replace(QLatin1String("[*]"), QLatin1String(""));
+        title.replace(QStringLiteral("[*]"), QStringLiteral(""));
         if ((*it)->isWindowModified())
-            title += QLatin1String("*");
+            title += QStringLiteral("*");
         item->setText(0, title);
         if (*it == activeWnd)
             active = item;

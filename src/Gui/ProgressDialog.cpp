@@ -219,7 +219,7 @@ void SequencerDialog::showRemainingTime()
             QTime time( 0,0, 0);
             time = time.addSecs( rest/1000 );
             QString remain = Gui::ProgressDialog::tr("Remaining: %1").arg(time.toString());
-            QString status = QString::fromLatin1("%1\t[%2]").arg(txt).arg(remain);
+            QString status = QStringLiteral("%1\t[%2]").arg(txt).arg(remain);
 
             if (thr != currentThread) {
                 QMetaObject::invokeMethod(d->dlg, "setLabelText",
@@ -277,7 +277,7 @@ void SequencerDialog::setText (const char* pszTxt)
     QThread *thr = d->dlg->thread(); // this is the main thread
 
     // set label text of the dialog
-    d->text = pszTxt ? QString::fromUtf8(pszTxt) : QLatin1String("");
+    d->text = pszTxt ? QString::fromUtf8(pszTxt) : QStringLiteral("");
     if (thr != currentThread) {
         QMetaObject::invokeMethod(d->dlg, "setLabelText",
             Qt::/*Blocking*/QueuedConnection,

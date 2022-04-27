@@ -57,9 +57,9 @@ DlgStartPreferencesImp::DlgStartPreferencesImp( QWidget* parent )
     }
 
     {   // add special workbench to selection
-        QPixmap px = Gui::Application::Instance->workbenchIcon(QString::fromLatin1("NoneWorkbench"));
-        QString key = QString::fromLatin1("<last>");
-        QString value = QString::fromLatin1("$LastModule");
+        QPixmap px = Gui::Application::Instance->workbenchIcon(QStringLiteral("NoneWorkbench"));
+        QString key = QStringLiteral("<last>");
+        QString value = QStringLiteral("$LastModule");
         if (px.isNull())
             ui->AutoloadModuleCombo->addItem(key, QVariant(value));
         else
@@ -90,7 +90,7 @@ void DlgStartPreferencesImp::saveSettings()
     QVariant data = ui->AutoloadModuleCombo->itemData(index);
     QString startWbName = data.toString();
     App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Start")->
-                          SetASCII("AutoloadModule", startWbName.toLatin1());
+                          SetASCII("AutoloadModule", startWbName.toUtf8());
     ui->colorButton_1->onSave();
     ui->colorButton_2->onSave();
     ui->colorButton_3->onSave();
@@ -120,7 +120,7 @@ void DlgStartPreferencesImp::loadSettings()
     std::string start = App::Application::Config()["StartWorkbench"];
     start = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Start")->
                                   GetASCII("AutoloadModule", start.c_str());
-    QString startWbName = QLatin1String(start.c_str());
+    QString startWbName = QString::fromUtf8(start.c_str());
     ui->AutoloadModuleCombo->setCurrentIndex(ui->AutoloadModuleCombo->findData(startWbName));
     ui->colorButton_1->onRestore();
     ui->colorButton_2->onRestore();

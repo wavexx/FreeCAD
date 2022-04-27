@@ -389,8 +389,8 @@ void TaskWeldingSymbol::onFlipSidesClicked()
     // the path property
     auto tempPathArrow = m_arrowFeat->SymbolFile.getValue();
     auto tempPathOther = m_otherFeat->SymbolFile.getValue();
-    m_otherPath = QString::fromLatin1(tempPathArrow);
-    m_arrowPath = QString::fromLatin1(tempPathOther);
+    m_otherPath = QString::fromUtf8(tempPathArrow);
+    m_arrowPath = QString::fromUtf8(tempPathOther);
     QIcon tempIcon = ui->pbOtherSymbol->icon();
     ui->pbOtherSymbol->setIcon(ui->pbArrowSymbol->icon());
     ui->pbArrowSymbol->setIcon(tempIcon);

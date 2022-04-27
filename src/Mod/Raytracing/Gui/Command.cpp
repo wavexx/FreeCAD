@@ -132,9 +132,9 @@ void CmdRaytracingWriteCamera::activated(int)
         float Dist = Cam->focalDistance.getValue();
 
         QStringList filter;
-        filter << QString::fromLatin1("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
-        filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
-        QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QLatin1String(";;")));
+        filter << QStringLiteral("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
+        filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
+        QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QStringLiteral(";;")));
         if (fn.isEmpty())
             return;
         std::string cFullName = (const char*)fn.toUtf8();
@@ -183,9 +183,9 @@ CmdRaytracingWritePart::CmdRaytracingWritePart()
 void CmdRaytracingWritePart::activated(int)
 {
     QStringList filter;
-    filter << QString::fromLatin1("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QLatin1String(";;")));
+    filter << QStringLiteral("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty())
         return;
     std::string cFullName = (const char*)fn.toUtf8();
@@ -245,10 +245,10 @@ void CmdRaytracingWriteView::activated(int)
     }
 
     QStringList filter;
-    filter << QString::fromLatin1("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
+    filter << QStringLiteral("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
     QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(),
-        QObject::tr("Export page"), QString(), filter.join(QLatin1String(";;")));
+        QObject::tr("Export page"), QString(), filter.join(QStringLiteral(";;")));
     if (fn.isEmpty())
         return;
     std::string cFullName = (const char*)fn.toUtf8();
@@ -381,7 +381,7 @@ Gui::Action * CmdRaytracingNewPovrayProject::createAction(void)
     applyCommandData(this->className(), pcAction);
 
     auto addTemplates = [pcAction](const std::string& path) {
-        QDir dir(QString::fromUtf8(path.c_str()), QString::fromLatin1("*.pov"));
+        QDir dir(QString::fromUtf8(path.c_str()), QStringLiteral("*.pov"));
         for (unsigned int i=0; i<dir.count(); i++ ) {
             QFileInfo fi(dir[i]);
             QAction* a = pcAction->addAction(fi.baseName());
@@ -536,18 +536,18 @@ void CmdRaytracingExportProject::activated(int)
             return;
         }
         else {
-            filterLabel =  QString::fromLatin1("%1 (*.lxs)").arg(QObject::tr("Luxrender"));
+            filterLabel =  QStringLiteral("%1 (*.lxs)").arg(QObject::tr("Luxrender"));
         }
     }
     else {
-        filterLabel = QString::fromLatin1("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
+        filterLabel = QStringLiteral("%1 (*.pov)").arg(QObject::tr("POV-Ray"));
     }
 
     QStringList filter;
     filter << filterLabel;
-    filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
+    filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
 
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QLatin1String(";;")));
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Export page"), QString(), filter.join(QStringLiteral(";;")));
     if (!fn.isEmpty()) {
         std::vector<Gui::SelectionSingleton::SelObj> Sel = getSelection().getSelection();
         openCommand("Raytracing export project");
@@ -651,16 +651,16 @@ void CmdRaytracingRender::activated(int)
 
         QStringList filter;
 #ifdef FC_OS_WIN32
-        filter << QString::fromLatin1("%1 (*.bmp *.png)").arg(QObject::tr("Rendered image"));
+        filter << QStringLiteral("%1 (*.bmp *.png)").arg(QObject::tr("Rendered image"));
 #else
-        filter << QString::fromLatin1("%1 (*.png)").arg(QObject::tr("Rendered image"));
+        filter << QStringLiteral("%1 (*.png)").arg(QObject::tr("Rendered image"));
 #endif
-        filter << QString::fromLatin1("%1 (*.*)").arg(QObject::tr("All Files"));
-        QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Rendered image"), QString(), filter.join(QLatin1String(";;")));
+        filter << QStringLiteral("%1 (*.*)").arg(QObject::tr("All Files"));
+        QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QObject::tr("Rendered image"), QString(), filter.join(QStringLiteral(";;")));
         if (!fn.isEmpty()) {
             fn = QDir::toNativeSeparators(fn);
 #ifdef FC_OS_WIN32
-            fn.replace(QLatin1String("\\"), QLatin1String("\\\\"));
+            fn.replace(QStringLiteral("\\"), QStringLiteral("\\\\"));
 #endif
             QByteArray utf8Name = fn.toUtf8();
             QByteArray localBit = fn.toLocal8Bit();
@@ -672,7 +672,7 @@ void CmdRaytracingRender::activated(int)
                 // create the image file in the tmp. directory and copy it later to the
                 // destination file.
                 QString suffix = QFileInfo(fn).suffix();
-                QFileInfo fi(QDir::temp(), QString::fromLatin1("Povray.%1").arg(suffix));
+                QFileInfo fi(QDir::temp(), QStringLiteral("Povray.%1").arg(suffix));
                 imageTemp = fi.absoluteFilePath();
                 imageFile = imageTemp.toLocal8Bit();
             }
@@ -812,7 +812,7 @@ Gui::Action * CmdRaytracingNewLuxProject::createAction(void)
     applyCommandData(this->className(), pcAction);
 
     auto addTemplates = [pcAction](const std::string& path) {
-        QDir dir(QString::fromUtf8(path.c_str()), QString::fromLatin1("*.lxs"));
+        QDir dir(QString::fromUtf8(path.c_str()), QStringLiteral("*.lxs"));
         for (unsigned int i=0; i<dir.count(); i++ ) {
             QFileInfo fi(dir[i]);
             QAction* a = pcAction->addAction(fi.baseName());

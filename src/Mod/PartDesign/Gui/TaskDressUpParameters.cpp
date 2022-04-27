@@ -66,7 +66,7 @@ using namespace Gui;
 
 TaskDressUpParameters::TaskDressUpParameters(ViewProviderDressUp *DressUpView, bool selectEdges, bool selectFaces, QWidget *parent)
     : TaskBox(Gui::BitmapFactory().pixmap((std::string("PartDesign_") + DressUpView->featureName()).c_str()),
-              QString::fromLatin1((DressUpView->featureName() + " parameters").c_str()),
+              QString::fromUtf8((DressUpView->featureName() + " parameters").c_str()),
               true,
               parent)
     , proxy(0)
@@ -304,7 +304,7 @@ void TaskDressUpParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
 
             // base element found, check if it is already in the list widget
             auto items = listWidget->findItems(
-                    QString::fromLatin1(sels.back().getOldElementName().c_str()), Qt::MatchExactly);
+                    QString::fromUtf8(sels.back().getOldElementName().c_str()), Qt::MatchExactly);
 
             if(items.size()) {
                 if(selectionMode != refToggle) {
@@ -359,7 +359,7 @@ void TaskDressUpParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
         return;
 
     bool check = true;
-    auto items = listWidget->findItems(QString::fromLatin1(msg.pSubName), Qt::MatchExactly);
+    auto items = listWidget->findItems(QString::fromUtf8(msg.pSubName), Qt::MatchExactly);
     if(items.size()) {
         QSignalBlocker blocker(listWidget);
         if(selectionMode == refToggle && addSel) {
@@ -458,7 +458,7 @@ bool TaskDressUpParameters::syncItems(const std::vector<App::SubObjectT> &sels, 
                     || (allowFaces && boost::starts_with(element,"Face")))
             {
                 subset.insert(element);
-                auto item = new QListWidgetItem(QString::fromLatin1(element.c_str()), listWidget);
+                auto item = new QListWidgetItem(QString::fromUtf8(element.c_str()), listWidget);
                 if(select)
                     item->setSelected(true);
                 subs.push_back(std::move(element));
@@ -496,7 +496,7 @@ void TaskDressUpParameters::showMessage(const char *msg) {
     if(!msg || !msg[0])
         messageLabel->hide();
     else {
-        messageLabel->setText(QString::fromLatin1("<font color='red'>%1<br/>%2</font>").arg(
+        messageLabel->setText(QStringLiteral("<font color='red'>%1<br/>%2</font>").arg(
                 tr("Recompute failed"), tr(msg)));
         messageLabel->show();
     }

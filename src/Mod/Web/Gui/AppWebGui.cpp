@@ -114,7 +114,7 @@ private:
         WebGui::BrowserView* pcBrowserView = 0;
         pcBrowserView = new WebGui::BrowserView(Gui::getMainWindow());
         pcBrowserView->resize(400, 300);
-        pcBrowserView->setHtml(QString::fromUtf8(HtmlCode),QUrl(QString::fromLatin1(BaseUrl)));
+        pcBrowserView->setHtml(QString::fromUtf8(HtmlCode),QUrl(QString::fromUtf8(BaseUrl)));
         pcBrowserView->setWindowTitle(QString::fromUtf8(EncodedName.c_str()));
         if (IconPath)
             pcBrowserView->setWindowIcon(QIcon(QString::fromUtf8(IconPath)));

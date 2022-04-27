@@ -87,7 +87,7 @@ bool TextEdit::eventFilter(QObject *, QEvent *event)
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Tab && keyEvent->modifiers() == Qt::ControlModifier) {
             lastKeyPressed = 0;
-            textCursor().insertText(QString::fromLatin1("\t"));
+            textCursor().insertText(QStringLiteral("\t"));
             event->accept();
             return true;
         }
@@ -136,7 +136,7 @@ bool TextEdit::event(QEvent *event)
             // here.
             if (kevent->modifiers() == Qt::ControlModifier) {
                 lastKeyPressed = 0;
-                textCursor().insertText(QString::fromLatin1("\n"));
+                textCursor().insertText(QStringLiteral("\n"));
             } else {
                 // Unlike LineEdit, we are derived from QPlainTextEdit, so we
                 // need to manually finish editing on Enter/Return key

@@ -111,7 +111,7 @@ QVariant SceneModel::data(const QModelIndex & index, int role) const
     auto &item = it.value();
 
     if (index.column() == 0)
-        return QString::fromLatin1(item.node->getTypeId().getName());
+        return QString::fromUtf8(item.node->getTypeId().getName());
 
     SoNode *node = item.node.get();
     auto itName = nodeNames.find(node);
@@ -121,7 +121,7 @@ QVariant SceneModel::data(const QModelIndex & index, int role) const
 
     auto obj = ViewProviderLink::linkedObjectByNode(node);
     if (obj) {
-        stream << QLatin1String(" -> ");
+        stream << QStringLiteral(" -> ");
         if (obj->getDocument() != App::GetApplication().getActiveDocument())
             stream << QString::fromUtf8(obj->getFullName().c_str());
         else
@@ -399,7 +399,7 @@ void DlgInspector::populateFieldView(QTreeWidgetItem *parent, SoNode *n)
         if (field->isIgnored())
             sname += QStringLiteral("*");
         item->setText(0, sname);
-        item->setToolTip(0, QString::fromLatin1(field->getTypeId().getName()));
+        item->setToolTip(0, QString::fromUtf8(field->getTypeId().getName()));
         item->setData(0, Qt::UserRole, QVariant::fromValue(node));
         item->setData(1, Qt::UserRole, i);
 
@@ -417,12 +417,12 @@ void DlgInspector::populateFieldView(QTreeWidgetItem *parent, SoNode *n)
         }
         else if (field->isOfType(SoMFNode::getClassTypeId())) {
             auto mfield = static_cast<SoMField*>(field);
-            item->setText(1, QString::fromLatin1("count: %1").arg(mfield->getNum()));
+            item->setText(1, QStringLiteral("count: %1").arg(mfield->getNum()));
             item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
         }
         else if (field->isOfType(SoMField::getClassTypeId())) {
             auto mfield = static_cast<SoMField*>(field);
-            item->setToolTip(1, QString::fromLatin1("count: %1").arg(mfield->getNum()));
+            item->setToolTip(1, QStringLiteral("count: %1").arg(mfield->getNum()));
             QString txt;
             QTextStream stream(&txt);
             int i=0;
@@ -456,7 +456,7 @@ void DlgInspector::populateFieldView(QTreeWidgetItem *parent, SoNode *n)
                 sval.resize(256);
                 sval += "...";
             }
-            item->setText(1, QString::fromLatin1(sval.c_str()));
+            item->setText(1, QString::fromUtf8(sval.c_str()));
         }
     }
 
@@ -548,7 +548,7 @@ void DlgInspector::expandItem(QTreeWidgetItem *item, bool force)
     int i = item->childCount();
     if (i > 0) {
         auto lastChild = item->child(i-1);
-        if (lastChild->text(0) == QLatin1String("...")) {
+        if (lastChild->text(0) == QStringLiteral("...")) {
             delete lastChild;
             --i;
         }
@@ -564,10 +564,10 @@ void DlgInspector::expandItem(QTreeWidgetItem *item, bool force)
         boost::replace_all(sval, "\n", "; ");
         auto child = new QTreeWidgetItem(item);
         if (prevcount)
-            child->setText(0, QString::fromLatin1("%1 ~ %2").arg(i-prevcount-1).arg(i-1));
+            child->setText(0, QStringLiteral("%1 ~ %2").arg(i-prevcount-1).arg(i-1));
         else
-            child->setText(0, QString::fromLatin1("%1").arg(i-1));
-        child->setText(1, QString::fromLatin1(sval.c_str()));
+            child->setText(0, QStringLiteral("%1").arg(i-1));
+        child->setText(1, QString::fromUtf8(sval.c_str()));
     };
 
     mfield->get1(i++, val);
@@ -590,7 +590,7 @@ void DlgInspector::expandItem(QTreeWidgetItem *item, bool force)
     addChild();
     if (i < mfield->getNum()) {
         auto child = new QTreeWidgetItem(item);
-        child->setText(0, QString::fromLatin1("..."));
+        child->setText(0, QStringLiteral("..."));
         child->setData(1, Qt::UserRole, -2);
         child->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
     }

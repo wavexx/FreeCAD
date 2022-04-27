@@ -49,7 +49,7 @@ DlgSettingsDocumentImp::DlgSettingsDocumentImp( QWidget* parent )
     ui->prefSaveTransaction->hide();
     ui->prefDiscardTransaction->hide();
 
-    QString tip = QString::fromLatin1("<html><head/><body><p>%1</p>"
+    QString tip = QStringLiteral("<html><head/><body><p>%1</p>"
                                       "<p>%2: %Y%m%d-%H%M%S</p>"
                                       "<p>%3: <a href=\"http://www.cplusplus.com/reference/ctime/strftime/\">C++ strftime</a>"
                                       "</p></body></html>").arg(tr("The format of the date to use."), tr("Default"), tr("Format"));
@@ -169,31 +169,31 @@ void DlgSettingsDocumentImp::onLicenseTypeChanged(int index)
 
     switch (index) {
         case 0:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://en.wikipedia.org/wiki/All_rights_reserved"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://en.wikipedia.org/wiki/All_rights_reserved"));
             break;
         case 1:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by/4.0/"));
             break;
         case 2:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-sa/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by-sa/4.0/"));
             break;
         case 3:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nd/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by-nd/4.0/"));
             break;
         case 4:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc/4.0/"));
             break;
         case 5:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc-sa/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc-sa/4.0/"));
             break;
         case 6:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc-nd/4.0/"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc-nd/4.0/"));
             break;
         case 7:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://en.wikipedia.org/wiki/Public_domain"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://en.wikipedia.org/wiki/Public_domain"));
             break;
         case 8:
-            ui->prefLicenseUrl->setText(QString::fromLatin1("http://artlibre.org/licence/lal"));
+            ui->prefLicenseUrl->setText(QStringLiteral("http://artlibre.org/licence/lal"));
             break;
         default:
             ui->prefLicenseUrl->clear();

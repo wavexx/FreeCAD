@@ -174,7 +174,7 @@ void DlgCustomKeyboardImp::populateCommandList(QTreeWidget *commandTreeWidget,
             item->setIcon(0, BitmapFactory().iconFromTheme(pixmap));
         item->setText(2, cmd->getShortcut());
         if (auto accel = cmd->getAccel())
-            item->setText(3, QKeySequence(QString::fromLatin1(accel)).toString());
+            item->setText(3, QKeySequence(QString::fromUtf8(accel)).toString());
 
         if (current == cmd->getName())
             currentItem = item;
@@ -397,7 +397,7 @@ void DlgCustomKeyboardImp::on_commandTreeWidget_currentItemChanged(QTreeWidgetIt
     if (cmd) {
         QKeySequence ks = ShortcutManager::instance()->getShortcut(
                 cmd->getName(), cmd->getAccel());
-        QKeySequence ks2 = QString::fromLatin1(cmd->getAccel());
+        QKeySequence ks2 = QString::fromUtf8(cmd->getAccel());
         QKeySequence ks3 = ui->editShortcut->text();
         if (ks.isEmpty())
             ui->accelLineEditShortcut->clear();
@@ -438,7 +438,7 @@ void DlgCustomKeyboardImp::setShortcutOfCurrentAction(const QString& accelText)
         ui->accelLineEditShortcut->clear();
         ui->editShortcut->clear();
     }
-    ShortcutManager::instance()->setShortcut(name, nativeText.toLatin1());
+    ShortcutManager::instance()->setShortcut(name, nativeText.toUtf8());
 
     ui->buttonAssign->setEnabled(false);
     ui->buttonReset->setEnabled(true);

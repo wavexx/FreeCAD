@@ -987,7 +987,7 @@ void CmdPartImport::activated(int iMsg)
     filter << QStringLiteral("BREP (*.brp *.brep)");
 
     QString select;
-    QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QLatin1String(";;")), &select);
+    QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QStringLiteral(";;")), &select);
     if (!fn.isEmpty()) {
         Gui::WaitCursor wc;
         App::Document* pDoc = getDocument();
@@ -1049,7 +1049,7 @@ void CmdPartExport::activated(int iMsg)
     filter << QStringLiteral("BREP (*.brp *.brep)");
 
     QString select;
-    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QLatin1String(";;")), &select);
+    QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QStringLiteral(";;")), &select);
     if (!fn.isEmpty()) {
         App::Document* pDoc = getDocument();
         if (!pDoc) return; // no document
@@ -1097,7 +1097,7 @@ void CmdPartImportCurveNet::activated(int iMsg)
     filter << QStringLiteral("%1 (*.*)")
                  .arg(QObject::tr("All Files"));
 
-    QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QLatin1String(";;")));
+    QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(), QString(), QString(), filter.join(QStringLiteral(";;")));
     if (!fn.isEmpty()) {
         QFileInfo fi; fi.setFile(fn);
         openCommand(QT_TRANSLATE_NOOP("Command", "Part Import Curve Net"));

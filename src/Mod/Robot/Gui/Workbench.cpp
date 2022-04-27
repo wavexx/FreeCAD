@@ -69,9 +69,9 @@ Workbench::~Workbench()
 void Workbench::activated()
 {
     std::string res = App::Application::getResourceDir();
-    QString dir = QString::fromLatin1("%1/Mod/Robot/Lib/Kuka")
+    QString dir = QStringLiteral("%1/Mod/Robot/Lib/Kuka")
                   .arg(QString::fromUtf8(res.c_str()));
-    QFileInfo fi(dir, QString::fromLatin1("kr_16.csv"));
+    QFileInfo fi(dir, QStringLiteral("kr_16.csv"));
 
     if (!fi.exists()) {
         Gui::WaitCursor wc;
@@ -80,7 +80,7 @@ void Workbench::activated()
             Gui::getMainWindow(),
             QObject::tr("No robot files installed"),
             QObject::tr("Please visit %1 and copy the files to %2")
-                    .arg(QString::fromLatin1(
+                    .arg(QStringLiteral(
                              "https://github.com/FreeCAD/FreeCAD/tree/master"
                              "/src/Mod/Robot/Lib/Kuka"), dir)
         );

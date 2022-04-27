@@ -217,13 +217,13 @@ QMap<QString, CallTip> CallTipsList::extractTips(const QString& context) const
         QStringList items = context.split(QLatin1Char('.'));
         QString modname = items.front();
         items.pop_front();
-        if (!dict.hasKey(std::string(modname.toLatin1())))
+        if (!dict.hasKey(std::string(modname.toUtf8())))
             return tips; // unknown object
 #if 0
         // get the Python object we need
-        Py::Object obj = dict.getItem(std::string(modname.toLatin1()));
+        Py::Object obj = dict.getItem(std::string(modname.toUtf8()));
         while (!items.isEmpty()) {
-            QByteArray name = items.front().toLatin1();
+            QByteArray name = items.front().toUtf8();
             std::string attr = name.constData();
             items.pop_front();
             if (obj.hasAttr(attr))
@@ -414,7 +414,7 @@ void CallTipsList::extractTipsFromObject(Py::Object& obj, Py::List& list, QMap<Q
                 tip.type = CallTip::Member;
             }
 
-            if (str == QLatin1String("__doc__") && attr.isString()) {
+            if (str == QStringLiteral("__doc__") && attr.isString()) {
                 Py::Object help = attr;
                 if (help.isString()) {
                     Py::String doc(help);
@@ -763,13 +763,13 @@ void CallTipsList::callTipItemActivated(QListWidgetItem *item)
     if (this->doCallCompletion
      && (callTip.type == CallTip::Method || callTip.type == CallTip::Class))
     {
-      cursor.insertText( QLatin1String("()") ); //< just append parenthesis to identifier even inserted.
+      cursor.insertText( QStringLiteral("()") ); //< just append parenthesis to identifier even inserted.
 
       /**
        * Try to find out if call needs arguments.
        * For this we search the description for appropriate hints ...
        */
-      QRegExp argumentMatcher( QRegExp::escape( callTip.name ) + QLatin1String("\\s*\\(\\s*\\w+.*\\)") );
+      QRegExp argumentMatcher( QRegExp::escape( callTip.name ) + QStringLiteral("\\s*\\(\\s*\\w+.*\\)") );
       argumentMatcher.setMinimal( true ); //< set regex non-greedy!
       if (argumentMatcher.indexIn( callTip.description ) != -1)
       {
@@ -792,7 +792,7 @@ void CallTipsList::callTipItemActivated(QListWidgetItem *item)
 QString CallTipsList::stripWhiteSpace(const QString& str)
 {
     QString stripped = str;
-    QStringList lines = str.split(QLatin1String("\n"));
+    QStringList lines = str.split(QStringLiteral("\n"));
     int minspace=INT_MAX;
     int line=0;
     for (QStringList::iterator it = lines.begin(); it != lines.end(); ++it, ++line) {
@@ -823,7 +823,7 @@ QString CallTipsList::stripWhiteSpace(const QString& str)
             }
         }
 
-        stripped = strippedlines.join(QLatin1String("\n"));
+        stripped = strippedlines.join(QStringLiteral("\n"));
     }
 
     return stripped;

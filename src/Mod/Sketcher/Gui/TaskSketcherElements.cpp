@@ -115,7 +115,7 @@ public:
         auto it = typeMap.find(GeometryType);
         if(it == typeMap.end())
             setText(ColType, QObject::tr("Other") +
-                    QLatin1Char('-') + QString::fromLatin1(GeometryType.getName()));
+                    QLatin1Char('-') + QString::fromUtf8(GeometryType.getName()));
         else
             setText(ColType, it->second);
         if(ElementNbr>=0) {
@@ -138,7 +138,7 @@ public:
             }
             setText(ColFlags,text);
 
-            setText(ColReference, QString::fromLatin1(sketch->getGeometryReference(ElementNbr).c_str()));
+            setText(ColReference, QString::fromUtf8(sketch->getGeometryReference(ElementNbr).c_str()));
         }
     }
 
@@ -252,9 +252,9 @@ public:
 
         Data::IndexedName name = sketch->shapeTypeFromGeoId(ElementNbr, (Sketcher::PointPos)(element));
         std::string tmp;
-        setText(ColName, QString::fromLatin1(name.toString(tmp)));
+        setText(ColName, QString::fromUtf8(name.toString(tmp)));
         std::string mapped = sketch->convertSubName(name,false);
-        setText(ColMapped, QString::fromLatin1(mapped.c_str()));
+        setText(ColMapped, QString::fromUtf8(mapped.c_str()));
     }
 
     int ElementNbr;
@@ -385,7 +385,7 @@ TaskSketcherElements::TaskSketcherElements(ViewProviderSketch *sketchView)
     const char* ctrlKey = "Ctrl";
     QString cmdKey = QShortcut::tr(ctrlKey);
 #endif
-    QString zKey = QString::fromLatin1("Z");
+    QString zKey = QStringLiteral("Z");
     ui->Explanation->setText(tr("<html><head/><body><p>&quot;%1&quot;: multiple selection</p>"
                                 "<p>&quot;%2&quot;: switch to next valid type</p></body></html>")
                              .arg(cmdKey).arg(zKey));

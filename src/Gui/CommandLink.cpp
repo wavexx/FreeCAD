@@ -274,7 +274,7 @@ void StdCmdLinkMakeGroup::activated(int option) {
     } catch (const Base::Exception& e) {
         committer.close(true);
         QMessageBox::critical(getMainWindow(), QObject::tr("Create link group failed"),
-            QString::fromLatin1(e.what()));
+            QString::fromUtf8(e.what()));
         Command::abortCommand();
         e.ReportException();
     }
@@ -380,7 +380,7 @@ void StdCmdLinkMake::activated(int) {
     } catch (const Base::Exception& e) {
         committer.close(true);
         QMessageBox::critical(getMainWindow(), QObject::tr("Create link failed"),
-            QString::fromLatin1(e.what()));
+            QString::fromUtf8(e.what()));
         e.ReportException();
     }
 }
@@ -538,7 +538,7 @@ void StdCmdLinkMakeRelative::activated(int) {
     } catch (const Base::Exception& e) {
         committer.close(true);
         QMessageBox::critical(getMainWindow(), QObject::tr("Failed to create relative link"),
-            QString::fromLatin1(e.what()));
+            QString::fromUtf8(e.what()));
         e.ReportException();
     }
     return;

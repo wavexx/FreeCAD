@@ -273,7 +273,7 @@ void DownloadItem::init()
 
 QString DownloadItem::getDownloadDirectory() const
 {
-    QString exe = QString::fromLatin1(App::GetApplication().getExecutableName());
+    QString exe = QString::fromUtf8(App::GetApplication().getExecutableName());
     QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     QString dirPath = QDir(path).filePath(exe);
     Base::Reference<ParameterGrp> hPath = App::GetApplication().GetUserParameter().GetGroup("BaseApp")
@@ -294,10 +294,10 @@ QString DownloadItem::getDownloadDirectory() const
 void DownloadItem::getFileName()
 {
     QSettings settings;
-    settings.beginGroup(QLatin1String("downloadmanager"));
+    settings.beginGroup(QStringLiteral("downloadmanager"));
     //QString defaultLocation = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
     QString defaultLocation = getDownloadDirectory();
-    QString downloadDirectory = settings.value(QLatin1String("downloadDirectory"), defaultLocation).toString();
+    QString downloadDirectory = settings.value(QStringLiteral("downloadDirectory"), defaultLocation).toString();
     if (!downloadDirectory.isEmpty())
         downloadDirectory += QLatin1Char('/');
 
@@ -329,7 +329,7 @@ QString DownloadItem::saveFileName(const QString &directory) const
     QString endName = info.suffix();
 
     if (baseName.isEmpty()) {
-        baseName = QLatin1String("unnamed_download");
+        baseName = QStringLiteral("unnamed_download");
         qDebug() << "DownloadManager:: downloading unknown file:" << m_url;
     }
     QString name = directory + baseName + QLatin1Char('.') + endName;
@@ -369,12 +369,12 @@ void DownloadItem::open()
         if (doc) {
             for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
                 Gui::Application::Instance->importFrom(it.key().toUtf8(),
-                    doc->getDocument()->getName(), it.value().toLatin1());
+                    doc->getDocument()->getName(), it.value().toUtf8());
             }
         }
         else {
             for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
-                Gui::Application::Instance->open(it.key().toUtf8(), it.value().toLatin1());
+                Gui::Application::Instance->open(it.key().toUtf8(), it.value().toUtf8());
             }
         }
     }
@@ -587,7 +587,7 @@ QString DownloadItem::dataString(int size) const
         size /= 1024*1024;
         unit = tr("MB");
     }
-    return QString(QLatin1String("%1 %2")).arg(size).arg(unit);
+    return QString(QStringLiteral("%1 %2")).arg(size).arg(unit);
 }
 
 bool DownloadItem::downloading() const

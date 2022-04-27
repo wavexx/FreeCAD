@@ -263,9 +263,9 @@ void UnifiedDatumCommand(Gui::Command &cmd, Base::Type type, std::string name)
         Gui::cmdSetEdit(Feat);
 
     } catch (Base::Exception &e) {
-        QMessageBox::warning(Gui::getMainWindow(),QObject::tr("Error"),QString::fromLatin1(e.what()));
+        QMessageBox::warning(Gui::getMainWindow(),QObject::tr("Error"),QString::fromUtf8(e.what()));
     } catch (Standard_Failure &e) {
-        QMessageBox::warning(Gui::getMainWindow(),QObject::tr("Error"),QString::fromLatin1(e.GetMessageString()));
+        QMessageBox::warning(Gui::getMainWindow(),QObject::tr("Error"),QString::fromUtf8(e.GetMessageString()));
     }
 }
 
@@ -690,7 +690,7 @@ void CmdPartDesignNewSketch::activated(int iMsg)
         Gui::Control().closeDialog();
         auto task = new PartGui::TaskDlgAttacher(sketchvp,
                                                  true,
-                                                 QString::fromLatin1("Sketcher_Sketch"),
+                                                 QStringLiteral("Sketcher_Sketch"),
                                                  QObject::tr("Sketch attachment"));
         task->editAfterClose();
         Gui::Control().showDialog(task);

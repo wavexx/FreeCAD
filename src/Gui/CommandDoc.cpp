@@ -109,7 +109,7 @@ void StdCmdOpen::activated(int iMsg)
     const char* supported = QT_TR_NOOP("Supported formats");
     const char* allFiles = QT_TR_NOOP("All files (*.*)");
     formatList = QObject::tr(supported);
-    formatList += QLatin1String(" (");
+    formatList += QStringLiteral(" (");
 
     std::vector<std::string> filetypes = App::GetApplication().getImportTypes();
     std::vector<std::string>::iterator it;
@@ -120,26 +120,26 @@ void StdCmdOpen::activated(int iMsg)
         filetypes.insert(filetypes.begin(), "FCStd");
     }
     for (it=filetypes.begin();it != filetypes.end();++it) {
-        formatList += QLatin1String(" *.");
-        formatList += QLatin1String(it->c_str());
+        formatList += QStringLiteral(" *.");
+        formatList += QString::fromUtf8(it->c_str());
     }
 
-    formatList += QLatin1String(");;");
+    formatList += QStringLiteral(");;");
 
     std::map<std::string, std::string> FilterList = App::GetApplication().getImportFilters();
     std::map<std::string, std::string>::iterator jt;
     // Make sure the format name for FCStd is the very first in the list
     for (jt=FilterList.begin();jt != FilterList.end();++jt) {
         if (jt->first.find("*.FCStd") != std::string::npos) {
-            formatList += QLatin1String(jt->first.c_str());
-            formatList += QLatin1String(";;");
+            formatList += QString::fromUtf8(jt->first.c_str());
+            formatList += QStringLiteral(";;");
             FilterList.erase(jt);
             break;
         }
     }
     for (jt=FilterList.begin();jt != FilterList.end();++jt) {
-        formatList += QLatin1String(jt->first.c_str());
-        formatList += QLatin1String(";;");
+        formatList += QString::fromUtf8(jt->first.c_str());
+        formatList += QStringLiteral(";;");
     }
     formatList += QObject::tr(allFiles);
 
@@ -158,7 +158,7 @@ void StdCmdOpen::activated(int iMsg)
     }
     else {
         for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
-            getGuiApplication()->open(it.key().toUtf8(), it.value().toLatin1());
+            getGuiApplication()->open(it.key().toUtf8(), it.value().toUtf8());
 
             App::Document *doc = App::GetApplication().getActiveDocument();
 
@@ -227,27 +227,27 @@ void StdCmdImport::activated(int iMsg)
     const char* supported = QT_TR_NOOP("Supported formats");
     const char* allFiles = QT_TR_NOOP("All files (*.*)");
     formatList = QObject::tr(supported);
-    formatList += QLatin1String(" (");
+    formatList += QStringLiteral(" (");
 
     std::vector<std::string> filetypes = App::GetApplication().getImportTypes();
     std::vector<std::string>::const_iterator it;
     for (it=filetypes.begin();it != filetypes.end();++it) {
         if (*it != "FCStd") {
             // ignore the project file format
-            formatList += QLatin1String(" *.");
-            formatList += QLatin1String(it->c_str());
+            formatList += QStringLiteral(" *.");
+            formatList += QString::fromUtf8(it->c_str());
         }
     }
 
-    formatList += QLatin1String(");;");
+    formatList += QStringLiteral(");;");
 
     std::map<std::string, std::string> FilterList = App::GetApplication().getImportFilters();
     std::map<std::string, std::string>::const_iterator jt;
     for (jt=FilterList.begin();jt != FilterList.end();++jt) {
         // ignore the project file format
         if (jt->first.find("(*.FCStd)") == std::string::npos) {
-            formatList += QLatin1String(jt->first.c_str());
-            formatList += QLatin1String(";;");
+            formatList += QString::fromUtf8(jt->first.c_str());
+            formatList += QStringLiteral(";;");
         }
     }
     formatList += QObject::tr(allFiles);
@@ -258,7 +258,7 @@ void StdCmdImport::activated(int iMsg)
     QStringList fileList = FileDialog::getOpenFileNames(getMainWindow(),
         QObject::tr("Import file"), QString(), formatList, &selectedFilter);
     if (!fileList.isEmpty()) {
-        hPath->SetASCII("FileImportFilter", selectedFilter.toLatin1().constData());
+        hPath->SetASCII("FileImportFilter", selectedFilter.toUtf8().constData());
         SelectModule::Dict dict = SelectModule::importHandler(fileList, selectedFilter);
 
         bool emptyDoc = (getActiveGuiDocument()->getDocument()->countObjects() == 0);
@@ -266,7 +266,7 @@ void StdCmdImport::activated(int iMsg)
         for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
             getGuiApplication()->importFrom(it.key().toUtf8(),
                 getActiveGuiDocument()->getDocument()->getName(),
-                it.value().toLatin1());
+                it.value().toUtf8());
         }
 
         if (emptyDoc) {
@@ -420,9 +420,9 @@ QString createDefaultExportBasename()
     }
 
     // Finally, clean the string so it's valid for all operating systems:
-    QString invalidCharacters = QLatin1String("/\\?%*:|\"<>");
+    QString invalidCharacters = QStringLiteral("/\\?%*:|\"<>");
     for (const auto &c : invalidCharacters)
-        defaultFilename.replace(c,QLatin1String("_"));
+        defaultFilename.replace(c,QStringLiteral("_"));
 
     return defaultFilename;
 }
@@ -451,7 +451,7 @@ void StdCmdExport::activated(int iMsg)
         if (filter.first.find("(*.FCStd)") == std::string::npos)
             filterList << QString::fromStdString(filter.first);
     }
-    QString formatList = filterList.join(QLatin1String(";;"));
+    QString formatList = filterList.join(QStringLiteral(";;"));
     Base::Reference<ParameterGrp> hPath = 
         App::GetApplication().GetUserParameter().GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("General");
     QString selectedFilter = QString::fromStdString(hPath->GetASCII("FileExportFilter"));
@@ -494,7 +494,7 @@ void StdCmdExport::activated(int iMsg)
             if (!lastExportFullPath.isEmpty()) {
                 QFileInfo lastExportFile(lastExportFullPath);
                 if (!lastExportFile.suffix().isEmpty())
-                    defaultFilename += QLatin1String(".") + lastExportFile.suffix();
+                    defaultFilename += QStringLiteral(".") + lastExportFile.suffix();
             }
             filenameWasGenerated = true;
         }
@@ -504,14 +504,14 @@ void StdCmdExport::activated(int iMsg)
     QString fileName = FileDialog::getSaveFileName(getMainWindow(),
         QObject::tr("Export file"), defaultFilename, formatList, &selectedFilter);
     if (!fileName.isEmpty()) {
-        hPath->SetASCII("FileExportFilter", selectedFilter.toLatin1().constData());
+        hPath->SetASCII("FileExportFilter", selectedFilter.toUtf8().constData());
         lastExportFilterUsed = selectedFilter; // So we can select the same one next time
         SelectModule::Dict dict = SelectModule::exportHandler(fileName, selectedFilter);
         // export the files with the associated modules
         for (SelectModule::Dict::iterator it = dict.begin(); it != dict.end(); ++it) {
             getGuiApplication()->exportTo(it.key().toUtf8(),
                 getActiveGuiDocument()->getDocument()->getName(),
-                it.value().toLatin1());
+                it.value().toUtf8());
         }
 
         // Keep a record of if the user used our suggested generated filename. If they
@@ -642,7 +642,7 @@ void StdCmdNew::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
     QString cmd;
-    cmd = QString::fromLatin1("App.newDocument(\"%1\")")
+    cmd = QStringLiteral("App.newDocument(\"%1\")")
         .arg(qApp->translate("StdCmdNew","Unnamed"));
     runCommand(Command::Doc,cmd.toUtf8());
     doCommand(Command::Gui,"Gui.activeDocument().activeView().viewDefaultOrientation()");
@@ -768,7 +768,7 @@ void StdCmdSaveAsDirectory::activated(int iMsg)
         QFileInfo fi;
         fi.setFile(fn);
 
-        QFileInfo docFile(QDir(fn),QLatin1String("Document.xml"));
+        QFileInfo docFile(QDir(fn),QStringLiteral("Document.xml"));
         if(docFile.exists()) {
             int res = QMessageBox::warning(getMainWindow(), QObject::tr("Save as a directory"),
                     QObject::tr("There is a FreeCAD document inside directory \"%1\".\n\n"
@@ -792,7 +792,7 @@ void StdCmdSaveAsDirectory::activated(int iMsg)
         }
         catch (const Base::Exception& e) {
             QMessageBox::critical(getMainWindow(), QObject::tr("Saving document failed"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
         }
     }
 }
@@ -1114,7 +1114,7 @@ Action * StdCmdUndo::createAction(void)
     Action *pcAction;
 
     pcAction = new UndoAction(this,getMainWindow());
-    pcAction->setShortcut(QString::fromLatin1(getAccel()));
+    pcAction->setShortcut(QString::fromUtf8(getAccel()));
     applyCommandData(this->className(), pcAction);
     if (getPixmap())
         pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(getPixmap()));
@@ -1158,7 +1158,7 @@ Action * StdCmdRedo::createAction(void)
     Action *pcAction;
 
     pcAction = new RedoAction(this,getMainWindow());
-    pcAction->setShortcut(QString::fromLatin1(getAccel()));
+    pcAction->setShortcut(QString::fromUtf8(getAccel()));
     applyCommandData(this->className(), pcAction);
     if (getPixmap())
         pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(getPixmap()));

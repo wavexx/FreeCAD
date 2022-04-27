@@ -332,7 +332,7 @@ void TaskFemConstraintForce::onButtonDirection(const bool pressed)
         updateUI();
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(this, tr("Wrong selection"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(this, tr("Wrong selection"), QString::fromUtf8(e.what()));
     }
 }
 
@@ -467,7 +467,7 @@ bool TaskDlgFemConstraintForce::accept()
         Gui::Command::doCommand(Gui::Command::Doc,"App.ActiveDocument.%s.Scale = %s", name.c_str(), scale.c_str()); //OvG: implement modified scale
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(parameter, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(parameter, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 

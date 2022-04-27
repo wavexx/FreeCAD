@@ -71,7 +71,7 @@ using QWebEnginePage = QWebPage;
 
 #include <QScreen>
 
-#include <QLatin1String>
+#include <QString>
 #include <QRegExp>
 #include "BrowserView.h"
 #include "CookieJar.h"
@@ -118,7 +118,7 @@ public:
         if (info.navigationType() == QWebEngineUrlRequestInfo::NavigationTypeLink) {
             // wash out windows file:///C:/something ->file://C:/something
             QUrl url = info.requestUrl();
-            QRegExp re(QLatin1String("^/([a-zA-Z]\\:.*)")); // match & catch drive letter forward
+            QRegExp re(QStringLiteral("^/([a-zA-Z]\\:.*)")); // match & catch drive letter forward
 
             if (url.host().isEmpty() && url.isLocalFile() && re.exactMatch(url.path()))
                 // clip / in file urs ie /C:/something -> C:/something
@@ -138,7 +138,7 @@ private:
 UrlWidget::UrlWidget(BrowserView *view) :
     QLineEdit(view), m_view(view)
 {
-    setText(QLatin1String("https://"));
+    setText(QStringLiteral("https://"));
     hide();
 }
 UrlWidget::~UrlWidget()
@@ -153,7 +153,7 @@ void UrlWidget::keyPressEvent(QKeyEvent *keyEvt)
         break;
     case Qt::Key_Return:
     case Qt::Key_Enter:
-        m_view->load(text().toLatin1());
+        m_view->load(text().toUtf8());
         hide();
         break;
     default:
@@ -265,7 +265,7 @@ void WebView::mousePressEvent(QMouseEvent *event)
 bool WebView::event(QEvent *event) {
     if(event->type() == QEvent::ToolTipChange) {
         QString tooltip = this->toolTip();
-        if(tooltip.size()>7 && tooltip.startsWith(QLatin1String("<p>")))
+        if(tooltip.size()>7 && tooltip.startsWith(QStringLiteral("<p>")))
             this->setToolTip(tooltip.mid(3,tooltip.size()-7));
     }
     return QWebEngineView::event(event);
@@ -420,9 +420,9 @@ BrowserView::BrowserView(QWidget* parent)
     // QWebEngine doesn't support direct access to network
     // nor rendering access
     QWebEngineProfile *profile = view->page()->profile();
-    QString basePath = QLatin1String(App::Application::getUserAppDataDir().c_str()) + QLatin1String("webdata");
-    profile->setPersistentStoragePath(basePath + QLatin1String("persistent"));
-    profile->setCachePath(basePath + QLatin1String("cache"));
+    QString basePath = QString::fromUtf8(App::Application::getUserAppDataDir().c_str()) + QStringLiteral("webdata");
+    profile->setPersistentStoragePath(basePath + QStringLiteral("persistent"));
+    profile->setCachePath(basePath + QStringLiteral("cache"));
 
     interceptLinks = new WebEngineUrlRequestInterceptor(this);
 
@@ -485,35 +485,35 @@ void BrowserView::urlFilter(const QUrl & url)
     //QString fragment = url.	fragment();
 
 #ifdef QTWEBKIT
-    if (scheme==QString::fromLatin1("http") || scheme==QString::fromLatin1("https")) {
+    if (scheme==QStringLiteral("http") || scheme==QStringLiteral("https")) {
         load(url);
     }
 #endif
     // Small trick to force opening a link in an external browser: use exthttp or exthttps
     // Write your URL as exthttp://www.example.com
-    else if (scheme==QString::fromLatin1("exthttp")) {
-        exturl.setScheme(QString::fromLatin1("http"));
+    else if (scheme==QStringLiteral("exthttp")) {
+        exturl.setScheme(QStringLiteral("http"));
         QDesktopServices::openUrl(exturl);
         stop();// stop qwebengine, should do nothing in qwebkit at this point
     }
-    else if (scheme==QString::fromLatin1("exthttps")) {
-        exturl.setScheme(QString::fromLatin1("https"));
+    else if (scheme==QStringLiteral("exthttps")) {
+        exturl.setScheme(QStringLiteral("https"));
         QDesktopServices::openUrl(exturl);
         stop();// stop qwebengine, should do nothing in qwebkit at this point
     }
     // run scripts if not from somewhere else!
-    if ((scheme.size() < 2 || scheme==QString::fromLatin1("file"))&& host.isEmpty()) {
+    if ((scheme.size() < 2 || scheme==QStringLiteral("file"))&& host.isEmpty()) {
         QFileInfo fi(path);
         if (fi.exists()) {
             QString ext = fi.completeSuffix();
-            if (ext == QString::fromLatin1("py")) {
+            if (ext == QStringLiteral("py")) {
                 stop(); // stop qwebengine, should do nothing in qwebkit at this point
 
                 try {
                     if (!q.isEmpty()) {
                         // encapsulate the value in quotes
-                        q = q.replace(QString::fromLatin1("="),QString::fromLatin1("=\""))+QString::fromLatin1("\"");
-                        q = q.replace(QString::fromLatin1("%"),QString::fromLatin1("%%"));
+                        q = q.replace(QStringLiteral("="),QStringLiteral("=\""))+QStringLiteral("\"");
+                        q = q.replace(QStringLiteral("%"),QStringLiteral("%%"));
                         // url queries in the form of somescript.py?key=value, the first key=value will be printed in the py console as key="value"
                         Gui::Command::doCommand(Gui::Command::Gui,q.toStdString().c_str());
                     }
@@ -614,7 +614,7 @@ void BrowserView::onLinkHovered(const QString& link, const QString& title, const
 {
     Q_UNUSED(title)
     Q_UNUSED(textContent)
-    QUrl url = QUrl::fromEncoded(link.toLatin1());
+    QUrl url = QUrl::fromEncoded(link.toUtf8());
     QString str = url.isValid() ? url.toString() : link;
     Gui::getMainWindow()->showMessage(str);
 }
@@ -718,11 +718,11 @@ static bool checkLink(const QUrl &url, bool explore) {
     if(!url.isLocalFile())
         return false;
     QString s = url.toString();
-    int idx = s.lastIndexOf(QLatin1String("="));
-    if(idx>0 && s.left(idx).endsWith(QLatin1String("LoadMRU.py?MRU"))) {
+    int idx = s.lastIndexOf(QStringLiteral("="));
+    if(idx>0 && s.left(idx).endsWith(QStringLiteral("LoadMRU.py?MRU"))) {
         int index = s.right(s.size()-idx-1).toInt();
         auto *recent = Gui::getMainWindow()->findChild<Gui::RecentFilesAction *>
-                            (QString::fromLatin1("recentFiles"));
+                            (QStringLiteral("recentFiles"));
         if (recent) {
             auto files = recent->files();
             if(index<(int)files.size()) {

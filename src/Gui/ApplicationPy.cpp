@@ -484,11 +484,11 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
             }
         }
 
-        if (ext == QLatin1String("iv")) {
+        if (ext == QStringLiteral("iv")) {
             if (!Application::Instance->activeDocument())
                 App::GetApplication().newDocument();
             //QString cmd = QString("Gui.activeDocument().addAnnotation(\"%1\",\"%2\")").arg(fi.baseName()).arg(fi.absoluteFilePath());
-            QString cmd = QString::fromLatin1(
+            QString cmd = QStringLiteral(
                 "App.ActiveDocument.addObject(\"App::InventorObject\",\"%1\")."
                 "FileName=\"%2\"\n"
                 "App.ActiveDocument.ActiveObject.Label=\"%1\"\n"
@@ -496,9 +496,9 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
                 .arg(fi.baseName(), fi.absoluteFilePath());
             Base::Interpreter().runString(cmd.toUtf8());
         }
-        else if (ext == QLatin1String("wrl") ||
-                 ext == QLatin1String("vrml") ||
-                 ext == QLatin1String("wrz")) {
+        else if (ext == QStringLiteral("wrl") ||
+                 ext == QStringLiteral("vrml") ||
+                 ext == QStringLiteral("wrz")) {
             if (!Application::Instance->activeDocument())
                 App::GetApplication().newDocument();
 
@@ -507,7 +507,7 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
             SoInput::addDirectoryFirst(path.constData());
 
             //QString cmd = QString("Gui.activeDocument().addAnnotation(\"%1\",\"%2\")").arg(fi.baseName()).arg(fi.absoluteFilePath());
-            QString cmd = QString::fromLatin1(
+            QString cmd = QStringLiteral(
                 "App.ActiveDocument.addObject(\"App::VRMLObject\",\"%1\")."
                 "VrmlFile=\"%2\"\n"
                 "App.ActiveDocument.ActiveObject.Label=\"%1\"\n"
@@ -516,8 +516,8 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
             Base::Interpreter().runString(cmd.toUtf8());
             SoInput::removeDirectory(path.constData());
         }
-        else if (ext == QLatin1String("py") || ext == QLatin1String("fcmacro") ||
-                 ext == QLatin1String("fcscript")) {
+        else if (ext == QStringLiteral("py") || ext == QStringLiteral("fcmacro") ||
+                 ext == QStringLiteral("fcscript")) {
             PythonEditor* editor = new PythonEditor();
             editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
             PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
@@ -526,7 +526,7 @@ PyObject* Application::sOpen(PyObject * /*self*/, PyObject *args)
             getMainWindow()->addWindow( edit );
         }
         else {
-            Base::Console().Error("File type '%s' not supported\n", ext.toLatin1().constData());
+            Base::Console().Error("File type '%s' not supported\n", ext.toUtf8().constData());
         }
     } PY_CATCH;
 
@@ -547,7 +547,7 @@ PyObject* Application::sInsert(PyObject * /*self*/, PyObject *args)
         QFileInfo fi;
         fi.setFile(fileName);
         QString ext = fi.suffix().toLower();
-        if (ext == QLatin1String("iv")) {
+        if (ext == QStringLiteral("iv")) {
             App::Document *doc = 0;
             if (DocName)
                 doc = App::GetApplication().getDocument(DocName);
@@ -563,9 +563,9 @@ PyObject* Application::sInsert(PyObject * /*self*/, PyObject *args)
                 ->setValue((const char*)fi.absoluteFilePath().toUtf8());
             doc->recompute();
         }
-        else if (ext == QLatin1String("wrl") ||
-                 ext == QLatin1String("vrml") ||
-                 ext == QLatin1String("wrz")) {
+        else if (ext == QStringLiteral("wrl") ||
+                 ext == QStringLiteral("vrml") ||
+                 ext == QStringLiteral("wrz")) {
             App::Document *doc = 0;
             if (DocName)
                 doc = App::GetApplication().getDocument(DocName);
@@ -587,8 +587,8 @@ PyObject* Application::sInsert(PyObject * /*self*/, PyObject *args)
 
             SoInput::removeDirectory(path.constData());
         }
-        else if (ext == QLatin1String("py") || ext == QLatin1String("fcmacro") ||
-                 ext == QLatin1String("fcscript")) {
+        else if (ext == QStringLiteral("py") || ext == QStringLiteral("fcmacro") ||
+                 ext == QStringLiteral("fcscript")) {
             PythonEditor* editor = new PythonEditor();
             editor->setWindowIcon(Gui::BitmapFactory().iconFromTheme("applications-python"));
             PythonEditorView* edit = new PythonEditorView(editor, getMainWindow());
@@ -597,7 +597,7 @@ PyObject* Application::sInsert(PyObject * /*self*/, PyObject *args)
             getMainWindow()->addWindow( edit );
         }
         else {
-            Base::Console().Error("File type '%s' not supported\n", ext.toLatin1().constData());
+            Base::Console().Error("File type '%s' not supported\n", ext.toUtf8().constData());
         }
     } PY_CATCH;
 
@@ -629,13 +629,13 @@ PyObject* Application::sExport(PyObject * /*self*/, PyObject *args)
         QFileInfo fi;
         fi.setFile(fileName);
         QString ext = fi.suffix().toLower();
-        if (ext == QLatin1String("iv") ||
-            ext == QLatin1String("wrl") ||
-            ext == QLatin1String("vrml") ||
-            ext == QLatin1String("wrz") ||
-            ext == QLatin1String("x3d") ||
-            ext == QLatin1String("x3dz") ||
-            ext == QLatin1String("xhtml")) {
+        if (ext == QStringLiteral("iv") ||
+            ext == QStringLiteral("wrl") ||
+            ext == QStringLiteral("vrml") ||
+            ext == QStringLiteral("wrz") ||
+            ext == QStringLiteral("x3d") ||
+            ext == QStringLiteral("x3dz") ||
+            ext == QStringLiteral("xhtml")) {
 
             // build up the graph
             SoSeparator* sep = new SoSeparator();
@@ -667,7 +667,7 @@ PyObject* Application::sExport(PyObject * /*self*/, PyObject *args)
             SoFCDB::writeToFile(sep, Utf8Name.c_str(), binary);
             sep->unref();
         }
-        else if (ext == QLatin1String("pdf")) {
+        else if (ext == QStringLiteral("pdf")) {
             // get the view that belongs to the found document
             Gui::Document* gui_doc = Application::Instance->getDocument(doc);
             if (gui_doc) {
@@ -684,7 +684,7 @@ PyObject* Application::sExport(PyObject * /*self*/, PyObject *args)
             }
         }
         else {
-            Base::Console().Error("File type '%s' not supported\n", ext.toLatin1().constData());
+            Base::Console().Error("File type '%s' not supported\n", ext.toUtf8().constData());
         }
     } PY_CATCH;
 
@@ -999,7 +999,7 @@ public:
         QString toolTips = QString::fromUtf8(_toolTips.c_str());
         pcAction->setToolTip(toolTips);
         pcAction->setStatusTip(toolTips);
-        pcAction->setWhatsThis(QString::fromLatin1(_cmdName.c_str()));
+        pcAction->setWhatsThis(QString::fromUtf8(_cmdName.c_str()));
         pcAction->setIcon(BitmapFactory().pixmap(_pixmap.c_str()));
         return pcAction;
     }
@@ -1019,10 +1019,10 @@ public:
         }
         catch(const Base::Exception& e) {
             e.ReportException();
-            QString msg(QLatin1String(e.what()));
+            QString msg(QString::fromUtf8(e.what()));
             // ignore '<type 'exceptions.*Error'>' prefixes
             QRegExp rx;
-            rx.setPattern(QLatin1String("^\\s*<type 'exceptions.\\w*'>:\\s*"));
+            rx.setPattern(QStringLiteral("^\\s*<type 'exceptions.\\w*'>:\\s*"));
             int pos = rx.indexIn(msg);
             if (pos != -1)
                 msg = msg.mid(rx.matchedLength());
@@ -1684,7 +1684,7 @@ PyObject* Application::sLoadFile(PyObject * /*self*/, PyObject *args, PyObject *
                 SelectModule::Dict dict = SelectModule::importHandler(
                         QString::fromUtf8(path), selectedFilter);
                 if (dict.size())
-                    module = dict.begin().value().toLatin1().constData();
+                    module = dict.begin().value().toUtf8().constData();
             } else {
                 std::string ext = fi.extension();
                 std::vector<std::string> modules = App::GetApplication().getImportModules(ext.c_str());
@@ -1701,7 +1701,7 @@ PyObject* Application::sLoadFile(PyObject * /*self*/, PyObject *args, PyObject *
         App::Document *doc = App::GetApplication().getDocumentByPath(fi.filePath().c_str(), 1);
         if (doc && fi.filePath() != doc->FileName.getValue()) {
             int res = QMessageBox::warning (getMainWindow(), QObject::tr("Duplicate file path"), 
-                        QString::fromLatin1("%1\n\n%2\n  ->\n%3\n\n%4").arg(
+                        QStringLiteral("%1\n\n%2\n  ->\n%3\n\n%4").arg(
                             QObject::tr("You are about to load a file through some symbolic link "
                                         "to an already loaded document. "),
                             QString::fromUtf8(fi.filePath().c_str()),

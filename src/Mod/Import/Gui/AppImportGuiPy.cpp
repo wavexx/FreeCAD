@@ -185,11 +185,11 @@ void OCAFBrowser::load(QTreeWidget* theTree)
     theTree->clear();
 
     QTreeWidgetItem* root = new QTreeWidgetItem();
-    root->setText(0, QLatin1String("0"));
+    root->setText(0, QStringLiteral("0"));
     root->setIcon(0, myGroupIcon);
     theTree->addTopLevelItem(root);
 
-    load(pDoc->GetData()->Root(), root, QString::fromLatin1("0"));
+    load(pDoc->GetData()->Root(), root, QStringLiteral("0"));
 }
 
 void OCAFBrowser::load(const TDF_Label& label, QTreeWidgetItem* item, const QString& s)
@@ -198,7 +198,7 @@ void OCAFBrowser::load(const TDF_Label& label, QTreeWidgetItem* item, const QStr
 
     Handle(TDataStd_Name) name;
     if (label.FindAttribute(TDataStd_Name::GetID(),name)) {
-        QString text = QString::fromLatin1("%1 %2").arg(s).arg(QString::fromUtf8(toString(name->Get()).c_str()));
+        QString text = QStringLiteral("%1 %2").arg(s).arg(QString::fromUtf8(toString(name->Get()).c_str()));
         item->setText(0, text);
     }
 
@@ -277,7 +277,7 @@ void OCAFBrowser::load(const TDF_Label& label, QTreeWidgetItem* item, const QStr
                 child->setText(0, text);
             }
             else {
-                child->setText(0, QLatin1String(attr->DynamicType()->Name()));
+                child->setText(0, QString::fromUtf8(attr->DynamicType()->Name()));
             }
         }
     }
@@ -288,13 +288,13 @@ void OCAFBrowser::load(const TDF_Label& label, QTreeWidgetItem* item, const QStr
     //    //if (node->HasFather())
     //    //    ;
     //    QTreeWidgetItem* child = new QTreeWidgetItem();
-    //    child->setText(0, QString::fromLatin1("TDataStd_TreeNode"));
+    //    child->setText(0, QStringLiteral("TDataStd_TreeNode"));
     //    item->addChild(child);
     //}
 
     int i=1;
     for (TDF_ChildIterator it(label); it.More(); it.Next(),i++) {
-        QString text = QString::fromLatin1("%1:%2").arg(s).arg(i);
+        QString text = QStringLiteral("%1:%2").arg(s).arg(i);
         QTreeWidgetItem* child = new QTreeWidgetItem();
         child->setText(0, text);
         child->setIcon(0, myGroupIcon);
@@ -793,7 +793,7 @@ private:
             if (!dlg) {
                 dlg = new QDialog(Gui::getMainWindow());
                 QTreeWidget* tree = new QTreeWidget();
-                tree->setHeaderLabel(QString::fromLatin1("OCAF Browser"));
+                tree->setHeaderLabel(QStringLiteral("OCAF Browser"));
 
                 QVBoxLayout *layout = new QVBoxLayout;
                 layout->addWidget(tree);

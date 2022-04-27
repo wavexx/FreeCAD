@@ -146,7 +146,7 @@ void TaskGenericPatternParameters::onChangedExpression() {
         kickUpdateViewTimer();
     } catch (Base::Exception & e) {
         ui->labelExpressionMessage->setText(
-                QString::fromLatin1("<font color='red'>%1</font>").arg(
+                QStringLiteral("<font color='red'>%1</font>").arg(
                     QObject::tr(e.what())));
     }
 }

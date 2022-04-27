@@ -78,7 +78,7 @@ void CmdPointsImport::activated(int iMsg)
     Q_UNUSED(iMsg);
 
     QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(),
-      QString(), QString(), QString::fromLatin1("%1 (*.asc *.pcd *.ply);;%2 (*.*)")
+      QString(), QString(), QStringLiteral("%1 (*.asc *.pcd *.ply);;%2 (*.*)")
       .arg(QObject::tr("Point formats"), QObject::tr("All Files")));
     if (fn.isEmpty())
         return;
@@ -126,7 +126,7 @@ void CmdPointsExport::activated(int iMsg)
     std::vector<App::DocumentObject*> points = getSelection().getObjectsOfType(Points::Feature::getClassTypeId());
     for (std::vector<App::DocumentObject*>::const_iterator it = points.begin(); it != points.end(); ++it) {
         QString fn = Gui::FileDialog::getSaveFileName(Gui::getMainWindow(),
-          QString(), QString(), QString::fromLatin1("%1 (*.asc *.pcd *.ply);;%2 (*.*)")
+          QString(), QString(), QStringLiteral("%1 (*.asc *.pcd *.ply);;%2 (*.*)")
           .arg(QObject::tr("Point formats"), QObject::tr("All Files")));
         if (fn.isEmpty())
             break;

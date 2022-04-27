@@ -68,14 +68,14 @@ Workbench::~Workbench()
 
 void Workbench::activated()
 {
-    auto bar = Gui::getMainWindow()->findChild<QToolBar*>(QString::fromLatin1("Spreadsheet"));
+    auto bar = Gui::getMainWindow()->findChild<QToolBar*>(QStringLiteral("Spreadsheet"));
     if (!bar)
         return;
 
     QPalette palette = Gui::getMainWindow()->palette();
     if (!foregroundColor) {
         foregroundColor = new QtColorPicker();
-        foregroundColor->setObjectName(QString::fromLatin1("Spreadsheet_ForegroundColor"));
+        foregroundColor->setObjectName(QStringLiteral("Spreadsheet_ForegroundColor"));
         foregroundColor->setStandardColors();
         QObject::connect(foregroundColor, SIGNAL(colorSet(QColor)), workbenchHelper.get(), SLOT(setForegroundColor(QColor)));
     }
@@ -88,7 +88,7 @@ void Workbench::activated()
 
     if (!backgroundColor) {
         backgroundColor = new QtColorPicker();
-        backgroundColor->setObjectName(QString::fromLatin1("Spreadsheet_BackgroundColor"));
+        backgroundColor->setObjectName(QStringLiteral("Spreadsheet_BackgroundColor"));
         backgroundColor->setStandardColors();
         QObject::connect(backgroundColor, SIGNAL(colorSet(QColor)), workbenchHelper.get(), SLOT(setBackgroundColor(QColor)));
     }

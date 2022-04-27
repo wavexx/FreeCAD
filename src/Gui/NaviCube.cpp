@@ -1417,7 +1417,7 @@ int NaviCubeImplementation::pickFace(short x, short y) {
 		fb->release();
 
 		//QImage image = m_PickingFramebuffer->toImage();
-		//image.save(QLatin1String("pickimage.png"));
+		//image.save(QStringLiteral("pickimage.png"));
 	}
 	return pixels[3] == 255 ? pixels[0] : 0;
 }

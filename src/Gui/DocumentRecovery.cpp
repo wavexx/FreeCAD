@@ -216,7 +216,7 @@ QString DocumentRecovery::createProjectFile(const QString& documentXml)
 {
     QString source = documentXml;
     QFileInfo fi(source);
-    QString dest = fi.dir().absoluteFilePath(QString::fromLatin1("fc_recovery_file.fcstd"));
+    QString dest = fi.dir().absoluteFilePath(QStringLiteral("fc_recovery_file.fcstd"));
 
     std::stringstream str;
     str << doctools << "\n";
@@ -251,7 +251,7 @@ void DocumentRecovery::accept()
             try {
                 QString file = info.projectFile;
                 QFileInfo fi(file);
-                if (fi.fileName() == QLatin1String("Document.xml"))
+                if (fi.fileName() == QStringLiteral("Document.xml"))
                     file = createProjectFile(info.projectFile);
 
                 paths.emplace_back(file.toUtf8().constData());
@@ -261,10 +261,10 @@ void DocumentRecovery::accept()
                 ++index;
             }
             catch (const std::exception& e) {
-                errorInfo = QString::fromLatin1(e.what());
+                errorInfo = QString::fromUtf8(e.what());
             }
             catch (const Base::Exception& e) {
-                errorInfo = QString::fromLatin1(e.what());
+                errorInfo = QString::fromUtf8(e.what());
             }
             catch (...) {
                 errorInfo = tr("Unknown problem occurred");
@@ -316,7 +316,7 @@ void DocumentRecovery::accept()
                 QFileInfo fi(info.projectFile);
                 bool res = false;
 
-                if (fi.fileName() == QLatin1String("fc_recovery_file.fcstd")) {
+                if (fi.fileName() == QStringLiteral("fc_recovery_file.fcstd")) {
                     transDir.remove(fi.fileName());
                     res = transDir.rename(fi.absoluteFilePath(),fi.fileName());
                 }
@@ -394,15 +394,15 @@ DocumentRecoveryPrivate::Info DocumentRecoveryPrivate::getRecoveryInfo(const QFi
 
     QString file;
     QDir doc_dir(fi.absoluteFilePath());
-    QDir rec_dir(doc_dir.absoluteFilePath(QLatin1String("fc_recovery_files")));
+    QDir rec_dir(doc_dir.absoluteFilePath(QStringLiteral("fc_recovery_files")));
 
     // compressed recovery file
-    if (doc_dir.exists(QLatin1String("fc_recovery_file.fcstd"))) {
-        file = doc_dir.absoluteFilePath(QLatin1String("fc_recovery_file.fcstd"));
+    if (doc_dir.exists(QStringLiteral("fc_recovery_file.fcstd"))) {
+        file = doc_dir.absoluteFilePath(QStringLiteral("fc_recovery_file.fcstd"));
     }
     // separate files for recovery
-    else if (rec_dir.exists(QLatin1String("Document.xml"))) {
-        file = rec_dir.absoluteFilePath(QLatin1String("Document.xml"));
+    else if (rec_dir.exists(QStringLiteral("Document.xml"))) {
+        file = rec_dir.absoluteFilePath(QStringLiteral("Document.xml"));
     }
     else {
         info.status = DocumentRecoveryPrivate::Unknown;
@@ -414,25 +414,25 @@ DocumentRecoveryPrivate::Info DocumentRecoveryPrivate::getRecoveryInfo(const QFi
     info.tooltip = fi.fileName();
 
     // when the Xml meta exists get some relevant information
-    info.xmlFile = doc_dir.absoluteFilePath(QLatin1String("fc_recovery_file.xml"));
-    if (doc_dir.exists(QLatin1String("fc_recovery_file.xml"))) {
+    info.xmlFile = doc_dir.absoluteFilePath(QStringLiteral("fc_recovery_file.xml"));
+    if (doc_dir.exists(QStringLiteral("fc_recovery_file.xml"))) {
         XmlConfig cfg = readXmlFile(info.xmlFile);
 
-        if (cfg.contains(QString::fromLatin1("Label"))) {
-            info.label = cfg[QString::fromLatin1("Label")];
+        if (cfg.contains(QStringLiteral("Label"))) {
+            info.label = cfg[QStringLiteral("Label")];
         }
 
-        if (cfg.contains(QString::fromLatin1("FileName"))) {
-            info.fileName = cfg[QString::fromLatin1("FileName")];
+        if (cfg.contains(QStringLiteral("FileName"))) {
+            info.fileName = cfg[QStringLiteral("FileName")];
         }
 
-        if (cfg.contains(QString::fromLatin1("Status"))) {
-            QString status = cfg[QString::fromLatin1("Status")];
-            if (status == QLatin1String("Deprecated"))
+        if (cfg.contains(QStringLiteral("Status"))) {
+            QString status = cfg[QStringLiteral("Status")];
+            if (status == QStringLiteral("Deprecated"))
                 info.status = DocumentRecoveryPrivate::Overage;
-            else if (status == QLatin1String("Success"))
+            else if (status == QStringLiteral("Success"))
                 info.status = DocumentRecoveryPrivate::Success;
-            else if (status == QLatin1String("Failure"))
+            else if (status == QStringLiteral("Failure"))
                 info.status = DocumentRecoveryPrivate::Failure;
         }
 
@@ -473,16 +473,16 @@ DocumentRecoveryPrivate::XmlConfig DocumentRecoveryPrivate::readXmlFile(const QS
     }
 
     QDomElement root = domDocument.documentElement();
-    if (root.tagName() != QLatin1String("AutoRecovery")) {
+    if (root.tagName() != QStringLiteral("AutoRecovery")) {
         return cfg;
     }
 
     file.close();
 
     QVector<QString> filter;
-    filter << QString::fromLatin1("Label");
-    filter << QString::fromLatin1("FileName");
-    filter << QString::fromLatin1("Status");
+    filter << QStringLiteral("Label");
+    filter << QStringLiteral("FileName");
+    filter << QStringLiteral("Status");
 
     QDomElement child;
     if (!root.isNull()) {
@@ -616,7 +616,7 @@ void DocumentRecoveryFinder::checkDocumentDirs(QDir& tmp, const QList<QFileInfo>
     }
     else {
         int countDeletedDocs = 0;
-        QString recovery_files = QString::fromLatin1("fc_recovery_files");
+        QString recovery_files = QStringLiteral("fc_recovery_files");
         for (QList<QFileInfo>::const_iterator it = dirs.cbegin(); it != dirs.cend(); ++it) {
             QDir doc_dir(it->absoluteFilePath());
             doc_dir.setFilter(QDir::NoDotAndDotDot|QDir::AllEntries);
@@ -628,7 +628,7 @@ void DocumentRecoveryFinder::checkDocumentDirs(QDir& tmp, const QList<QFileInfo>
                     countDeletedDocs++;
             }
             // search for the existence of a recovery file
-            else if (doc_dir.exists(QLatin1String("fc_recovery_file.xml"))) {
+            else if (doc_dir.exists(QStringLiteral("fc_recovery_file.xml"))) {
                 // store the transient directory in case it's not empty
                 restoreDocFiles << *it;
             }
@@ -667,10 +667,10 @@ void DocumentRecoveryFinder::showRecoveryDialogIfNeeded()
 void DocumentRecoveryHandler::checkForPreviousCrashes(const std::function<void(QDir&, const QList<QFileInfo>&, const QString&)> & callableFunc) const
 {
     QDir tmp = QString::fromUtf8(App::Application::getTempPath().c_str());
-    tmp.setNameFilters(QStringList() << QString::fromLatin1("*.lock"));
+    tmp.setNameFilters(QStringList() << QStringLiteral("*.lock"));
     tmp.setFilter(QDir::Files);
 
-    QString exeName = QString::fromLatin1(App::GetApplication().getExecutableName());
+    QString exeName = QString::fromUtf8(App::GetApplication().getExecutableName());
     QList<QFileInfo> locks = tmp.entryInfoList();
     for (QList<QFileInfo>::iterator it = locks.begin(); it != locks.end(); ++it) {
         QString bn = it->baseName();

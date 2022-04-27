@@ -101,7 +101,7 @@ void CmdSandboxDocumentThread::activated(int)
     App::GetApplication().newDocument("Thread");
     for (int i=0; i<5; i++) {
         Sandbox::DocumentThread* dt = new Sandbox::DocumentThread();
-        dt->setObjectName(QString::fromLatin1("MyMesh_%1").arg(i));
+        dt->setObjectName(QStringLiteral("MyMesh_%1").arg(i));
         QObject::connect(dt, SIGNAL(finished()), dt, SLOT(deleteLater()));
         dt->start();
     }
@@ -179,7 +179,7 @@ void CmdSandboxDocThreadWithSeq::activated(int)
 {
     App::GetApplication().newDocument("Thread");
     Sandbox::DocumentThread* dt = new Sandbox::DocumentThread();
-    dt->setObjectName(QString::fromLatin1("MyMesh"));
+    dt->setObjectName(QStringLiteral("MyMesh"));
     QObject::connect(dt, SIGNAL(finished()), dt, SLOT(deleteLater()));
     dt->start();
 #ifdef FC_DEBUG
@@ -218,7 +218,7 @@ void CmdSandboxDocThreadBusy::activated(int)
 {
     App::GetApplication().newDocument("Thread");
     Sandbox::DocumentThread* dt = new Sandbox::DocumentThread();
-    dt->setObjectName(QString::fromLatin1("MyMesh"));
+    dt->setObjectName(QStringLiteral("MyMesh"));
     QObject::connect(dt, SIGNAL(finished()), dt, SLOT(deleteLater()));
     dt->start();
 #ifdef FC_DEBUG
@@ -411,7 +411,7 @@ void CmdSandboxPythonThread::activated(int)
     App::GetApplication().newDocument("Thread");
     for (int i=0; i<5; i++) {
         Sandbox::PythonThread* pt = new Sandbox::PythonThread();
-        pt->setObjectName(QString::fromLatin1("MyMesh_%1").arg(i));
+        pt->setObjectName(QStringLiteral("MyMesh_%1").arg(i));
         QObject::connect(pt, SIGNAL(finished()), pt, SLOT(deleteLater()));
         pt->start();
     }
@@ -463,7 +463,7 @@ void CmdSandboxDocThreadWithDialog::activated(int)
 {
     App::GetApplication().newDocument("Thread");
     Sandbox::DocumentThread* dt = new Sandbox::DocumentThread();
-    dt->setObjectName(QString::fromLatin1("MyMesh"));
+    dt->setObjectName(QStringLiteral("MyMesh"));
     QObject::connect(dt, SIGNAL(finished()), dt, SLOT(deleteLater()));
     dt->start();
     //QFileDialog::getOpenFileName();
@@ -490,7 +490,7 @@ void CmdSandboxDocThreadWithFileDlg::activated(int)
 {
     App::GetApplication().newDocument("Thread");
     Sandbox::DocumentThread* dt = new Sandbox::DocumentThread();
-    dt->setObjectName(QString::fromLatin1("MyMesh"));
+    dt->setObjectName(QStringLiteral("MyMesh"));
     QObject::connect(dt, SIGNAL(finished()), dt, SLOT(deleteLater()));
     dt->start();
     QFileDialog::getOpenFileName();
@@ -582,7 +582,7 @@ void CmdSandboxMeshLoader::activated(int)
 
     // Allow multi selection
     QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(),
-        QObject::tr("Import mesh"), QString(), filter.join(QLatin1String(";;")));
+        QObject::tr("Import mesh"), QString(), filter.join(QStringLiteral(";;")));
 
     Sandbox::MeshLoaderThread thread(fn);
     QObject::connect(&thread, SIGNAL(finished()), &loop, SLOT(quit()));
@@ -640,7 +640,7 @@ void CmdSandboxMeshLoaderBoost::activated(int)
 
     // Allow multi selection
     QString fn = Gui::FileDialog::getOpenFileName(Gui::getMainWindow(),
-        QObject::tr("Import mesh"), QString(), filter.join(QLatin1String(";;")));
+        QObject::tr("Import mesh"), QString(), filter.join(QStringLiteral(";;")));
 
     boost::packaged_task< Base::Reference<Mesh::MeshObject> > pt
         (boost::bind(&loadMesh, fn));
@@ -688,7 +688,7 @@ void CmdSandboxMeshLoaderFuture::activated(int)
 
     // Allow multi selection
     QStringList fn = Gui::FileDialog::getOpenFileNames(Gui::getMainWindow(),
-        QObject::tr("Import mesh"), QString(), filter.join(QLatin1String(";;")));
+        QObject::tr("Import mesh"), QString(), filter.join(QStringLiteral(";;")));
 
     QFuture< Base::Reference<Mesh::MeshObject> > future = QtConcurrent::mapped
         (fn, loadMesh);
@@ -1009,9 +1009,9 @@ public:
         painter.drawPath(path);
         painter.setPen(Qt::white);
         painter.drawText(25, 40, 70, 20, Qt::AlignHCenter|Qt::AlignVCenter,
-            QString::fromLatin1("Distance: 2.784mm"));
+            QStringLiteral("Distance: 2.784mm"));
         //QPainterPath text;
-        //text.addText(25,55,QFont(), QString::fromLatin1("Distance"));
+        //text.addText(25,55,QFont(), QStringLiteral("Distance"));
         //painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
         //painter.drawPath(text);
     }
@@ -1065,7 +1065,7 @@ CmdTestImageNode::CmdTestImageNode()
 
 void CmdTestImageNode::activated(int)
 {
-    QString text = QString::fromLatin1("Distance: 2.7jgiorjgor84mm");
+    QString text = QStringLiteral("Distance: 2.7jgiorjgor84mm");
     QFont font;
     QFontMetrics fm(font);
     int w = fm.width(text);
@@ -1093,7 +1093,7 @@ void CmdTestImageNode::activated(int)
 
 
     //QLabel* l = new QLabel();
-    //l.setText(QLatin1String("Distance: 2.784mm"));
+    //l.setText(QStringLiteral("Distance: 2.784mm"));
     //QPixmap p = QPixmap::grabWidget(&l, 0,0,100,100);
     //l.show();
     //QPixmap p = Gui::BitmapFactory().pixmap("edit-cut");
@@ -1178,7 +1178,7 @@ void CmdTestRedirectPaint::activated(int)
 {
 #if 1 //QT_VERSION >= 0x050000
     QCalendarWidget* cal = new QCalendarWidget();
-    cal->setWindowTitle(QString::fromLatin1("QCalendarWidget"));
+    cal->setWindowTitle(QStringLiteral("QCalendarWidget"));
     cal->show();
     QPixmap img(cal->size());
     cal->render(&img);
@@ -1186,15 +1186,15 @@ void CmdTestRedirectPaint::activated(int)
     QLabel* label = new QLabel();
     label->setPixmap(img);
     label->show();
-    label->setWindowTitle(QString::fromLatin1("QLabel"));
+    label->setWindowTitle(QStringLiteral("QLabel"));
 #else
     QCalendarWidget* cal = new QCalendarWidget();
     QLabel* label = new QLabel();
     QPainter::setRedirected(cal,label);
-    cal->setWindowTitle(QString::fromLatin1("QCalendarWidget"));
+    cal->setWindowTitle(QStringLiteral("QCalendarWidget"));
     cal->show();
     label->show();
-    label->setWindowTitle(QString::fromLatin1("QLabel"));
+    label->setWindowTitle(QStringLiteral("QLabel"));
 #endif
 }
 
@@ -1217,7 +1217,7 @@ void CmdTestCryptographicHash::activated(int)
 {
     QByteArray data = "FreeCAD";
     QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-    QMessageBox::information(0,QLatin1String("Hash of: FreeCAD"),QString::fromLatin1(hash));
+    QMessageBox::information(0,QStringLiteral("Hash of: FreeCAD"),QString::fromUtf8(hash));
 }
 
 //===========================================================================
@@ -1377,13 +1377,13 @@ void CmdMengerSponge::activated(int)
 {
     bool ok;
     int level = QInputDialog::getInt(Gui::getMainWindow(),
-        QString::fromLatin1("Menger sponge"),
-        QString::fromLatin1("Recursion depth:"),
+        QStringLiteral("Menger sponge"),
+        QStringLiteral("Recursion depth:"),
         3, 1, 5, 1, &ok);
     if (!ok) return;
     int ret = QMessageBox::question(Gui::getMainWindow(),
-        QString::fromLatin1("Parallel"),
-        QString::fromLatin1("Do you want to run this in a thread pool?"),
+        QStringLiteral("Parallel"),
+        QStringLiteral("Do you want to run this in a thread pool?"),
         QMessageBox::Yes|QMessageBox::No);
     bool parallel=(ret == QMessageBox::Yes);
     float x0=0,y0=0,z0=0;
@@ -1429,7 +1429,7 @@ CmdTestGraphicsView::CmdTestGraphicsView()
 void CmdTestGraphicsView::activated(int)
 {
     Gui::GraphicsView3D* view3D = new Gui::GraphicsView3D(getActiveGuiDocument(), Gui::getMainWindow());
-    view3D->setWindowTitle(QString::fromLatin1("Graphics scene"));
+    view3D->setWindowTitle(QStringLiteral("Graphics scene"));
     view3D->setWindowIcon(QApplication::windowIcon());
     view3D->resize(400, 300);
     Gui::getMainWindow()->addWindow(view3D);

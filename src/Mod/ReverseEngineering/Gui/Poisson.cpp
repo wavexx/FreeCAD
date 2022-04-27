@@ -80,7 +80,7 @@ bool PoissonWidget::accept()
         QString document = QString::fromStdString(d->obj.getDocumentPython());
         QString object = QString::fromStdString(d->obj.getObjectPython());
 
-        QString argument = QString::fromLatin1(
+        QString argument = QStringLiteral(
             "Points=%1.Points, "
             "OctreeDepth=%2, "
             "SolverDivide=%3, "
@@ -91,7 +91,7 @@ bool PoissonWidget::accept()
             .arg(d->ui.solverDivide->value())
             .arg(d->ui.samplesPerNode->value())
             ;
-        QString command = QString::fromLatin1("%1.addObject(\"Mesh::Feature\", \"Poisson\").Mesh = "
+        QString command = QStringLiteral("%1.addObject(\"Mesh::Feature\", \"Poisson\").Mesh = "
             "ReverseEngineering.poissonReconstruction(%2)")
             .arg(document, argument)
             ;
@@ -105,7 +105,7 @@ bool PoissonWidget::accept()
     }
     catch (const Base::Exception& e) {
         Gui::Command::abortCommand();
-        QMessageBox::warning(this, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(this, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 

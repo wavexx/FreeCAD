@@ -77,7 +77,7 @@ bool ViewProviderLux::setEdit(int ModNum)
         auto addTemplates = [&items](const std::string& path) {
             QString dataDir = QString::fromUtf8(path.c_str());
             QDir dir(dataDir);
-            QFileInfoList files = dir.entryInfoList(QStringList() << QString::fromLatin1("*.lxs"));
+            QFileInfoList files = dir.entryInfoList(QStringList() << QStringLiteral("*.lxs"));
             for (int i=0; i<files.count(); i++ ) {
                 QFileInfo fi(files[i]);
                 items << fi.absoluteFilePath();
@@ -156,7 +156,7 @@ bool ViewProviderPovray::setEdit(int ModNum)
         auto addTemplates = [&items](const std::string& path) {
             QString dataDir = QString::fromUtf8(path.c_str());
             QDir dir(dataDir);
-            QFileInfoList files = dir.entryInfoList(QStringList() << QString::fromLatin1("*.pov"));
+            QFileInfoList files = dir.entryInfoList(QStringList() << QStringLiteral("*.pov"));
             for (int i=0; i<files.count(); i++ ) {
                 QFileInfo fi(files[i]);
                 items << fi.absoluteFilePath();

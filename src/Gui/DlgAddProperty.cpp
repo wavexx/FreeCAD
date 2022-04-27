@@ -67,7 +67,7 @@ DlgAddProperty::DlgAddProperty(QWidget* parent,
     std::vector<Base::Type> types;
     Base::Type::getAllDerivedFrom(Base::Type::fromName("App::Property"),types);
     for(auto type : types) {
-        ui->comboType->addItem(QString::fromLatin1(type.getName()));
+        ui->comboType->addItem(QString::fromUtf8(type.getName()));
         if(type == defType)
             ui->comboType->setCurrentIndex(ui->comboType->count()-1);
     }
@@ -128,7 +128,7 @@ void DlgAddProperty::accept()
         }
     }
 
-    std::string type = ui->comboType->currentText().toLatin1().constData();
+    std::string type = ui->comboType->currentText().toUtf8().constData();
 
     for(auto it=containers.begin();it!=containers.end();++it) {
         try {

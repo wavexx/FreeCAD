@@ -111,7 +111,7 @@ void TextEdit::complete()
     if (wordPrefix.isEmpty())
         return;
 
-    QStringList list = toPlainText().split(QRegExp(QLatin1String("\\W+")));
+    QStringList list = toPlainText().split(QRegExp(QStringLiteral("\\W+")));
     QMap<QString, QString> map;
     QStringList::Iterator it = list.begin();
     while (it != list.end()) {
@@ -194,21 +194,21 @@ struct TextEditorP
     QMap<QString, QColor> colormap; // Color map
     TextEditorP()
     {
-        colormap[QLatin1String("Text")] = Qt::black;
-        colormap[QLatin1String("Bookmark")] = Qt::cyan;
-        colormap[QLatin1String("Breakpoint")] = Qt::red;
-        colormap[QLatin1String("Keyword")] = Qt::blue;
-        colormap[QLatin1String("Comment")] = QColor(0, 170, 0);
-        colormap[QLatin1String("Block comment")] = QColor(160, 160, 164);
-        colormap[QLatin1String("Number")] = Qt::blue;
-        colormap[QLatin1String("String")] = Qt::red;
-        colormap[QLatin1String("Character")] = Qt::red;
-        colormap[QLatin1String("Class name")] = QColor(255, 170, 0);
-        colormap[QLatin1String("Define name")] = QColor(255, 170, 0);
-        colormap[QLatin1String("Operator")] = QColor(160, 160, 164);
-        colormap[QLatin1String("Python output")] = QColor(170, 170, 127);
-        colormap[QLatin1String("Python error")] = Qt::red;
-        colormap[QLatin1String("Current line highlight")] = QColor(224,224,224);
+        colormap[QStringLiteral("Text")] = Qt::black;
+        colormap[QStringLiteral("Bookmark")] = Qt::cyan;
+        colormap[QStringLiteral("Breakpoint")] = Qt::red;
+        colormap[QStringLiteral("Keyword")] = Qt::blue;
+        colormap[QStringLiteral("Comment")] = QColor(0, 170, 0);
+        colormap[QStringLiteral("Block comment")] = QColor(160, 160, 164);
+        colormap[QStringLiteral("Number")] = Qt::blue;
+        colormap[QStringLiteral("String")] = Qt::red;
+        colormap[QStringLiteral("Character")] = Qt::red;
+        colormap[QStringLiteral("Class name")] = QColor(255, 170, 0);
+        colormap[QStringLiteral("Define name")] = QColor(255, 170, 0);
+        colormap[QStringLiteral("Operator")] = QColor(160, 160, 164);
+        colormap[QStringLiteral("Python output")] = QColor(170, 170, 127);
+        colormap[QStringLiteral("Python error")] = Qt::red;
+        colormap[QStringLiteral("Current line highlight")] = QColor(224,224,224);
     }
 };
 } // namespace Gui
@@ -223,7 +223,7 @@ TextEditor::TextEditor(QWidget* parent)
     d = new TextEditorP();
     lineNumberArea = new LineMarker(this);
 
-    QFont serifFont(QLatin1String("Courier"), 10, QFont::Normal);
+    QFont serifFont(QStringLiteral("Courier"), 10, QFont::Normal);
     setFont(serifFont);
 
     ParameterGrp::handle hPrefGrp = getWindowParameter();
@@ -255,7 +255,7 @@ TextEditor::~TextEditor()
 
 int TextEditor::lineNumberAreaWidth()
 {
-    return QtTools::horizontalAdvance(fontMetrics(), QLatin1String("0000")) + 10;
+    return QtTools::horizontalAdvance(fontMetrics(), QStringLiteral("0000")) + 10;
 }
 
 void TextEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
@@ -288,7 +288,7 @@ void TextEditor::highlightCurrentLine()
 
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
-        QColor lineColor = d->colormap[QLatin1String("Current line highlight")];
+        QColor lineColor = d->colormap[QStringLiteral("Current line highlight")];
         unsigned int col = (lineColor.red() << 24) | (lineColor.green() << 16) | (lineColor.blue() << 8);
         ParameterGrp::handle hPrefGrp = getWindowParameter();
         unsigned long value = static_cast<unsigned long>(col);
@@ -354,7 +354,7 @@ void TextEditor::keyPressEvent (QKeyEvent * e)
         int indent = hPrefGrp->GetInt( "IndentSize", 4 );
         bool space = hPrefGrp->GetBool( "Spaces", false );
         QString ch = space ? QString(indent, QLatin1Char(' '))
-                           : QString::fromLatin1("\t");
+                           : QStringLiteral("\t");
 
         QTextCursor cursor = textCursor();
         if (!cursor.hasSelection()) {
@@ -408,7 +408,7 @@ void TextEditor::keyPressEvent (QKeyEvent * e)
                     break; // end of selection reached
                 // if possible remove one tab or several spaces
                 QString text = block.text();
-                if (text.startsWith(QLatin1String("\t"))) {
+                if (text.startsWith(QStringLiteral("\t"))) {
                     cursor.setPosition(block.position());
                     cursor.deleteChar();
                     selEnd--;
@@ -416,7 +416,7 @@ void TextEditor::keyPressEvent (QKeyEvent * e)
                 else {
                     cursor.setPosition(block.position());
                     for (int i=0; i<indent; i++) {
-                        if (!text.startsWith(QLatin1String(" ")))
+                        if (!text.startsWith(QStringLiteral(" ")))
                             break;
                         text = text.mid(1);
                         cursor.deleteChar();
@@ -444,12 +444,12 @@ void TextEditor::OnChange(Base::Subject<const char*> &rCaller,const char* sReaso
 #else
         int fontSize = hPrefGrp->GetInt("FontSize", 10);
 #endif
-        QString fontFamily = QString::fromLatin1(hPrefGrp->GetASCII( "Font", "Courier" ).c_str());
+        QString fontFamily = QString::fromUtf8(hPrefGrp->GetASCII( "Font", "Courier" ).c_str());
 
         QFont font(fontFamily, fontSize);
         setFont(font);
     } else {
-        QMap<QString, QColor>::ConstIterator it = d->colormap.find(QString::fromLatin1(sReason));
+        QMap<QString, QColor>::ConstIterator it = d->colormap.find(QString::fromUtf8(sReason));
         if (it != d->colormap.end()) {
             QColor color = it.value();
             unsigned int col = (color.red() << 24) | (color.green() << 16) | (color.blue() << 8);
@@ -458,7 +458,7 @@ void TextEditor::OnChange(Base::Subject<const char*> &rCaller,const char* sReaso
             col = static_cast<unsigned int>(value);
             color.setRgb((col>>24)&0xff, (col>>16)&0xff, (col>>8)&0xff);
             if (this->highlighter)
-                this->highlighter->setColor(QLatin1String(sReason), color);
+                this->highlighter->setColor(QString::fromUtf8(sReason), color);
         }
     }
 

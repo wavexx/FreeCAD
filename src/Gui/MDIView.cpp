@@ -143,11 +143,11 @@ void MDIView::onRelabel(Gui::Document *pDoc)
         // Try to separate document name and view number if there is one
         QString cap = windowTitle();
         // Either with dirty flag ...
-        QRegExp rx(QLatin1String("(\\s\\:\\s\\d+\\[\\*\\])$"));
+        QRegExp rx(QStringLiteral("(\\s\\:\\s\\d+\\[\\*\\])$"));
         int pos = rx.lastIndexIn(cap);
         if (pos == -1) {
             // ... or not
-            rx.setPattern(QLatin1String("(\\s\\:\\s\\d+)$"));
+            rx.setPattern(QStringLiteral("(\\s\\:\\s\\d+)$"));
             pos = rx.lastIndexIn(cap);
         }
         if (pos != -1) {
@@ -157,7 +157,7 @@ void MDIView::onRelabel(Gui::Document *pDoc)
         }
         else {
             cap = QString::fromUtf8(pDoc->getDocument()->Label.getValue());
-            cap = QString::fromLatin1("%1[*]").arg(cap);
+            cap = QStringLiteral("%1[*]").arg(cap);
             setWindowTitle(cap);
         }
     }

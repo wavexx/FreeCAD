@@ -235,12 +235,12 @@ bool getReferencedSelection(const App::DocumentObject* thisObj, const Gui::Selec
 QString getRefStr(const App::DocumentObject* obj, const std::vector<std::string>& sub)
 {
     if (obj == NULL)
-        return QString::fromLatin1("");
+        return QStringLiteral("");
 
     if (PartDesign::Feature::isDatum(obj))
         return QString::fromUtf8(obj->getNameInDocument());
     else if (sub.size()>0)
-        return QString::fromUtf8(obj->getNameInDocument()) + QString::fromLatin1(":") +
+        return QString::fromUtf8(obj->getNameInDocument()) + QStringLiteral(":") +
                QString::fromUtf8(sub.front().c_str());
     else
         return QString();
@@ -257,7 +257,7 @@ bool populateRefElement(App::PropertyLinkSub *prop, QLabel *label, bool canTouch
     }
     const auto &subs = prop->getShadowSubs();
     if(subs.empty()) {
-        label->setText(QLatin1String(obj->getNameInDocument()));
+        label->setText(QString::fromUtf8(obj->getNameInDocument()));
         return false;
     }
 

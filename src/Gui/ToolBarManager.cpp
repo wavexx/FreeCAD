@@ -509,7 +509,7 @@ void ToolBarManager::onTimer()
 
     for (auto &v : hStatusBar->GetBoolMap()) {
         auto w = getMainWindow()->statusBar()->findChild<QWidget*>(
-                QString::fromLatin1(v.first.c_str()));
+                QString::fromUtf8(v.first.c_str()));
         if (w)
             w->setVisible(v.second);
     }
@@ -607,8 +607,8 @@ void ToolBarManager::setup(ToolBarItem* toolBarItems)
         if (item->id().size()) {
             // Migrate to use toolbar ID instead of title for identification to
             // avoid name conflict when using custom toolbar
-            bool v = hPref->GetBool(name.toLatin1().constData(), true);
-            if (v != hPref->GetBool(name.toLatin1().constData(), false))
+            bool v = hPref->GetBool(name.toUtf8().constData(), true);
+            if (v != hPref->GetBool(name.toUtf8().constData(), false))
                 visible = v;
         }
 
@@ -622,7 +622,7 @@ void ToolBarManager::setup(ToolBarItem* toolBarItems)
         if (!toolbar) {
             newToolbar = true;
             toolbar = createToolBar(name);
-            QByteArray n(name.toLatin1());
+            QByteArray n(name.toUtf8());
             if (hPref->GetBool(n, true) != hPref->GetBool(n, false)) {
                 // Make sure we remember the toolbar so that we can pre-create
                 // it the next time the application is launched
@@ -636,7 +636,7 @@ void ToolBarManager::setup(ToolBarItem* toolBarItems)
         // setup the toolbar
         setup(item, toolbar);
         if (toolbar->actions().isEmpty()) {
-            FC_LOG("Empty toolbar " << name.toLatin1().constData());
+            FC_LOG("Empty toolbar " << name.toUtf8().constData());
             continue;
         }
 
@@ -711,7 +711,7 @@ void ToolBarManager::setup(ToolBarItem* item, QToolBar* toolbar) const
     QList<QAction*> actions = toolbar->actions();
     for (QList<ToolBarItem*>::ConstIterator it = items.begin(); it != items.end(); ++it) {
         // search for the action item.
-        QString cmdName = QString::fromLatin1((*it)->command().c_str());
+        QString cmdName = QString::fromUtf8((*it)->command().c_str());
         QAction* action = findAction(actions, cmdName);
         if (!action) {
             int size = toolbar->actions().size(); 
@@ -806,7 +806,7 @@ void ToolBarManager::restoreState()
 
     for (auto &v : hStatusBar->GetBoolMap()) {
         auto w = getMainWindow()->statusBar()->findChild<QWidget*>(
-                QString::fromLatin1(v.first.c_str()));
+                QString::fromUtf8(v.first.c_str()));
         if (w)
             w->setVisible(v.second);
     }
@@ -818,7 +818,7 @@ void ToolBarManager::retranslate()
     for (auto &v : toolBars()) {
         QToolBar *toolbar = v.second;
         if (!toolbar) continue;
-        if (toolbar->objectName().startsWith(QLatin1String("Custom_")))
+        if (toolbar->objectName().startsWith(QStringLiteral("Custom_")))
             continue;
         QByteArray toolbarName = toolbar->objectName().toUtf8();
         if (toolbar->windowTitle().size())
@@ -874,7 +874,7 @@ std::map<QString, QPointer<QToolBar>> ToolBarManager::toolBars()
                 p = a;
                 connectToolBar(a);
                 if (connectedToolBars.erase(b)) {
-                    b->setObjectName(QString::fromLatin1("__scrapped"));
+                    b->setObjectName(QStringLiteral("__scrapped"));
                     b->deleteLater();
                 }
                 continue;

@@ -100,11 +100,11 @@ private:
         }
 
         AppServer* server = new AppServer();
-        if (server->listen(QHostAddress(QString::fromLatin1(addr)), port)) {
+        if (server->listen(QHostAddress(QString::fromUtf8(addr)), port)) {
             QString a = server->serverAddress().toString();
             quint16 p = server->serverPort();
             Py::Tuple t(2);
-            t.setItem(0, Py::String((const char*)a.toLatin1()));
+            t.setItem(0, Py::String((const char*)a.toUtf8()));
             t.setItem(1, Py::Long(p));
             return t;
         }
@@ -132,7 +132,7 @@ private:
 
         try {
             AppServer server(true);
-            if (server.listen(QHostAddress(QString::fromLatin1(addr)), port)) {
+            if (server.listen(QHostAddress(QString::fromUtf8(addr)), port)) {
                 bool ok = server.waitForNewConnection(timeout);
                 QTcpSocket* socket = server.nextPendingConnection();
                 if (socket) {

@@ -298,7 +298,7 @@ void Tessellation::process(int method, App::Document* doc, const std::list<App::
 
             QString param = getMeshingParameters(method, sobj);
 
-            QString cmd = QString::fromLatin1(
+            QString cmd = QStringLiteral(
                 "__doc__=FreeCAD.getDocument(\"%1\")\n"
                 "__mesh__=__doc__.addObject(\"Mesh::Feature\",\"Mesh\")\n"
                 "__part__=__doc__.getObject(\"%2\")\n"
@@ -397,15 +397,15 @@ QString Tessellation::getStandardParameters(App::DocumentObject* obj) const
     bool relative = ui->relativeDeviation->isChecked();
 
     QString param;
-    param = QString::fromLatin1("Shape=__shape__, "
+    param = QStringLiteral("Shape=__shape__, "
                                 "LinearDeflection=%1, "
                                 "AngularDeflection=%2, "
                                 "Relative=%3")
         .arg(devFace)
         .arg(devAngle)
-        .arg(relative ? QString::fromLatin1("True") : QString::fromLatin1("False"));
+        .arg(relative ? QStringLiteral("True") : QStringLiteral("False"));
     if (ui->meshShapeColors->isChecked())
-        param += QString::fromLatin1(",Segments=True");
+        param += QStringLiteral(",Segments=True");
 
     auto svp = Base::freecad_dynamic_cast<PartGui::ViewProviderPartExt>(
             Gui::Application::Instance->getViewProvider(obj));
@@ -421,7 +421,7 @@ QString Tessellation::getStandardParameters(App::DocumentObject* obj) const
         //
         // PartGui::ViewProviderPartExt::getShapeColors().
         //
-        param += QString::fromLatin1(",GroupColors=Gui.getDocument('%1').getObject('%2').DiffuseColor")
+        param += QStringLiteral(",GroupColors=Gui.getDocument('%1').getObject('%2').DiffuseColor")
                 .arg(QString::fromUtf8(obj->getDocument()->getName()),
                      QString::fromUtf8(obj->getNameInDocument()));
     }
@@ -434,7 +434,7 @@ QString Tessellation::getMefistoParameters() const
     double maxEdge = ui->spinMaximumEdgeLength->value().getValue();
     if (!ui->spinMaximumEdgeLength->isEnabled())
         maxEdge = 0;
-    return QString::fromLatin1("Shape=__shape__,MaxLength=%1").arg(maxEdge);
+    return QStringLiteral("Shape=__shape__,MaxLength=%1").arg(maxEdge);
 }
 
 QString Tessellation::getNetgenParameters() const
@@ -448,7 +448,7 @@ QString Tessellation::getNetgenParameters() const
     bool optimize = ui->checkOptimizeSurface->isChecked();
     bool allowquad = ui->checkQuadDominated->isChecked();
     if (fineness < 5) {
-        param = QString::fromLatin1("Shape=__shape__,"
+        param = QStringLiteral("Shape=__shape__,"
             "Fineness=%1,SecondOrder=%2,Optimize=%3,AllowQuad=%4")
             .arg(fineness)
             .arg(secondOrder ? 1 : 0)
@@ -456,7 +456,7 @@ QString Tessellation::getNetgenParameters() const
             .arg(allowquad ? 1 : 0);
     }
     else {
-        param = QString::fromLatin1("Shape=__shape__,"
+        param = QStringLiteral("Shape=__shape__,"
             "GrowthRate=%1,SegPerEdge=%2,SegPerRadius=%3,SecondOrder=%4,Optimize=%5,AllowQuad=%6")
             .arg(growthRate)
             .arg(nbSegPerEdge)

@@ -605,7 +605,7 @@ void CmdViewTriangulation::activated(int)
             QString document = QString::fromStdString(objT.getDocumentPython());
             QString object = QString::fromStdString(objT.getObjectPython());
 
-            QString command = QString::fromLatin1("%1.addObject('Mesh::Feature', 'View mesh').Mesh = ReverseEngineering.viewTriangulation("
+            QString command = QStringLiteral("%1.addObject('Mesh::Feature', 'View mesh').Mesh = ReverseEngineering.viewTriangulation("
                 "Points=%2.Points,"
                 "Width=%2.Width,"
                 "Height=%2.Height)"
@@ -623,7 +623,7 @@ void CmdViewTriangulation::activated(int)
         abortCommand();
         QMessageBox::warning(Gui::getMainWindow(),
             qApp->translate("Reen_ViewTriangulation", "View triangulation failed"),
-            QString::fromLatin1(e.what())
+            QString::fromUtf8(e.what())
         );
     }
 }

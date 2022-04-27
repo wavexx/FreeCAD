@@ -640,7 +640,7 @@ void Command::setGroupName(const char* s)
 QString Command::translatedGroupName() const
 {
     QString text = qApp->translate(className(), getGroupName());
-    if (text == QString::fromLatin1(getGroupName()))
+    if (text == QString::fromUtf8(getGroupName()))
         text = qApp->translate("CommandGroup", getGroupName());
     return text;
 }
@@ -947,7 +947,7 @@ const char* Command::keySequenceToAccel(int sk) const
     QKeySequence::StandardKey type = (QKeySequence::StandardKey)sk;
     QKeySequence ks(type);
     QString qs = ks.toString();
-    QByteArray data = qs.toLatin1();
+    QByteArray data = qs.toUtf8();
 
     return (strings[sk] = static_cast<const char*>(data)).c_str();
 }
@@ -1062,7 +1062,7 @@ Action * GroupCommand::createAction(void) {
     pcAction->setDropDownMenu(true);
     pcAction->setExclusive(false);
     pcAction->setCheckable(true);
-    pcAction->setWhatsThis(QString::fromLatin1(sWhatsThis));
+    pcAction->setWhatsThis(QString::fromUtf8(sWhatsThis));
 
     int idx = -1;
 
@@ -1070,7 +1070,7 @@ Action * GroupCommand::createAction(void) {
     for(auto &v : cmds) {
         ++i;
         if(!v.first)
-            pcAction->addAction(QString::fromLatin1(""))->setSeparator(true);
+            pcAction->addAction(QStringLiteral(""))->setSeparator(true);
         else {
             v.first->addToGroup(pcAction);
             if(idx<0 && !(v.first->getType() & NoDefaultAction))
@@ -2300,7 +2300,7 @@ const Command* Gui::CommandManager::checkAcceleratorForConflicts(const char* acc
     if (!accel || accel[0] == '\0')
         return nullptr;
 
-    QString newCombo = QString::fromLatin1(accel);
+    QString newCombo = QString::fromUtf8(accel);
     if (newCombo.isEmpty())
         return nullptr;
     auto newSequence = QKeySequence::fromString(newCombo);
@@ -2321,7 +2321,7 @@ const Command* Gui::CommandManager::checkAcceleratorForConflicts(const char* acc
         // 2) The new command is a one-char combo that overrides an existing two-char combo
         // 3) The old command is a one-char combo that overrides the new command
 
-        QString existingCombo = QString::fromLatin1(existingAccel);
+        QString existingCombo = QString::fromUtf8(existingAccel);
         if (existingCombo.isEmpty())
             continue;
         auto existingSequence = QKeySequence::fromString(existingCombo);

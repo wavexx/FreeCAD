@@ -1011,8 +1011,8 @@ Py::Object View3DInventorPy::saveImage(const Py::Tuple& args)
         throw Py::RuntimeError("Directory where to save image doesn't exist");
 
     QColor bg;
-    QString colname = QString::fromLatin1(cColor);
-    if (colname.compare(QLatin1String("Current"), Qt::CaseInsensitive) == 0)
+    QString colname = QString::fromUtf8(cColor);
+    if (colname.compare(QStringLiteral("Current"), Qt::CaseInsensitive) == 0)
         bg = QColor(); // assign an invalid color here
     else
         bg.setNamedColor(colname);
@@ -1060,8 +1060,8 @@ Py::Object View3DInventorPy::saveVectorGraphic(const Py::Tuple& args)
     }
 
     QColor bg;
-    QString colname = QString::fromLatin1(name);
-    if (colname.compare(QLatin1String("Current"), Qt::CaseInsensitive) == 0)
+    QString colname = QString::fromUtf8(name);
+    if (colname.compare(QStringLiteral("Current"), Qt::CaseInsensitive) == 0)
         bg = _view->getViewer()->backgroundColor();
     else
         bg.setNamedColor(colname);

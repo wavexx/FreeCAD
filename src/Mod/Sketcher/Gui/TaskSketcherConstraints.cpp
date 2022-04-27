@@ -145,7 +145,7 @@ public:
             case Sketcher::Weight:
             case Sketcher::Diameter:
             case Sketcher::Angle:
-                name = QString::fromLatin1("%1 (%2)").arg(name).arg(constraint->getPresentationValue().getUserString());
+                name = QStringLiteral("%1 (%2)").arg(name).arg(constraint->getPresentationValue().getUserString());
                 break;
             case Sketcher::SnellsLaw: {
                 double v = constraint->getPresentationValue().getValue();
@@ -156,7 +156,7 @@ public:
                 } else {
                     n1 = 1/v;
                 }
-                name = QString::fromLatin1("%1 (%2/%3)").arg(name).arg(n2).arg(n1);
+                name = QStringLiteral("%1 (%2/%3)").arg(name).arg(n2).arg(n1);
                 break;
             }
             case Sketcher::InternalAlignment:
@@ -170,13 +170,13 @@ public:
 
             if(extended) {
                 if(constraint->Second == Sketcher::Constraint::GeoUndef) {
-                    name = QString::fromLatin1("%1 [(%2,%3)]").arg(name).arg(constraint->First).arg(constraint->FirstPos);
+                    name = QStringLiteral("%1 [(%2,%3)]").arg(name).arg(constraint->First).arg(constraint->FirstPos);
                 }
                 else if(constraint->Third == Sketcher::Constraint::GeoUndef) {
-                    name = QString::fromLatin1("%1 [(%2,%3),(%4,%5)]").arg(name).arg(constraint->First).arg(constraint->FirstPos).arg(constraint->Second).arg(constraint->SecondPos);
+                    name = QStringLiteral("%1 [(%2,%3),(%4,%5)]").arg(name).arg(constraint->First).arg(constraint->FirstPos).arg(constraint->Second).arg(constraint->SecondPos);
                 }
                 else {
-                    name = QString::fromLatin1("%1 [(%2,%3),(%4,%5),(%6,%7)]").arg(name).arg(constraint->First).arg(constraint->FirstPos).arg(constraint->Second).arg(constraint->SecondPos).arg(constraint->Third).arg(constraint->ThirdPos);
+                    name = QStringLiteral("%1 [(%2,%3),(%4,%5),(%6,%7)]").arg(name).arg(constraint->First).arg(constraint->FirstPos).arg(constraint->Second).arg(constraint->SecondPos).arg(constraint->Third).arg(constraint->ThirdPos);
                 }
             }
 
@@ -383,8 +383,8 @@ public:
 protected:
     QPixmap getIcon(const char* name, const QSize& size) const
     {
-        QString key = QString::fromLatin1("%1_%2x%3")
-            .arg(QString::fromLatin1(name))
+        QString key = QStringLiteral("%1_%2x%3")
+            .arg(QString::fromUtf8(name))
             .arg(size.width())
             .arg(size.height());
         QPixmap icon;
@@ -733,7 +733,7 @@ TaskSketcherConstraints::~TaskSketcherConstraints()
 
 void TaskSketcherConstraints::createVisibilityButtonActions()
 {
-    QAction* action = new QAction(QString::fromLatin1("Show only filtered Constraints"),this);
+    QAction* action = new QAction(QStringLiteral("Show only filtered Constraints"),this);
 
     action->setCheckable(true);
 
@@ -915,7 +915,7 @@ void TaskSketcherConstraints::changeFilteredVisibility(bool show, ActionTarget t
             Gui::Command::abortCommand();
 
             QMessageBox::critical(Gui::MainWindow::getInstance(), tr("Error"),
-                        QString::fromLatin1("Impossible to update visibility tracking: ") + QString::fromLatin1(e.what()), QMessageBox::Ok, QMessageBox::Ok);
+                        QStringLiteral("Impossible to update visibility tracking: ") + QString::fromUtf8(e.what()), QMessageBox::Ok, QMessageBox::Ok);
 
             return;
         }
@@ -974,8 +974,8 @@ void TaskSketcherConstraints::onSelectionChanged(const Gui::SelectionChanges& ms
         if (strcmp(msg.pDocName,sketchView->getSketchObject()->getDocument()->getName())==0 &&
             strcmp(msg.pObjectName,sketchView->getSketchObject()->getNameInDocument())== 0) {
             if (msg.pSubName) {
-                QRegExp rx(QString::fromLatin1("^Constraint(\\d+)$"));
-                QString expr = QString::fromLatin1(msg.pSubName);
+                QRegExp rx(QStringLiteral("^Constraint(\\d+)$"));
+                QString expr = QString::fromUtf8(msg.pSubName);
                 int pos = expr.indexOf(rx);
                 if (pos > -1) { // is a constraint
                     bool ok;
@@ -1026,7 +1026,7 @@ void TaskSketcherConstraints::onSelectionChanged(const Gui::SelectionChanges& ms
 
 void TaskSketcherConstraints::getSelectionGeoId(QString expr, int & geoid, Sketcher::PointPos & pointpos)
 {
-    QRegExp rxEdge(QString::fromLatin1("^Edge(\\d+)$"));
+    QRegExp rxEdge(QStringLiteral("^Edge(\\d+)$"));
     int pos = expr.indexOf(rxEdge);
     geoid = Sketcher::Constraint::GeoUndef;
     pointpos = Sketcher::none;
@@ -1039,7 +1039,7 @@ void TaskSketcherConstraints::getSelectionGeoId(QString expr, int & geoid, Sketc
         }
     }
     else {
-        QRegExp rxVertex(QString::fromLatin1("^Vertex(\\d+)$"));
+        QRegExp rxVertex(QStringLiteral("^Vertex(\\d+)$"));
         pos = expr.indexOf(rxVertex);
 
         if (pos > -1) {
@@ -1223,7 +1223,7 @@ void TaskSketcherConstraints::on_listWidgetConstraints_itemChanged(QListWidgetIt
             Gui::Command::abortCommand();
 
             QMessageBox::critical(Gui::MainWindow::getInstance(), tr("Error"),
-                                  QString::fromLatin1(e.what()), QMessageBox::Ok, QMessageBox::Ok);
+                                  QString::fromUtf8(e.what()), QMessageBox::Ok, QMessageBox::Ok);
         }
     }
 
@@ -1239,7 +1239,7 @@ void TaskSketcherConstraints::on_listWidgetConstraints_itemChanged(QListWidgetIt
         Gui::Command::abortCommand();
 
         QMessageBox::critical(Gui::MainWindow::getInstance(), tr("Error"),
-                              QString::fromLatin1(e.what()), QMessageBox::Ok, QMessageBox::Ok);
+                              QString::fromUtf8(e.what()), QMessageBox::Ok, QMessageBox::Ok);
     }
 
     inEditMode = false;
@@ -1295,7 +1295,7 @@ void TaskSketcherConstraints::change3DViewVisibilityToTrackFilter()
                 Gui::Command::abortCommand();
 
                 QMessageBox::critical(Gui::MainWindow::getInstance(), tr("Error"),
-                            QString::fromLatin1("Impossible to update visibility tracking: ") + QString::fromLatin1(e.what()), QMessageBox::Ok, QMessageBox::Ok);
+                            QStringLiteral("Impossible to update visibility tracking: ") + QString::fromUtf8(e.what()), QMessageBox::Ok, QMessageBox::Ok);
 
                 return false;
             }

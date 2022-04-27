@@ -284,7 +284,7 @@ void DrawingView::load (const QString & fileName)
 
         m_view->openFile(file);
 
-        if (!fileName.startsWith(QLatin1String(":/"))) {
+        if (!fileName.startsWith(QStringLiteral(":/"))) {
             m_currentPath = fileName;
             //setWindowTitle(tr("%1 - SVG Viewer").arg(m_currentPath));
         }
@@ -298,7 +298,7 @@ void DrawingView::load (const QString & fileName)
 
 void DrawingView::findPrinterSettings(const QString& fileName)
 {
-    if (fileName.indexOf(QLatin1String("Portrait"), Qt::CaseInsensitive) >= 0) {
+    if (fileName.indexOf(QStringLiteral("Portrait"), Qt::CaseInsensitive) >= 0) {
         m_orientation = QPageLayout::Portrait;
     }
     else {
@@ -306,26 +306,26 @@ void DrawingView::findPrinterSettings(const QString& fileName)
     }
 
     QMap<QPageSize::PageSizeId, QString> pageSizes;
-    pageSizes[QPageSize::A0] = QString::fromLatin1("A0");
-    pageSizes[QPageSize::A1] = QString::fromLatin1("A1");
-    pageSizes[QPageSize::A2] = QString::fromLatin1("A2");
-    pageSizes[QPageSize::A3] = QString::fromLatin1("A3");
-    pageSizes[QPageSize::A4] = QString::fromLatin1("A4");
-    pageSizes[QPageSize::A5] = QString::fromLatin1("A5");
-    pageSizes[QPageSize::A6] = QString::fromLatin1("A6");
-    pageSizes[QPageSize::A7] = QString::fromLatin1("A7");
-    pageSizes[QPageSize::A8] = QString::fromLatin1("A8");
-    pageSizes[QPageSize::A9] = QString::fromLatin1("A9");
-    pageSizes[QPageSize::B0] = QString::fromLatin1("B0");
-    pageSizes[QPageSize::B1] = QString::fromLatin1("B1");
-    pageSizes[QPageSize::B2] = QString::fromLatin1("B2");
-    pageSizes[QPageSize::B3] = QString::fromLatin1("B3");
-    pageSizes[QPageSize::B4] = QString::fromLatin1("B4");
-    pageSizes[QPageSize::B5] = QString::fromLatin1("B5");
-    pageSizes[QPageSize::B6] = QString::fromLatin1("B6");
-    pageSizes[QPageSize::B7] = QString::fromLatin1("B7");
-    pageSizes[QPageSize::B8] = QString::fromLatin1("B8");
-    pageSizes[QPageSize::B9] = QString::fromLatin1("B9");
+    pageSizes[QPageSize::A0] = QStringLiteral("A0");
+    pageSizes[QPageSize::A1] = QStringLiteral("A1");
+    pageSizes[QPageSize::A2] = QStringLiteral("A2");
+    pageSizes[QPageSize::A3] = QStringLiteral("A3");
+    pageSizes[QPageSize::A4] = QStringLiteral("A4");
+    pageSizes[QPageSize::A5] = QStringLiteral("A5");
+    pageSizes[QPageSize::A6] = QStringLiteral("A6");
+    pageSizes[QPageSize::A7] = QStringLiteral("A7");
+    pageSizes[QPageSize::A8] = QStringLiteral("A8");
+    pageSizes[QPageSize::A9] = QStringLiteral("A9");
+    pageSizes[QPageSize::B0] = QStringLiteral("B0");
+    pageSizes[QPageSize::B1] = QStringLiteral("B1");
+    pageSizes[QPageSize::B2] = QStringLiteral("B2");
+    pageSizes[QPageSize::B3] = QStringLiteral("B3");
+    pageSizes[QPageSize::B4] = QStringLiteral("B4");
+    pageSizes[QPageSize::B5] = QStringLiteral("B5");
+    pageSizes[QPageSize::B6] = QStringLiteral("B6");
+    pageSizes[QPageSize::B7] = QStringLiteral("B7");
+    pageSizes[QPageSize::B8] = QStringLiteral("B8");
+    pageSizes[QPageSize::B9] = QStringLiteral("B9");
     for (QMap<QPageSize::PageSizeId, QString>::iterator it = pageSizes.begin(); it != pageSizes.end(); ++it) {
         if (fileName.startsWith(it.value(), Qt::CaseInsensitive)) {
             m_pageSize = it.key();
@@ -455,7 +455,7 @@ bool DrawingView::onHasMsg(const char* pMsg) const
 void DrawingView::onRelabel(Gui::Document *pDoc)
 {
     if (!bIsPassive && pDoc) {
-        QString cap = QString::fromLatin1("%1 : %2[*]")
+        QString cap = QStringLiteral("%1 : %2[*]")
             .arg(QString::fromUtf8(pDoc->getDocument()->Label.getValue()),
                  objectName());
         setWindowTitle(cap);
@@ -468,7 +468,7 @@ void DrawingView::printPdf()
     dlg.setFileMode(QFileDialog::AnyFile);
     dlg.setAcceptMode(QFileDialog::AcceptSave);
     dlg.setWindowTitle(tr("Export PDF"));
-    dlg.setNameFilters(QStringList() << QString::fromLatin1("%1 (*.pdf)").arg(tr("PDF file")));
+    dlg.setNameFilters(QStringList() << QStringLiteral("%1 (*.pdf)").arg(tr("PDF file")));
 
     QGridLayout *gridLayout;
     QGridLayout *formLayout;

@@ -358,7 +358,7 @@ ContainerDialog::ContainerDialog( QWidget* templChild )
     MyDialogLayout = new QGridLayout(this);
 
     buttonOk = new QPushButton(this);
-    buttonOk->setObjectName(QLatin1String("buttonOK"));
+    buttonOk->setObjectName(QStringLiteral("buttonOK"));
     buttonOk->setText( tr( "&OK" ) );
     buttonOk->setAutoDefault( true );
     buttonOk->setDefault( true );
@@ -368,7 +368,7 @@ ContainerDialog::ContainerDialog( QWidget* templChild )
     MyDialogLayout->addItem( spacer, 1, 1 );
 
     buttonCancel = new QPushButton(this);
-    buttonCancel->setObjectName(QLatin1String("buttonCancel"));
+    buttonCancel->setObjectName(QStringLiteral("buttonCancel"));
     buttonCancel->setText( tr( "&Cancel" ) );
     buttonCancel->setAutoDefault( true );
 
@@ -501,12 +501,12 @@ bool PyResource::connect(const char* sender, const char* signal, PyObject* cb)
     QList<QWidget*> list = myDlg->findChildren<QWidget*>();
     QList<QWidget*>::const_iterator it = list.cbegin();
     QObject *obj;
-    QString sigStr = QString::fromLatin1("2%1").arg(QString::fromLatin1(signal));
+    QString sigStr = QStringLiteral("2%1").arg(QString::fromUtf8(signal));
 
     while ( it != list.cend() ) {
         obj = *it;
         ++it;
-        if (obj->objectName() == QLatin1String(sender)) {
+        if (obj->objectName() == QString::fromUtf8(sender)) {
             objS = obj;
             break;
         }
@@ -515,7 +515,7 @@ bool PyResource::connect(const char* sender, const char* signal, PyObject* cb)
     if (objS) {
         SignalConnect* sc = new SignalConnect(this, cb);
         mySignals.push_back(sc);
-        return QObject::connect(objS, sigStr.toLatin1(), sc, SLOT ( onExecute() )  );
+        return QObject::connect(objS, sigStr.toUtf8(), sc, SLOT ( onExecute() )  );
     }
     else
         qWarning( "'%s' does not exist.\n", sender );
@@ -553,7 +553,7 @@ Py::Object PyResource::value(const Py::Tuple& args)
         while ( it != list.cend() ) {
             obj = *it;
             ++it;
-            if (obj->objectName() == QLatin1String(psName)) {
+            if (obj->objectName() == QString::fromUtf8(psName)) {
                 fnd = true;
                 v = obj->property(psProperty);
                 break;
@@ -573,14 +573,14 @@ Py::Object PyResource::value(const Py::Tuple& args)
             int nSize = str.count();
             Py::List slist(nSize);
             for (int i=0; i<nSize;++i) {
-                slist.setItem(i, Py::String(str[i].toLatin1()));
+                slist.setItem(i, Py::String(str[i].toUtf8()));
             }
             item = slist;
         }   break;
     case QVariant::ByteArray:
         break;
     case QVariant::String:
-        item = Py::String(v.toString().toLatin1());
+        item = Py::String(v.toString().toUtf8());
         break;
     case QVariant::Double:
         item = Py::Float(v.toDouble());
@@ -653,7 +653,7 @@ Py::Object PyResource::setValue(const Py::Tuple& args)
         while ( it != list.cend() ) {
             obj = *it;
             ++it;
-            if (obj->objectName() == QLatin1String(psName)) {
+            if (obj->objectName() == QString::fromUtf8(psName)) {
                 fnd = true;
                 obj->setProperty(psProperty, v);
                 break;

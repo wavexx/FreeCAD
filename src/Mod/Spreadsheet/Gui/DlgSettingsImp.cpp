@@ -76,14 +76,14 @@ void DlgSettingsImp::loadSettings()
     int idx = ui->delimiterComboBox->findText(delimiter, Qt::MatchFixedString);
     if(idx != -1){
         ui->delimiterComboBox->setCurrentIndex(idx);
-    } else if(delimiter.compare(QLatin1String("\\t"), Qt::CaseInsensitive) == 0){
-        idx = ui->delimiterComboBox->findText(QLatin1String("tab"), Qt::MatchFixedString);
+    } else if(delimiter.compare(QStringLiteral("\\t"), Qt::CaseInsensitive) == 0){
+        idx = ui->delimiterComboBox->findText(QStringLiteral("tab"), Qt::MatchFixedString);
         ui->delimiterComboBox->setCurrentIndex(idx);
-    } else if(delimiter.compare(QLatin1String("semicolon"), Qt::CaseInsensitive) == 0){
-        idx = ui->delimiterComboBox->findText(QLatin1String(";"), Qt::MatchFixedString);
+    } else if(delimiter.compare(QStringLiteral("semicolon"), Qt::CaseInsensitive) == 0){
+        idx = ui->delimiterComboBox->findText(QStringLiteral(";"), Qt::MatchFixedString);
         ui->delimiterComboBox->setCurrentIndex(idx);
-    } else if(delimiter.compare(QLatin1String("comma"), Qt::CaseInsensitive) == 0){
-        idx = ui->delimiterComboBox->findText(QLatin1String(","), Qt::MatchFixedString);
+    } else if(delimiter.compare(QStringLiteral("comma"), Qt::CaseInsensitive) == 0){
+        idx = ui->delimiterComboBox->findText(QStringLiteral(","), Qt::MatchFixedString);
         ui->delimiterComboBox->setCurrentIndex(idx);
     } else {
         ui->delimiterComboBox->addItem(delimiter);

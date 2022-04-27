@@ -216,7 +216,7 @@ void DlgSettingsImageImp::on_standardSizeBox_activated(int index)
     else {
         // try to extract from the string
         QString text = ui->standardSizeBox->itemText(index);
-        QRegExp rx(QLatin1String("\\b\\d{2,5}\\b"));
+        QRegExp rx(QStringLiteral("\\b\\d{2,5}\\b"));
         int pos = 0;
         pos = rx.indexIn(text, pos);
         QString w = text.mid(pos, rx.matchedLength());

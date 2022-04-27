@@ -319,7 +319,7 @@ void SheetTableView::removeAlias()
     }catch(Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to remove alias"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 }
 
@@ -357,7 +357,7 @@ void SheetTableView::editMode(QAction *action) {
     }catch(Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to set edit mode"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 }
 
@@ -376,7 +376,7 @@ void SheetTableView::onEditPersistent(bool checked) {
     }catch(Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to set edit mode"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 }
 
@@ -391,7 +391,7 @@ void SheetTableView::onRecompute() {
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to recompute cells"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 }
 
@@ -405,7 +405,7 @@ void SheetTableView::onRecomputeNoTouch() {
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to recompute cells"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 }
 
@@ -521,7 +521,7 @@ void SheetTableView::insertRows()
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to insert rows"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 
     if(updateHidden)
@@ -572,7 +572,7 @@ void SheetTableView::removeRows()
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to remove rows"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 
     if(updateHidden)
@@ -625,7 +625,7 @@ void SheetTableView::insertColumns()
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to insert columns"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 
     if(updateHidden)
@@ -675,7 +675,7 @@ void SheetTableView::removeColumns()
     } catch (Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to remove columns"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
     }
 
     if(updateHidden)
@@ -882,12 +882,12 @@ void SheetTableView::deleteSelection()
         } catch (Base::Exception &e) {
             e.ReportException();
             QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Failed to clear cells"),
-                    QString::fromLatin1(e.what()));
+                    QString::fromUtf8(e.what()));
         }
     }
 }
 
-static const QLatin1String _SheetMime("application/x-fc-spreadsheet");
+static const QString _SheetMime = QStringLiteral("application/x-fc-spreadsheet");
 
 void SheetTableView::copySelection()
 {
@@ -1020,7 +1020,7 @@ void SheetTableView::_pasteClipboard(const char *name, int type)
     }catch(Base::Exception &e) {
         e.ReportException();
         QMessageBox::critical(Gui::getMainWindow(), QObject::tr("Copy & Paste failed"),
-                QString::fromLatin1(e.what()));
+                QString::fromUtf8(e.what()));
         return;
     }
     clearSelection();

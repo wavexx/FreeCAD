@@ -96,9 +96,9 @@ PyObject* CommandPy::listByShortcut(PyObject *args)
     for (Command* c : cmds){
         Action* action = c->getAction();
         if (action){
-            QString spc = QString::fromLatin1(" ");
+            QString spc = QStringLiteral(" ");
             if(bIsRegularExp){
-               QRegExp re = QRegExp(QString::fromLatin1(shortcut_to_find));
+               QRegExp re = QRegExp(QString::fromUtf8(shortcut_to_find));
                re.setCaseSensitivity(Qt::CaseInsensitive);
                if (!re.isValid()){
                    std::stringstream str;
@@ -111,7 +111,7 @@ PyObject* CommandPy::listByShortcut(PyObject *args)
                }
             }
             else if (action->shortcut().toString().remove(spc).toUpper() ==
-                     QString::fromLatin1(shortcut_to_find).remove(spc).toUpper()) {
+                     QString::fromUtf8(shortcut_to_find).remove(spc).toUpper()) {
                 matches.push_back(c->getName());
             }
         }

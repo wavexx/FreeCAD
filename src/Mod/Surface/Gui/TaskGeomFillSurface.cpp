@@ -195,7 +195,7 @@ GeomFillSurface::GeomFillSurface(ViewProviderGeomFillSurface* vp, Surface::GeomF
 
     // Create context menu
     QAction* remove = new QAction(tr("Remove"), this);
-    remove->setShortcut(QString::fromLatin1("Del"));
+    remove->setShortcut(QStringLiteral("Del"));
     ui->listWidget->addAction(remove);
     connect(remove, SIGNAL(triggered()), this, SLOT(onDeleteEdge()));
 
@@ -256,7 +256,7 @@ void GeomFillSurface::setEditedObject(Surface::GeomFillSurface* obj)
         }
         ui->listWidget->addItem(item);
 
-        QString text = QString::fromLatin1("%1.%2")
+        QString text = QStringLiteral("%1.%2")
                 .arg(QString::fromUtf8((*it)->Label.getValue()))
                 .arg(QString::fromStdString(*jt));
         item->setText(text);
@@ -345,7 +345,7 @@ bool GeomFillSurface::accept()
         editedObject->recomputeFeature();
     if (!editedObject->isValid()) {
         QMessageBox::warning(this, tr("Invalid object"),
-            QString::fromLatin1(editedObject->getStatusString()));
+            QString::fromUtf8(editedObject->getStatusString()));
         return false;
     }
 
@@ -422,9 +422,9 @@ void GeomFillSurface::onSelectionChanged(const Gui::SelectionChanges& msg)
             ui->listWidget->addItem(item);
 
             Gui::SelectionObject sel(msg);
-            QString text = QString::fromLatin1("%1.%2")
+            QString text = QStringLiteral("%1.%2")
                     .arg(QString::fromUtf8(sel.getObject()->Label.getValue()))
-                    .arg(QString::fromLatin1(msg.pSubName));
+                    .arg(QString::fromUtf8(msg.pSubName));
             item->setText(text);
 
             QList<QVariant> data;

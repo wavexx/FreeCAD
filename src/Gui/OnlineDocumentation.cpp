@@ -86,7 +86,7 @@ QByteArray PythonOnlineHelp::loadResource(const QString& filename) const
     fn = filename.mid(1);
     QByteArray res;
 
-    if (fn == QLatin1String("favicon.ico")) {
+    if (fn == QStringLiteral("favicon.ico")) {
         // Return a resource icon in ico format
         QBuffer buffer;
         buffer.open(QBuffer::WriteOnly);
@@ -107,7 +107,7 @@ QByteArray PythonOnlineHelp::loadResource(const QString& filename) const
             }
         }
     }
-    else if (filename == QLatin1String("/")) {
+    else if (filename == QStringLiteral("/")) {
         // get the global interpreter lock otherwise the app may crash with the error
         // 'PyThreadState_Get: no current thread' (see pystate.c)
         Base::PyGILStateLocker lock;
@@ -222,7 +222,7 @@ QByteArray PythonOnlineHelp::loadResource(const QString& filename) const
 
 QByteArray PythonOnlineHelp::fileNotFound() const
 {
-    QString contentType = QString::fromLatin1(
+    QString contentType = QStringLiteral(
         "text/html\r\n"
         "\r\n"
         "<html><head><title>Error</title></head>"
@@ -242,18 +242,18 @@ QByteArray PythonOnlineHelp::fileNotFound() const
         "\r\n"
     );
 
-    QString header = QString::fromLatin1("content-type: %1\r\n").arg(contentType);
+    QString header = QStringLiteral("content-type: %1\r\n").arg(contentType);
 
-    QString http(QLatin1String("HTTP/1.1 %1 %2\r\n%3\r\n"));
-    QString httpResponseHeader = http.arg(404).arg(QLatin1String("File not found")).arg(header);
+    QString http(QStringLiteral("HTTP/1.1 %1 %2\r\n%3\r\n"));
+    QString httpResponseHeader = http.arg(404).arg(QStringLiteral("File not found")).arg(header);
 
-    QByteArray res = httpResponseHeader.toLatin1();
+    QByteArray res = httpResponseHeader.toUtf8();
     return res;
 }
 
 QByteArray PythonOnlineHelp::loadFailed(const QString& error) const
 {
-    QString contentType = QString::fromLatin1(
+    QString contentType = QStringLiteral(
         "text/html\r\n"
         "\r\n"
         "<html><head><title>Error</title></head>"
@@ -271,12 +271,12 @@ QByteArray PythonOnlineHelp::loadFailed(const QString& error) const
         "\r\n"
     ).arg(error);
 
-    QString header = QString::fromLatin1("content-type: %1\r\n").arg(contentType);
+    QString header = QStringLiteral("content-type: %1\r\n").arg(contentType);
 
-    QString http(QLatin1String("HTTP/1.1 %1 %2\r\n%3\r\n"));
-    QString httpResponseHeader = http.arg(404).arg(QLatin1String("File not found")).arg(header);
+    QString http(QStringLiteral("HTTP/1.1 %1 %2\r\n%3\r\n"));
+    QString httpResponseHeader = http.arg(404).arg(QStringLiteral("File not found")).arg(header);
 
-    QByteArray res = httpResponseHeader.toLatin1();
+    QByteArray res = httpResponseHeader.toUtf8();
     return res;
 }
 
@@ -320,8 +320,8 @@ void HttpServer::readClient()
     // corresponding HTML document from the ZIP file.
     QTcpSocket* socket = (QTcpSocket*)sender();
     if (socket->canReadLine()) {
-        QString httpRequestHeader = QString::fromLatin1(socket->readLine());
-        QStringList lst = httpRequestHeader.simplified().split(QLatin1String(" "));
+        QString httpRequestHeader = QString::fromUtf8(socket->readLine());
+        QStringList lst = httpRequestHeader.simplified().split(QStringLiteral(" "));
         QString method;
         QString path;
         if (lst.count() > 0) {
@@ -330,7 +330,7 @@ void HttpServer::readClient()
                 QString p = lst[1];
                 if (lst.count() > 2) {
                     QString v = lst[2];
-                    if (v.length() >= 8 && v.left(5) == QLatin1String("HTTP/") &&
+                    if (v.length() >= 8 && v.left(5) == QStringLiteral("HTTP/") &&
                         v[5].isDigit() && v[6] == QLatin1Char('.') && v[7].isDigit()) {
                         method = m;
                         path = p;
@@ -339,7 +339,7 @@ void HttpServer::readClient()
             }
         }
 
-        if (method == QLatin1String("GET")) {
+        if (method == QStringLiteral("GET")) {
             socket->write(help.loadResource(path));
             socket->close();
             if (socket->state() == QTcpSocket::UnconnectedState) {

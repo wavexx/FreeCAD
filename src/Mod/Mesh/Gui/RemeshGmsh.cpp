@@ -106,9 +106,9 @@ GmshWidget::GmshWidget(QWidget* parent, Qt::WindowFlags fl)
 
     d->ui.method->addItem(tr("Automatic"), static_cast<int>(Automatic));
     d->ui.method->addItem(tr("Adaptive"), static_cast<int>(MeshAdapt));
-    d->ui.method->addItem(QString::fromLatin1("Delaunay"), static_cast<int>(Delaunay));
+    d->ui.method->addItem(QStringLiteral("Delaunay"), static_cast<int>(Delaunay));
     d->ui.method->addItem(tr("Frontal"), static_cast<int>(FrontalDelaunay));
-    d->ui.method->addItem(QString::fromLatin1("BAMG"), static_cast<int>(BAMG));
+    d->ui.method->addItem(QStringLiteral("BAMG"), static_cast<int>(BAMG));
     d->ui.method->addItem(tr("Frontal Quad"), static_cast<int>(FrontalDelaunayForQuads));
     d->ui.method->addItem(tr("Parallelograms"), static_cast<int>(PackingOfParallelograms));
 }
@@ -172,11 +172,11 @@ void GmshWidget::accept()
         // ./gmsh - -bin -2 /tmp/mesh.geo -o /tmp/best.stl
         QString proc = d->ui.fileChooser->fileName();
         QStringList args;
-        args << QLatin1String("-")
-             << QLatin1String("-bin")
-             << QLatin1String("-2")
+        args << QStringLiteral("-")
+             << QStringLiteral("-bin")
+             << QStringLiteral("-2")
              << inpFile
-             << QLatin1String("-o")
+             << QStringLiteral("-o")
              << outFile;
         d->gmsh.start(proc, args);
 
@@ -237,7 +237,7 @@ void GmshWidget::finished(int /*exitCode*/, QProcess::ExitStatus exitStatus)
     if (d->label)
         d->label->close();
 
-    d->ui.labelTime->setText(QString::fromLatin1("%1 %2 ms").arg(tr("Time:")).arg(d->time.elapsed()));
+    d->ui.labelTime->setText(QStringLiteral("%1 %2 ms").arg(tr("Time:")).arg(d->time.elapsed()));
     if (exitStatus == QProcess::NormalExit) {
         loadOutput();
     }

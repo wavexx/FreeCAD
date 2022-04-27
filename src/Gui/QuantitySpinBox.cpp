@@ -360,7 +360,7 @@ void QuantitySpinBox::setBoundToByName(const QString &name)
         App::Document *doc = App::GetApplication().getActiveDocument();
         QStringList list = name.split(QLatin1Char('#'));
         if (list.size() > 1) {
-            doc = App::GetApplication().getDocument(list.front().toLatin1());
+            doc = App::GetApplication().getDocument(list.front().toUtf8());
             list.pop_front();
         }
 
@@ -373,7 +373,7 @@ void QuantitySpinBox::setBoundToByName(const QString &name)
         list = list.front().split(QLatin1Char('.'));
 
         // get object
-        App::DocumentObject* obj = doc->getObject(list.front().toLatin1());
+        App::DocumentObject* obj = doc->getObject(list.front().toUtf8());
         if (!obj) {
             qDebug() << "No object " << list.front() << " in document";
             return;
@@ -386,7 +386,7 @@ void QuantitySpinBox::setBoundToByName(const QString &name)
         path.setDocumentObjectName(std::string(obj->getNameInDocument()), true);
 
         for (QStringList::iterator it = list.begin(); it != list.end(); ++it) {
-            path << App::ObjectIdentifier::SimpleComponent(it->toLatin1().constData());
+            path << App::ObjectIdentifier::SimpleComponent(it->toUtf8().constData());
         }
 
         if (path.getProperty())
@@ -712,7 +712,7 @@ QString QuantitySpinBox::getUserString(const Base::Quantity& val, double& factor
     if (!d->userUnitStr.isEmpty()) {
         factor = d->userScale;
         unitString = d->userUnitStr;
-        return QString::fromLatin1("%1 %2").arg(
+        return QStringLiteral("%1 %2").arg(
                 locale().toString(val.getValue() / factor, 'f', decimals()), unitString);
     }
     else if (d->scheme) {
@@ -785,7 +785,7 @@ QSize QuantitySpinBox::sizeHint() const
     int w = 0;
 
     QString s;
-    QString fixedContent = QLatin1String(" ");
+    QString fixedContent = QStringLiteral(" ");
 
     Base::Quantity q(d->quantity);
     q.setValue(d->maximum);
@@ -819,7 +819,7 @@ QSize QuantitySpinBox::minimumSizeHint() const
     int w = 0;
 
     QString s;
-    QString fixedContent = QLatin1String(" ");
+    QString fixedContent = QStringLiteral(" ");
 
     Base::Quantity q(d->quantity);
     q.setValue(d->maximum);

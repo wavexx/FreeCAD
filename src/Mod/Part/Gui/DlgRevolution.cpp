@@ -220,7 +220,7 @@ void DlgRevolution::setAxisLink(const char* objname, const char* subname)
     if(objname && strlen(objname) > 0){
         QString txt = QString::fromUtf8(objname);
         if (subname && strlen(subname) > 0){
-            txt = txt + QString::fromLatin1(":") + QString::fromUtf8(subname);
+            txt = txt + QStringLiteral(":") + QString::fromUtf8(subname);
         }
         ui->txtAxisLink->setText(txt);
     } else {
@@ -385,7 +385,7 @@ void DlgRevolution::accept()
         for (QList<QTreeWidgetItem *>::iterator it = items.begin(); it != items.end(); ++it) {
             shape = (*it)->data(0, Qt::UserRole).toString();
             type = QStringLiteral("Part::Revolution");
-            name = QString::fromLatin1(activeDoc->getUniqueObjectName("Revolve").c_str());
+            name = QString::fromUtf8(activeDoc->getUniqueObjectName("Revolve").c_str());
             Base::Vector3d axis = this->getDirection();
             Base::Vector3d pos = this->getPosition();
 

@@ -156,16 +156,16 @@ void SoFCOffscreenRenderer::writeToImageFile(const char* filename, const char* c
             QImage img = image;
             // set keywords for PNG format
             if (file.hasExtension("PNG")) {
-                img.setText(QLatin1String("Title"), QString::fromUtf8(filename));
-                img.setText(QLatin1String("Author"), QLatin1String("FreeCAD (http://www.freecadweb.org)"));
+                img.setText(QStringLiteral("Title"), QString::fromUtf8(filename));
+                img.setText(QStringLiteral("Author"), QStringLiteral("FreeCAD (http://www.freecadweb.org)"));
                 if (strcmp(comment,"")==0)
-                    img.setText(QLatin1String("Description"), QLatin1String("Screenshot created by FreeCAD"));
+                    img.setText(QStringLiteral("Description"), QStringLiteral("Screenshot created by FreeCAD"));
                 else if (strcmp(comment,"$MIBA")==0)
-                    img.setText(QLatin1String("Description"), QLatin1String(createMIBA(mat).c_str()));
+                    img.setText(QStringLiteral("Description"), QString::fromUtf8(createMIBA(mat).c_str()));
                 else
-                    img.setText(QLatin1String("Description"), QString::fromUtf8(comment));
-                img.setText(QLatin1String("Creation Time"), QDateTime::currentDateTime().toString());
-                img.setText(QLatin1String("Software"),
+                    img.setText(QStringLiteral("Description"), QString::fromUtf8(comment));
+                img.setText(QStringLiteral("Creation Time"), QDateTime::currentDateTime().toString());
+                img.setText(QStringLiteral("Software"),
                     QString::fromUtf8(App::GetApplication().getExecutableName()));
             }
 
@@ -247,7 +247,7 @@ QStringList SoFCOffscreenRenderer::getWriteImageFiletypeInfo()
         getWriteFiletypeInfo(i, extlist, fullname, description);
 
         for (int j=0; j < extlist.getLength(); j++) {
-            QString ext = QLatin1String((const char*) extlist[j]);
+            QString ext = QString::fromUtf8((const char*) extlist[j]);
             if (formats.indexOf(ext.toUpper()) == -1)
                 formats << ext.toUpper();
         }
@@ -257,15 +257,15 @@ QStringList SoFCOffscreenRenderer::getWriteImageFiletypeInfo()
     QList<QByteArray> qtformats = QImageWriter::supportedImageFormats();
     for (QList<QByteArray>::Iterator it = qtformats.begin(); it != qtformats.end(); ++it) {
         // not supported? then append
-        if (!isWriteSupported((*it).data()) && formats.indexOf(QLatin1String(*it)) == -1)
-            formats << QLatin1String(*it);
+        if (!isWriteSupported((*it).data()) && formats.indexOf(QString::fromUtf8(*it)) == -1)
+            formats << QString::fromUtf8(*it);
     }
 
     // now add PostScript and SGI RGB
-    if (formats.indexOf(QLatin1String("EPS")) == -1)
-        formats << QLatin1String("EPS");
-    else if (formats.indexOf(QLatin1String("SGI")) == -1)
-        formats << QLatin1String("SGI");
+    if (formats.indexOf(QStringLiteral("EPS")) == -1)
+        formats << QStringLiteral("EPS");
+    else if (formats.indexOf(QStringLiteral("SGI")) == -1)
+        formats << QStringLiteral("SGI");
 
     formats.sort();
 
@@ -295,7 +295,7 @@ std::string SoFCOffscreenRenderer::createMIBA(const SbMatrix& mat) const
     com << " </View>\n" ;
     com << " <Source>\n" ;
     com << "  <Creator>Unknown</Creator>\n" ;
-    com << "  <CreationDate>" << QDateTime::currentDateTime().toString().toLatin1().constData() << "</CreationDate>\n" ;
+    com << "  <CreationDate>" << QDateTime::currentDateTime().toString().toUtf8().constData() << "</CreationDate>\n" ;
     com << "  <CreatingSystem>" << App::GetApplication().getExecutableName() << " " << major << "." << minor << "</CreatingSystem>\n" ;
     com << "  <PartNumber>Unknown</PartNumber>\n";
     com << "  <Revision>1.0</Revision>\n";
@@ -826,7 +826,7 @@ QStringList SoQtOffscreenRenderer::getWriteImageFiletypeInfo() const
 
     QStringList formats;
     for (QList<QByteArray>::Iterator it = qtformats.begin(); it != qtformats.end(); ++it) {
-        formats << QLatin1String(*it);
+        formats << QString::fromUtf8(*it);
     }
     formats.sort();
     return formats;

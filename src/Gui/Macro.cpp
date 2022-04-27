@@ -90,8 +90,8 @@ void MacroManager::open(MacroType eType, const char *sName)
 
     // Convert from Utf-8
     this->macroName = QString::fromUtf8(sName);
-    if (!this->macroName.endsWith(QLatin1String(".FCMacro")))
-        this->macroName += QLatin1String(".FCMacro");
+    if (!this->macroName.endsWith(QStringLiteral(".FCMacro")))
+        this->macroName += QStringLiteral(".FCMacro");
 
     this->macroInProgress.clear();
     this->openMacro = true;
@@ -107,14 +107,14 @@ void MacroManager::commit(void)
         // sort import lines and avoid duplicates
         QTextStream str(&file);
         QStringList import;
-        import << QString::fromLatin1("import FreeCAD");
+        import << QStringLiteral("import FreeCAD");
         QStringList body;
 
         QStringList::Iterator it;
         for (it = this->macroInProgress.begin(); it != this->macroInProgress.end(); ++it )
         {
-            if ((*it).startsWith(QLatin1String("import ")) ||
-                (*it).startsWith(QLatin1String("#import ")))
+            if ((*it).startsWith(QStringLiteral("import ")) ||
+                (*it).startsWith(QStringLiteral("#import ")))
             {
                 if (import.indexOf(*it) == -1)
                     import.push_back(*it);
@@ -126,14 +126,14 @@ void MacroManager::commit(void)
         }
 
         QString header;
-        header += QString::fromLatin1("# -*- coding: utf-8 -*-\n\n");
-        header += QString::fromLatin1("# Macro Begin: ");
+        header += QStringLiteral("# -*- coding: utf-8 -*-\n\n");
+        header += QStringLiteral("# Macro Begin: ");
         header += this->macroName;
-        header += QString::fromLatin1(" +++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        header += QStringLiteral(" +++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
-        QString footer = QString::fromLatin1("# Macro End: ");
+        QString footer = QStringLiteral("# Macro End: ");
         footer += this->macroName;
-        footer += QString::fromLatin1(" +++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        footer += QStringLiteral(" +++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
         // write the data to the text file
         str << header;
@@ -202,11 +202,11 @@ void MacroManager::addLine(LineType Type, const char* sLine, bool pending)
             record = false;
     }
 
-    QStringList lines = QString::fromUtf8(sLine).split(QLatin1String("\n"));
+    QStringList lines = QString::fromUtf8(sLine).split(QStringLiteral("\n"));
     if (comment) {
         for (auto &line : lines) {
-            if(!line.startsWith(QLatin1String("#")))
-                line.prepend(QLatin1String("# "));
+            if(!line.startsWith(QStringLiteral("#")))
+                line.prepend(QStringLiteral("# "));
         }
     }
 
@@ -229,7 +229,7 @@ void MacroManager::setModule(const char* sModule)
 {
     if (this->openMacro && sModule && *sModule != '\0')
     {
-        this->macroInProgress.append(QString::fromLatin1("import %1").arg(QString::fromLatin1(sModule)));
+        this->macroInProgress.append(QStringLiteral("import %1").arg(QString::fromUtf8(sModule)));
     }
 }
 

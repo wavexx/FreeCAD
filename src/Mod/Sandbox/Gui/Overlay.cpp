@@ -60,7 +60,7 @@ public:
         {
             QPainter p(&img);
             p.setPen(Qt::white);
-            p.drawText(200,200,QString::fromLatin1("Render to QImage"));
+            p.drawText(200,200,QStringLiteral("Render to QImage"));
         }
 
 #if !defined(HAVE_QT5_OPENGL)
@@ -74,7 +74,7 @@ public:
 #if !defined(HAVE_QT5_OPENGL)
             QPainter p(fbo);
             p.setPen(Qt::white);
-            p.drawText(200,200,QString::fromLatin1("Render to QtGLFramebufferObject"));
+            p.drawText(200,200,QStringLiteral("Render to QtGLFramebufferObject"));
             p.end();
 #endif
             //img = fbo->toImage();
@@ -505,7 +505,7 @@ void DrawingPlane::terminate()
     SoGLRenderAction a(SbViewportRegion(128,128));
     a.apply(_pcView3D->getSoRenderManager()->getSceneGraph());
     fbo->release();
-    fbo->toImage().save(QString::fromLatin1("C:/Temp/DrawingPlane.png"));
+    fbo->toImage().save(QStringLiteral("C:/Temp/DrawingPlane.png"));
     delete fbo;
 }
 

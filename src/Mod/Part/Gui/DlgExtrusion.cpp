@@ -197,7 +197,7 @@ void DlgExtrusion::on_btnSelectEdge_clicked()
                 features_to_hide.append(QString::fromUtf8(obj->getNameInDocument()));
                 features_to_hide.append(QStringLiteral(", \n"));
             }
-            QByteArray code_2 = code.arg(features_to_hide).toLatin1();
+            QByteArray code_2 = code.arg(features_to_hide).toUtf8();
             Base::Interpreter().runString(code_2.constData());
         } catch (Base::PyException &e){
             e.ReportException();
@@ -443,8 +443,8 @@ void DlgExtrusion::apply()
             name = sourceObj->getDocument()->getUniqueObjectName("Extrude").c_str();
             if (addBaseName) {
                 //FIXME: implement
-                //QString baseName = QString::fromLatin1("Extrude_%1").arg(sourceObjectName);
-                //label = QString::fromLatin1("%1_Extrude").arg((*it)->text(0));
+                //QString baseName = QStringLiteral("Extrude_%1").arg(sourceObjectName);
+                //label = QStringLiteral("%1_Extrude").arg((*it)->text(0));
             }
 
             FCMD_OBJ_DOC_CMD(sourceObj,"addObject('Part::Extrusion','" << name << "')");
@@ -537,7 +537,7 @@ void DlgExtrusion::getAxisLink(App::PropertyLinkSub& lnk) const
         lnk.setValue(nullptr);
     } else {
         QStringList parts = text.split(QChar::fromLatin1(':'));
-        App::DocumentObject* obj = App::GetApplication().getActiveDocument()->getObject(parts[0].toLatin1());
+        App::DocumentObject* obj = App::GetApplication().getActiveDocument()->getObject(parts[0].toUtf8());
         if(!obj){
             throw Base::ValueError(tr("Object not found: %1").arg(parts[0]).toUtf8().constData());
         }
@@ -546,7 +546,7 @@ void DlgExtrusion::getAxisLink(App::PropertyLinkSub& lnk) const
             return;
         } else if (parts.size() == 2) {
             std::vector<std::string> subs;
-            subs.push_back(std::string(parts[1].toLatin1().constData()));
+            subs.push_back(std::string(parts[1].toUtf8().constData()));
             lnk.setValue(obj,subs);
         }
     }

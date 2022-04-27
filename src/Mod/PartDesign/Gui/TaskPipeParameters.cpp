@@ -334,7 +334,7 @@ void TaskPipeParameters::onItemEntered(QListWidgetItem *item)
     if (!vp)
         return;
     PartDesign::Pipe* pipe = static_cast<PartDesign::Pipe*>(vp->getObject());
-    App::SubObjectT objT(pipe->Spine.getValue(), item->text().toLatin1().constData());
+    App::SubObjectT objT(pipe->Spine.getValue(), item->text().toUtf8().constData());
     PartDesignGui::highlightObjectOnTop(objT);
 }
 
@@ -352,7 +352,7 @@ void TaskPipeParameters::onItemSelectionChanged()
         Gui::Selection().clearSelection();
     }
     for (auto item : items) {
-        objT.setSubName(item->text().toLatin1().constData());
+        objT.setSubName(item->text().toUtf8().constData());
         PartDesignGui::selectObjectOnTop(objT, true);
     }
 }
@@ -485,7 +485,7 @@ void TaskPipeParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
                 && !boost::starts_with(msg.pSubName, "Wire"))
             break;
 
-        QString element = QString::fromLatin1(msg.pSubName);
+        QString element = QString::fromUtf8(msg.pSubName);
         auto items = ui->listWidgetReferences->findItems(element, Qt::MatchExactly);
         if (items.isEmpty()) {
             auto item = new QListWidgetItem(element, ui->listWidgetReferences);
@@ -579,7 +579,7 @@ void TaskPipeParameters::onDeleteEdge()
 
     // Delete the selected path edge
     for (auto item : ui->listWidgetReferences->selectedItems()) {
-        auto element = item->text().toLatin1();
+        auto element = item->text().toUtf8();
         subs.erase(std::remove(subs.begin(), subs.end(), element.constData()), subs.end());
         delete item;
     }
@@ -695,7 +695,7 @@ void TaskPipeOrientation::onItemSelectionChanged()
         Gui::Selection().clearSelection();
     }
     for (auto item : items) {
-        objT.setSubName(item->text().toLatin1().constData());
+        objT.setSubName(item->text().toUtf8().constData());
         PartDesignGui::selectObjectOnTop(objT, true);
     }
 }
@@ -705,7 +705,7 @@ void TaskPipeOrientation::onItemEntered(QListWidgetItem *item)
     if (!vp)
         return;
     PartDesign::Pipe* pipe = static_cast<PartDesign::Pipe*>(vp->getObject());
-    App::SubObjectT objT(pipe->AuxillerySpine.getValue(), item->text().toLatin1().constData());
+    App::SubObjectT objT(pipe->AuxillerySpine.getValue(), item->text().toUtf8().constData());
     PartDesignGui::highlightObjectOnTop(objT);
 }
 
@@ -920,7 +920,7 @@ void TaskPipeOrientation::onSelectionChanged(const SelectionChanges& msg) {
                 && !boost::starts_with(msg.pSubName, "Wire"))
             break;
 
-        QString element = QString::fromLatin1(msg.pSubName);
+        QString element = QString::fromUtf8(msg.pSubName);
         auto items = ui->listWidgetReferences->findItems(element, Qt::MatchExactly);
         if (items.isEmpty()) {
             auto item = new QListWidgetItem(element, ui->listWidgetReferences);
@@ -956,7 +956,7 @@ void TaskPipeOrientation::onDeleteItem()
 
     // Delete the selected path edge
     for (auto item : ui->listWidgetReferences->selectedItems()) {
-        auto element = item->text().toLatin1();
+        auto element = item->text().toUtf8();
         subs.erase(std::remove(subs.begin(), subs.end(), element.constData()), subs.end());
         delete item;
     }

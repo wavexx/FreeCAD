@@ -94,7 +94,7 @@ private:
                 }
             }
 
-            if (ext == QLatin1String("pov") || ext == QLatin1String("inc")) {
+            if (ext == QStringLiteral("pov") || ext == QStringLiteral("inc")) {
                 Gui::TextEditor* editor = new Gui::TextEditor();
                 editor->setSyntaxHighlighter(new PovrayHighlighter(editor));
                 Gui::EditorView* edit = new Gui::EditorView(editor, Gui::getMainWindow());

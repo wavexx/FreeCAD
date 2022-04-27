@@ -377,7 +377,7 @@ Application::Application(bool GUIenabled)
         ParameterGrp::handle hPGrp = App::GetApplication().GetUserParameter().GetGroup("BaseApp");
         hPGrp = hPGrp->GetGroup("Preferences")->GetGroup("General");
         QString lang = QLocale::languageToString(QLocale().language());
-        Translator::instance()->activateLanguage(hPGrp->GetASCII("Language", (const char*)lang.toLatin1()).c_str());
+        Translator::instance()->activateLanguage(hPGrp->GetASCII("Language", (const char*)lang.toUtf8()).c_str());
         GetWidgetFactorySupplier();
 
         // Coin3d disabled VBO support for all Intel drivers but in the meantime they have improved
@@ -391,8 +391,8 @@ Application::Application(bool GUIenabled)
         // Qt doesn't work properly.
 #if defined(Q_OS_WIN32)
         if (QLocale().groupSeparator() == QLocale().decimalPoint()) {
-            QMessageBox::critical(0, QLatin1String("Invalid system settings"),
-                QLatin1String("Your system uses the same symbol for decimal point and group separator.\n\n"
+            QMessageBox::critical(0, QStringLiteral("Invalid system settings"),
+                QStringLiteral("Your system uses the same symbol for decimal point and group separator.\n\n"
                               "This causes serious problems and makes the application fail to work properly.\n"
                               "Go to the system configuration panel of the OS and fix this issue, please."));
             throw Base::RuntimeError("Invalid system settings");
@@ -635,7 +635,7 @@ void Application::open(const char* FileName, const char* Module)
     else {
         wc.restoreCursor();
         QMessageBox::warning(getMainWindow(), QObject::tr("Unknown filetype"),
-            QObject::tr("Cannot open unknown filetype: %1").arg(QLatin1String(te.c_str())));
+            QObject::tr("Cannot open unknown filetype: %1").arg(QString::fromUtf8(te.c_str())));
         wc.setWaitCursor();
         return;
     }
@@ -755,7 +755,7 @@ void Application::importFrom(const char* FileName, const char* DocName, const ch
     else {
         wc.restoreCursor();
         QMessageBox::warning(getMainWindow(), QObject::tr("Unknown filetype"),
-            QObject::tr("Cannot open unknown filetype: %1").arg(QLatin1String(te.c_str())));
+            QObject::tr("Cannot open unknown filetype: %1").arg(QString::fromUtf8(te.c_str())));
         wc.setWaitCursor();
     }
 }
@@ -822,7 +822,7 @@ void Application::exportTo(const char* FileName, const char* DocName, const char
     else {
         wc.restoreCursor();
         QMessageBox::warning(getMainWindow(), QObject::tr("Unknown filetype"),
-            QObject::tr("Cannot save to unknown filetype: %1").arg(QLatin1String(te.c_str())));
+            QObject::tr("Cannot save to unknown filetype: %1").arg(QString::fromUtf8(te.c_str())));
         wc.setWaitCursor();
     }
 }
@@ -1533,7 +1533,7 @@ bool Application::activateWorkbench(const char* name)
             ok = true; // already active
         // now try to create and activate the matching workbench object
         else if (WorkbenchManager::instance()->activate(name, type)) {
-            getMainWindow()->activateWorkbench(QString::fromLatin1(name));
+            getMainWindow()->activateWorkbench(QString::fromUtf8(name));
             this->signalActivateWorkbench(name);
             ok = true;
         }
@@ -1599,7 +1599,7 @@ bool Application::activateWorkbench(const char* name)
         QString msg = QString::fromUtf8(errMsg.c_str());
         QRegExp rx;
         // ignore '<type 'exceptions.ImportError'>' prefixes
-        rx.setPattern(QLatin1String("^\\s*<type 'exceptions.ImportError'>:\\s*"));
+        rx.setPattern(QStringLiteral("^\\s*<type 'exceptions.ImportError'>:\\s*"));
         int pos = rx.indexIn(msg);
         while ( pos != -1 ) {
             msg = msg.mid(rx.matchedLength());
@@ -1620,12 +1620,12 @@ QPixmap Application::workbenchIcon(const QString& wb) const
 {
     Base::PyGILStateLocker lock;
     // get the python workbench object from the dictionary
-    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toLatin1());
+    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toUtf8());
     // test if the workbench exists
     if (pcWorkbench) {
         // make a unique icon name
         std::stringstream str;
-        str << "Icon_" << wb.toLatin1().constData();
+        str << "Icon_" << wb.toUtf8().constData();
         std::string iconName = str.str();
         QPixmap icon;
         if (BitmapFactory().findPixmapInCache(iconName.c_str(), icon))
@@ -1694,7 +1694,7 @@ QString Application::workbenchToolTip(const QString& wb) const
 {
     // get the python workbench object from the dictionary
     Base::PyGILStateLocker lock;
-    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toLatin1());
+    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toUtf8());
     // test if the workbench exists
     if (pcWorkbench) {
         // get its ToolTip member if possible
@@ -1718,7 +1718,7 @@ QString Application::workbenchMenuText(const QString& wb) const
 {
     // get the python workbench object from the dictionary
     Base::PyGILStateLocker lock;
-    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toLatin1());
+    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toUtf8());
     // test if the workbench exists
     if (pcWorkbench) {
         // get its ToolTip member if possible
@@ -1749,24 +1749,24 @@ QStringList Application::workbenches(void) const
     const char* start = (st != config.end() ? st->second.c_str() : "<none>");
     QStringList hidden, extra;
     if (ht != config.end()) {
-        QString items = QString::fromLatin1(ht->second.c_str());
+        QString items = QString::fromUtf8(ht->second.c_str());
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
         hidden = items.split(QLatin1Char(';'), Qt::SkipEmptyParts);
 #else
         hidden = items.split(QLatin1Char(';'), QString::SkipEmptyParts);
 #endif
         if (hidden.isEmpty())
-            hidden.push_back(QLatin1String(""));
+            hidden.push_back(QStringLiteral(""));
     }
     if (et != config.end()) {
-        QString items = QString::fromLatin1(et->second.c_str());
+        QString items = QString::fromUtf8(et->second.c_str());
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
         extra = items.split(QLatin1Char(';'), Qt::SkipEmptyParts);
 #else
         extra = items.split(QLatin1Char(';'), QString::SkipEmptyParts);
 #endif
         if (extra.isEmpty())
-            extra.push_back(QLatin1String(""));
+            extra.push_back(QStringLiteral(""));
     }
 
     PyObject *key, *value;
@@ -1779,18 +1779,18 @@ QStringList Application::workbenches(void) const
         // add only allowed workbenches
         bool ok = true;
         if (!extra.isEmpty()&&ok) {
-            ok = (extra.indexOf(QString::fromLatin1(wbName)) != -1);
+            ok = (extra.indexOf(QString::fromUtf8(wbName)) != -1);
         }
         if (!hidden.isEmpty()&&ok) {
-            ok = (hidden.indexOf(QString::fromLatin1(wbName)) == -1);
+            ok = (hidden.indexOf(QString::fromUtf8(wbName)) == -1);
         }
 
         // okay the item is visible
         if (ok)
-            wb.push_back(QString::fromLatin1(wbName));
+            wb.push_back(QString::fromUtf8(wbName));
         // also allow start workbench in case it is hidden
         else if (strcmp(wbName, start) == 0)
-            wb.push_back(QString::fromLatin1(wbName));
+            wb.push_back(QString::fromUtf8(wbName));
     }
 
     return wb;
@@ -1907,7 +1907,7 @@ void messageHandlerCoin(const SoError * error, void * /*userdata*/)
         }
 #ifdef FC_OS_WIN32
     if (old_qtmsg_handler)
-        (*old_qtmsg_handler)(QtDebugMsg, QMessageLogContext(), QString::fromLatin1(msg));
+        (*old_qtmsg_handler)(QtDebugMsg, QMessageLogContext(), QString::fromUtf8(msg));
 #endif
     }
     else if (error) {
@@ -2115,7 +2115,7 @@ void postAppSetup()
 
     QString plugin;
     plugin = QString::fromUtf8(App::GetApplication().getHomePath());
-    plugin += QLatin1String("/plugins");
+    plugin += QStringLiteral("/plugins");
     QCoreApplication::addLibraryPath(plugin);
 
     Render::RendererFactory::setResourcePath(App::Application::getResourceDir() + "Renderer");
@@ -2124,8 +2124,8 @@ void postAppSetup()
     QStringList qssPaths;
     qssPaths << QString::fromUtf8((App::Application::getUserAppDataDir() + "Gui/Stylesheets/").c_str())
              << QString::fromUtf8((App::Application::getResourceDir() + "Gui/Stylesheets/").c_str())
-             << QLatin1String(":/stylesheets");
-    QDir::setSearchPaths(QString::fromLatin1("qss"), qssPaths);
+             << QStringLiteral(":/stylesheets");
+    QDir::setSearchPaths(QStringLiteral("qss"), qssPaths);
 
     // setup the search paths for Qt overlay style sheets
     QStringList qssOverlayPaths;
@@ -2133,7 +2133,7 @@ void postAppSetup()
                         + "Gui/Stylesheets/overlay").c_str())
                     << QString::fromUtf8((App::Application::getResourceDir()
                         + "Gui/Stylesheets/overlay").c_str());
-    QDir::setSearchPaths(QString::fromLatin1("overlay"), qssOverlayPaths);
+    QDir::setSearchPaths(QStringLiteral("overlay"), qssOverlayPaths);
 
     // setup the search paths for view menu style sheets
     QStringList qssMenuPaths;
@@ -2141,19 +2141,19 @@ void postAppSetup()
                         + "Gui/Stylesheets/menu").c_str())
                  << QString::fromUtf8((App::Application::getResourceDir()
                         + "Gui/Stylesheets/menu").c_str());
-    QDir::setSearchPaths(QString::fromLatin1("qssm"), qssMenuPaths);
+    QDir::setSearchPaths(QStringLiteral("qssm"), qssMenuPaths);
 
     QStringList iconSetPaths;
     iconSetPaths << QString::fromUtf8((App::Application::getUserAppDataDir()
                         + "Gui/IconSets").c_str());
-    QDir::setSearchPaths(QString::fromLatin1("iconset"), iconSetPaths);
+    QDir::setSearchPaths(QStringLiteral("iconset"), iconSetPaths);
 
     // set search paths for images
     QStringList imagePaths;
     imagePaths << QString::fromUtf8((App::Application::getUserAppDataDir() + "Gui/images").c_str())
                << QString::fromUtf8((App::Application::getUserAppDataDir() + "pixmaps").c_str())
-               << QLatin1String(":/icons");
-    QDir::setSearchPaths(QString::fromLatin1("images"), imagePaths);
+               << QStringLiteral(":/icons");
+    QDir::setSearchPaths(QStringLiteral("images"), imagePaths);
 
     // register action style event type
     ActionStyleEvent::EventType = QEvent::registerEventType(QEvent::User + 1);
@@ -2194,8 +2194,8 @@ void postAppSetup()
 
     ParameterGrp::handle hTheme = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Bitmaps/Theme");
 #if !defined(Q_OS_LINUX)
-    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QString::fromLatin1(":/icons/FreeCAD-default"));
-    QIcon::setThemeName(QLatin1String("FreeCAD-default"));
+    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral(":/icons/FreeCAD-default"));
+    QIcon::setThemeName(QStringLiteral("FreeCAD-default"));
 #else
     // Option to opt-out from using a Linux desktop icon theme.
     // https://forum.freecadweb.org/viewtopic.php?f=4&t=35624
@@ -2209,7 +2209,7 @@ void postAppSetup()
         QStringList searchPaths;
         searchPaths.prepend(QString::fromUtf8(":/icons"));
         QIcon::setThemeSearchPaths(searchPaths);
-        QIcon::setThemeName(QLatin1String("FreeCAD-default"));
+        QIcon::setThemeName(QStringLiteral("FreeCAD-default"));
     }
 #endif
 
@@ -2222,7 +2222,7 @@ void postAppSetup()
 
     std::string name = hTheme->GetASCII("Name");
     if (!name.empty()) {
-        QIcon::setThemeName(QString::fromLatin1(name.c_str()));
+        QIcon::setThemeName(QString::fromUtf8(name.c_str()));
     }
 
 #if defined(FC_OS_LINUX)
@@ -2244,9 +2244,9 @@ void postMainWindowSetup(MainWindow &mw)
     if (showVersion) {
         // set main window title with FreeCAD Version
         std::map<std::string, std::string>& config = App::Application::Config();
-        QString major  = QString::fromLatin1(config["BuildVersionMajor"].c_str());
-        QString minor  = QString::fromLatin1(config["BuildVersionMinor"].c_str());
-        QString title = QString::fromLatin1("%1 %2.%3").arg(qApp->applicationName(), major, minor);
+        QString major  = QString::fromUtf8(config["BuildVersionMajor"].c_str());
+        QString minor  = QString::fromUtf8(config["BuildVersionMinor"].c_str());
+        QString title = QStringLiteral("%1 %2.%3").arg(qApp->applicationName(), major, minor);
         mw.setWindowTitle(title);
     } else {
         mw.setWindowTitle(qApp->applicationName());
@@ -2376,7 +2376,7 @@ void postMainWindowSetup(MainWindow &mw)
     // if the auto workbench is not visible then force to use the default workbech
     // and replace the wrong entry in the parameters
     QStringList wb = Application::Instance->workbenches();
-    if (!wb.contains(QString::fromLatin1(start.c_str()))) {
+    if (!wb.contains(QString::fromUtf8(start.c_str()))) {
         start = App::Application::Config()["StartWorkbench"];
         if ("$LastModule" == autoload) {
             App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/General")->
@@ -2408,7 +2408,7 @@ void postMainWindowSetup(MainWindow &mw)
             style = it->second;
     }
 
-    Application::Instance->setStyleSheet(QLatin1String(style.c_str()),
+    Application::Instance->setStyleSheet(QString::fromUtf8(style.c_str()),
             hGrp->GetBool("TiledBackground", false));
 
 #if QT_VERSION >= 0x050600 && defined(Q_OS_WIN32)
@@ -2436,7 +2436,7 @@ void postMainWindowSetup(MainWindow &mw)
     std::stringstream stream(autoloadCSV);
     std::string workbench;
     while (std::getline(stream, workbench, ','))
-        if (wb.contains(QString::fromLatin1(workbench.c_str())))
+        if (wb.contains(QString::fromUtf8(workbench.c_str())))
             Application::Instance->initializeWorkbench(workbench.c_str());
 
     _ApplicationStartUp = false;
@@ -2631,7 +2631,7 @@ void Application::setStyleSheet(const QString& qssFile, bool tiledBackground)
     auto hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/MainWindow");
     QString iconSet = QString::fromUtf8(hGrp->GetASCII("IconSet").c_str());
     if (!iconSet.isEmpty()) {
-        QString prefix(QLatin1String("iconset:"));
+        QString prefix(QStringLiteral("iconset:"));
         QFile f;
         if (QFile::exists(iconSet)) {
             f.setFileName(iconSet);
@@ -2653,7 +2653,7 @@ void Application::setStyleSheet(const QString& qssFile, bool tiledBackground)
     if (!qssFile.isEmpty()) {
         // Search for stylesheet in user-defined search paths.
         // For qss they are set-up in runApplication() with the prefix "qss"
-        QString prefix(QLatin1String("qss:"));
+        QString prefix(QStringLiteral("qss:"));
 
         QFile f;
         if (QFile::exists(qssFile)) {
@@ -2698,7 +2698,7 @@ void Application::setStyleSheet(const QString& qssFile, bool tiledBackground)
             qApp->setStyleSheet(QString());
             ActionStyleEvent e(ActionStyleEvent::Restore);
             qApp->sendEvent(getMainWindow(), &e);
-            mdi->setBackground(QPixmap(QLatin1String("images:background.png")));
+            mdi->setBackground(QPixmap(QStringLiteral("images:background.png")));
         }
         else {
             qApp->setStyleSheet(QString());

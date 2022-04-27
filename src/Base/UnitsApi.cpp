@@ -58,7 +58,7 @@ using namespace Base;
 //    // check limits
 //    assert(t<9);
 //    // returns
-//    return QString::fromLatin1(QuantityNames[t]);
+//    return QString::fromUtf8(QuantityNames[t]);
 //}
 // === static attributes  ================================================
 double UnitsApi::defaultFactor = 1.0;
@@ -156,7 +156,7 @@ void UnitsApi::setSchema(UnitSystem s)
 
 QString UnitsApi::toString(const Base::Quantity& q, const QuantityFormat& f)
 {
-    QString value = QString::fromLatin1("'%1 %2'").arg(q.getValue(), 0, f.toFormat(), f.precision+2)
+    QString value = QStringLiteral("'%1 %2'").arg(q.getValue(), 0, f.toFormat(), f.precision+2)
                                                   .arg(q.getUnit().getString());
     return value;
 }
@@ -168,7 +168,7 @@ QString UnitsApi::toNumber(const Base::Quantity& q, const QuantityFormat& f)
 
 QString UnitsApi::toNumber(double d, const QuantityFormat& f)
 {
-    QString number = QString::fromLatin1("%1").arg(d, 0, f.toFormat(), f.precision+1);
+    QString number = QStringLiteral("%1").arg(d, 0, f.toFormat(), f.precision+1);
     return number;
 }
 
@@ -197,7 +197,7 @@ QString UnitsApi::schemaTranslate(const Base::Quantity& quant, double &factor, Q
 //{
 //    return UserPrefSystem->toStrWithUserPrefs(t,Value);
 //    //double UnitValue = Value/UserPrefFactor[t];
-//    //return QString::fromLatin1("%1 %2").arg(UnitValue).arg(UserPrefUnit[t]);
+//    //return QStringLiteral("%1 %2").arg(UnitValue).arg(UserPrefUnit[t]);
 //}
 //
 //void UnitsApi::toStrWithUserPrefs(QuantityType t,double Value,QString &outValue,QString &outUnit)

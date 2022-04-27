@@ -48,7 +48,7 @@ public:
         /* Icon for f(x) */
         QFontMetrics fm(parent->font());
         iconHeight = fm.height() + 2;
-        setStyleSheet(QString::fromLatin1(
+        setStyleSheet(QStringLiteral(
                     "QLabel { border: none;"
                             " padding: 0px;"
                             " width: %1px;"
@@ -58,10 +58,10 @@ public:
         if (parent->parentWidget()) {
             const std::string & trigger = Gui::ExprParams::EditorTrigger();
             if (trigger.size() == 1) {
-                shortcutKey = QString::fromLatin1(trigger.c_str());
+                shortcutKey = QString::fromUtf8(trigger.c_str());
                 parent->parentWidget()->installEventFilter(this);
             } else {
-                QKeySequence seq(QLatin1String(trigger.c_str()));
+                QKeySequence seq(QString::fromUtf8(trigger.c_str()));
                 if (!seq.isEmpty()) {
                     shortcut = new QShortcut(seq, parent->parentWidget());
                     connect(shortcut, SIGNAL(activated()), this, SIGNAL(clicked()));
@@ -79,7 +79,7 @@ public:
             if (icn.isNull())
                 icn = Gui::BitmapFactory().pixmapFromSvg("bound-expression.svg", QSize(64, 64));
             icon = icn;
-            stylesheet = QString::fromLatin1("QLineEdit { padding-right: %1px } ").arg(getOffset()+1);
+            stylesheet = QStringLiteral("QLineEdit { padding-right: %1px } ").arg(getOffset()+1);
             show();
         } else {
             static QIcon icn;

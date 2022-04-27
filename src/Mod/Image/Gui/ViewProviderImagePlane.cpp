@@ -128,7 +128,7 @@ std::vector<std::string> ViewProviderImagePlane::getDisplayModes(void) const
 bool ViewProviderImagePlane::loadSvg(const char* filename, float x, float y, QImage& img)
 {
     QFileInfo fi(QString::fromUtf8(filename));
-    if (fi.suffix().toLower() == QLatin1String("svg")) {
+    if (fi.suffix().toLower() == QStringLiteral("svg")) {
         QPixmap px = BitmapFactory().pixmapFromSvg(filename, QSize((int)x,(int)y));
         img = px.toImage();
         return true;

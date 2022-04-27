@@ -784,11 +784,11 @@ std::string DrawViewDimension::formatValue(qreal value, QString qFormatSpec, int
         // neverheless limited. To keep old drawings, we limit the number of decimals too
         // if the TD preferences option to use the global decimal number is set
         // the formatSpecifier can have a prefix and/or suffix
-        if (useDecimals() && formatSpecifier.contains(QString::fromLatin1("%g"), Qt::CaseInsensitive)) {
+        if (useDecimals() && formatSpecifier.contains(QStringLiteral("%g"), Qt::CaseInsensitive)) {
                 int globalPrecision = Base::UnitsApi::getDecimals();
                 // change formatSpecifier to e.g. "%.2f"
                 QString newSpecifier = QString::fromStdString("%." + std::to_string(globalPrecision) + "f");
-                formatSpecifier.replace(QString::fromLatin1("%g"), newSpecifier, Qt::CaseInsensitive);
+                formatSpecifier.replace(QStringLiteral("%g"), newSpecifier, Qt::CaseInsensitive);
         }
 
         // qUserString is the value + unit with default decimals, so extract the unit
@@ -802,7 +802,7 @@ std::string DrawViewDimension::formatValue(qreal value, QString qFormatSpec, int
         // get value in the base unit with default decimals
         // for the conversion we use the same method as in DlgUnitsCalculator::valueChanged
         // get the conversion factor for the unit
-        double convertValue = Base::Quantity::parse(QString::fromLatin1("1") + QString::fromStdString(BaseLengthUnit)).getValue();
+        double convertValue = Base::Quantity::parse(QStringLiteral("1") + QString::fromStdString(BaseLengthUnit)).getValue();
         // the result is now just val / convertValue because val is always in the base unit
         // don't do this for angular values since they are not in the BaseLengthUnit
         double userVal;
@@ -859,7 +859,7 @@ std::string DrawViewDimension::formatValue(qreal value, QString qFormatSpec, int
     else if (partial == 2) {             // just the unit
         if (angularMeasure) {
             // remove space between dimension and unit if unit is not "deg"
-            if ( !qUserStringUnits.contains(QString::fromLatin1("deg")) ) {
+            if ( !qUserStringUnits.contains(QStringLiteral("deg")) ) {
                 QRegExp space(QString::fromUtf8("\\s"));
                 qUserStringUnits.remove(space);
             }

@@ -1316,7 +1316,7 @@ bool Cell::setEditData(const QVariant &d) {
         if(oldHash.isEmpty()) {
             if(q == qvariant_cast<Base::Quantity>(oldData))
                 return false;
-        } else if (q == qvariant_cast<Base::Quantity>(oldHash[QLatin1String("value")]))
+        } else if (q == qvariant_cast<Base::Quantity>(oldHash[QStringLiteral("value")]))
             return false;
         
         auto parent = Base::freecad_dynamic_cast<App::DocumentObject>(owner->getContainer());
@@ -1410,7 +1410,7 @@ QVariant Cell::getEditData(bool silent) const {
                 else if(isUsed(ALIAS_SET))
                     return QString::fromUtf8(alias.c_str());
                 else
-                    return QString::fromLatin1(address.toString().c_str());
+                    return QString::fromUtf8(address.toString().c_str());
             } catch (Py::Exception &) {
                 Base::PyException e;
                 if(!silent)
@@ -1492,19 +1492,19 @@ QVariant Cell::getEditData(bool silent) const {
                 if(!isUsed(DISPLAY_UNIT_SET))
                     return QVariant::fromValue(q);
                 QHash<QString, QVariant> map;
-                map[QString::fromLatin1("value")] = QVariant::fromValue(q);
-                map[QString::fromLatin1("unit")] = QString::fromUtf8(displayUnit.stringRep.c_str());
-                map[QString::fromLatin1("scale")] = displayUnit.scaler;
+                map[QStringLiteral("value")] = QVariant::fromValue(q);
+                map[QStringLiteral("unit")] = QString::fromUtf8(displayUnit.stringRep.c_str());
+                map[QStringLiteral("scale")] = displayUnit.scaler;
                 return map;
             }
         } else if (listExpr->getSize()>=1) {
             QHash<QString, QVariant> map;
             Base::Quantity q;
             App::pyToQuantity(q, listExpr->getItems()[0]->getPyValue());
-            map[QString::fromLatin1("value")] = QVariant::fromValue(q);
+            map[QStringLiteral("value")] = QVariant::fromValue(q);
             if(isUsed(DISPLAY_UNIT_SET)) {
-                map[QString::fromLatin1("unit")] = QString::fromUtf8(displayUnit.stringRep.c_str());
-                map[QString::fromLatin1("scale")] = displayUnit.scaler;
+                map[QStringLiteral("unit")] = QString::fromUtf8(displayUnit.stringRep.c_str());
+                map[QStringLiteral("scale")] = displayUnit.scaler;
             }
 
             if(listExpr->getSize()==1)
@@ -1524,7 +1524,7 @@ QVariant Cell::getEditData(bool silent) const {
                     }
                     Py::Object pyItem = Py::asObject(item);
                     if(PyFloat_Check(item)) {
-                        map[QString::fromLatin1(key)] = PyFloat_AsDouble(item);
+                        map[QString::fromUtf8(key)] = PyFloat_AsDouble(item);
                         return true;
                     }
                     return false;
@@ -1538,17 +1538,17 @@ QVariant Cell::getEditData(bool silent) const {
                     Py::Object pyItem = Py::asObject(item);
                     PropertyString tmp;
                     tmp.setPyObject(item);
-                    map[QString::fromLatin1(key)] = QString::fromUtf8(tmp.getValue());
+                    map[QString::fromUtf8(key)] = QString::fromUtf8(tmp.getValue());
                     return true;
                 };
                 getDoubleKey("step");
                 getDoubleKey("max");
                 getDoubleKey("min");
                 if (getStringKey("unit")) {
-                    QString text = map[QString::fromLatin1("unit")].toString();
+                    QString text = map[QStringLiteral("unit")].toString();
                     auto e = App::Expression::parseUnit(owner->sheet(), text.toUtf8().constData());
                     UnitExpression *expr = static_cast<UnitExpression*>(e.get());
-                    map[QString::fromLatin1("scale")] = expr->getScaler();
+                    map[QStringLiteral("scale")] = expr->getScaler();
                 }
                 return map;
             } catch (Py::Exception &) {
@@ -1634,7 +1634,7 @@ QVariant Cell::getDisplayData(bool silent) const {
         auto res = getEditData(silent);
         auto hash = res.toHash();
         Base::Quantity q;
-        auto iter = hash.find(QString::fromLatin1("value"));
+        auto iter = hash.find(QStringLiteral("value"));
         if(iter == hash.end())
             q = qvariant_cast<Base::Quantity>(res);
         else
@@ -1685,7 +1685,7 @@ Py::Object Cell::getPyValue() const {
         auto res = getEditData(true);
         auto hash = res.toHash();
         Base::Quantity q;
-        auto iter = hash.find(QString::fromLatin1("value"));
+        auto iter = hash.find(QStringLiteral("value"));
         if(iter == hash.end())
             q = qvariant_cast<Base::Quantity>(res);
         else

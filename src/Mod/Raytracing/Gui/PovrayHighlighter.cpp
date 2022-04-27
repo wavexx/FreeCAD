@@ -36,18 +36,18 @@ class PovrayHighlighterP
 public:
     PovrayHighlighterP()
     {
-        keywords << QLatin1String("include") << QLatin1String("if")
-                 << QLatin1String("ifdef") << QLatin1String("ifndef")
-                 << QLatin1String("switch") << QLatin1String("while")
-                 << QLatin1String("macro") << QLatin1String("else")
-                 << QLatin1String("end") << QLatin1String("declare")
-                 << QLatin1String("local") << QLatin1String("undef")
-                 << QLatin1String("fopen") << QLatin1String("fclose")
-                 << QLatin1String("read") << QLatin1String("write")
-                 << QLatin1String("default") << QLatin1String("version")
-                 << QLatin1String("debug") << QLatin1String("case")
-                 << QLatin1String("range") << QLatin1String("break")
-                 << QLatin1String("error") << QLatin1String("warning");
+        keywords << QStringLiteral("include") << QStringLiteral("if")
+                 << QStringLiteral("ifdef") << QStringLiteral("ifndef")
+                 << QStringLiteral("switch") << QStringLiteral("while")
+                 << QStringLiteral("macro") << QStringLiteral("else")
+                 << QStringLiteral("end") << QStringLiteral("declare")
+                 << QStringLiteral("local") << QStringLiteral("undef")
+                 << QStringLiteral("fopen") << QStringLiteral("fclose")
+                 << QStringLiteral("read") << QStringLiteral("write")
+                 << QStringLiteral("default") << QStringLiteral("version")
+                 << QStringLiteral("debug") << QStringLiteral("case")
+                 << QStringLiteral("range") << QStringLiteral("break")
+                 << QStringLiteral("error") << QStringLiteral("warning");
 ;
     }
 
@@ -80,22 +80,22 @@ void PovrayHighlighter::highlightBlock(const QString &text)
     for (int i = 0; i < text.length(); ++i) {
  
         if (state == InsideCStyleComment) {
-            if (text.mid(i, 2) == QLatin1String("*/")) {
+            if (text.mid(i, 2) == QStringLiteral("*/")) {
                 state = NormalState;
                 setFormat(start, i - start + 2, this->colorByType(SyntaxHighlighter::BlockComment));
             }
         }
         else {
-            if (text.mid(i, 2) == QLatin1String("//")) {
+            if (text.mid(i, 2) == QStringLiteral("//")) {
                 setFormat(i, text.length() - i, this->colorByType(SyntaxHighlighter::Comment));
                 break;
             }
-            else if (text.mid(i, 2) == QLatin1String("/*")) {
+            else if (text.mid(i, 2) == QStringLiteral("/*")) {
                 start = i;
                 state = InsideCStyleComment;
             }
-            else if (text.mid(i,1) == QLatin1String("#")) {
-                QRegExp rx(QLatin1String("#\\s*(\\w*)"));
+            else if (text.mid(i,1) == QStringLiteral("#")) {
+                QRegExp rx(QStringLiteral("#\\s*(\\w*)"));
                 int pos = text.indexOf(rx, i);
                 if (pos != -1) {
                     if (d->keywords.contains(rx.cap(1)) != 0)

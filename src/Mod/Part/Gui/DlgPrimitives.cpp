@@ -166,7 +166,7 @@ public:
         Handle(Geom_TrimmedCurve) trim = arc.Value();
         Handle(Geom_Circle) circle = Handle(Geom_Circle)::DownCast(trim->BasisCurve());
 
-        QString name = QString::fromLatin1(doc->getUniqueObjectName("Circle").c_str());
+        QString name = QString::fromUtf8(doc->getUniqueObjectName("Circle").c_str());
         return QStringLiteral(
             "App.ActiveDocument.addObject(\"Part::Circle\",\"%1\")\n"
             "App.ActiveDocument.%1.Radius=%2\n"
@@ -1039,67 +1039,67 @@ void DlgPrimitives::createPrimitive(const QString& placement)
             return;
         }
         if (ui->PrimitiveTypeCB->currentIndex() == 0) {         // plane
-            name = QString::fromLatin1(doc->getUniqueObjectName("Plane").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Plane").c_str());
             cmd = createPlane(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 1) {         // box
-            name = QString::fromLatin1(doc->getUniqueObjectName("Box").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Box").c_str());
             cmd = createBox(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 2) {  // cylinder
-            name = QString::fromLatin1(doc->getUniqueObjectName("Cylinder").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Cylinder").c_str());
             cmd = createCylinder(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 3) {  // cone
-            name = QString::fromLatin1(doc->getUniqueObjectName("Cone").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Cone").c_str());
             cmd = createCone(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 4) {  // sphere
-            name = QString::fromLatin1(doc->getUniqueObjectName("Sphere").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Sphere").c_str());
             cmd = createSphere(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 5) {  // ellipsoid
-            name = QString::fromLatin1(doc->getUniqueObjectName("Ellipsoid").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Ellipsoid").c_str());
             cmd = createEllipsoid(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 6) {  // torus
-            name = QString::fromLatin1(doc->getUniqueObjectName("Torus").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Torus").c_str());
             cmd = createTorus(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 7) {  // prism
-            name = QString::fromLatin1(doc->getUniqueObjectName("Prism").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Prism").c_str());
             cmd = createPrism(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 8) {  // wedge
-            name = QString::fromLatin1(doc->getUniqueObjectName("Wedge").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Wedge").c_str());
             cmd = createWedge(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 9) {  // helix
-            name = QString::fromLatin1(doc->getUniqueObjectName("Helix").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Helix").c_str());
             cmd = createHelix(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 10) {  // spiral
-            name = QString::fromLatin1(doc->getUniqueObjectName("Spiral").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Spiral").c_str());
             cmd = createSpiral(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 11) {  // circle
-            name = QString::fromLatin1(doc->getUniqueObjectName("Circle").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Circle").c_str());
             cmd = createCircle(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 12) {  // ellipse
-            name = QString::fromLatin1(doc->getUniqueObjectName("Ellipse").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Ellipse").c_str());
             cmd = createEllipse(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 13) {  // vertex
-            name = QString::fromLatin1(doc->getUniqueObjectName("Vertex").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Vertex").c_str());
             cmd = createVertex(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 14) {  // line
-            name = QString::fromLatin1(doc->getUniqueObjectName("Line").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("Line").c_str());
             cmd = createLine(name, placement);
         }
         else if (ui->PrimitiveTypeCB->currentIndex() == 15) {  // RegularPolygon
-            name = QString::fromLatin1(doc->getUniqueObjectName("RegularPolygon").c_str());
+            name = QString::fromUtf8(doc->getUniqueObjectName("RegularPolygon").c_str());
             cmd = createRegularPolygon(name, placement);
         }
 
@@ -1119,7 +1119,7 @@ void DlgPrimitives::createPrimitive(const QString& placement)
 
 QString DlgPrimitives::changePlane(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Length=%2\n"
         "%1.Width=%3\n"
         "%1.Placement=%4\n")
@@ -1131,7 +1131,7 @@ QString DlgPrimitives::changePlane(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::changeBox(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Length=%2\n"
         "%1.Width=%3\n"
         "%1.Height=%4\n"
@@ -1145,7 +1145,7 @@ QString DlgPrimitives::changeBox(const QString& objectName, const QString& place
 
 QString DlgPrimitives::changeCylinder(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius=%2\n"
         "%1.Height=%3\n"
         "%1.Angle=%4\n"
@@ -1159,7 +1159,7 @@ QString DlgPrimitives::changeCylinder(const QString& objectName, const QString& 
 
 QString DlgPrimitives::changeCone(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius1=%2\n"
         "%1.Radius2=%3\n"
         "%1.Height=%4\n"
@@ -1175,7 +1175,7 @@ QString DlgPrimitives::changeCone(const QString& objectName, const QString& plac
 
 QString DlgPrimitives::changeSphere(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius=%2\n"
         "%1.Angle1=%3\n"
         "%1.Angle2=%4\n"
@@ -1191,7 +1191,7 @@ QString DlgPrimitives::changeSphere(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::changeEllipsoid(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius1=%2\n"
         "%1.Radius2=%3\n"
         "%1.Radius3=%4\n"
@@ -1211,7 +1211,7 @@ QString DlgPrimitives::changeEllipsoid(const QString& objectName, const QString&
 
 QString DlgPrimitives::changeTorus(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius1=%2\n"
         "%1.Radius2=%3\n"
         "%1.Angle1=%4\n"
@@ -1229,7 +1229,7 @@ QString DlgPrimitives::changeTorus(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::changePrism(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Polygon=%2\n"
         "%1.Circumradius=%3\n"
         "%1.Height=%4\n"
@@ -1247,7 +1247,7 @@ QString DlgPrimitives::changePrism(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::changeWedge(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Xmin=%2\n"
         "%1.Ymin=%3\n"
         "%1.Zmin=%4\n"
@@ -1275,7 +1275,7 @@ QString DlgPrimitives::changeWedge(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::changeHelix(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Pitch=%2\n"
         "%1.Height=%3\n"
         "%1.Radius=%4\n"
@@ -1293,7 +1293,7 @@ QString DlgPrimitives::changeHelix(const QString& objectName, const QString& pla
 
 QString DlgPrimitives::changeSpiral(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Growth=%2\n"
         "%1.Rotations=%3\n"
         "%1.Radius=%4\n"
@@ -1307,7 +1307,7 @@ QString DlgPrimitives::changeSpiral(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::changeCircle(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Radius=%2\n"
         "%1.Angle0=%3\n"
         "%1.Angle1=%4\n"
@@ -1321,7 +1321,7 @@ QString DlgPrimitives::changeCircle(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::changeEllipse(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.MajorRadius=%2\n"
         "%1.MinorRadius=%3\n"
         "%1.Angle0=%4\n"
@@ -1337,7 +1337,7 @@ QString DlgPrimitives::changeEllipse(const QString& objectName, const QString& p
 
 QString DlgPrimitives::changeVertex(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.X=%2\n"
         "%1.Y=%3\n"
         "%1.Z=%4\n"
@@ -1351,7 +1351,7 @@ QString DlgPrimitives::changeVertex(const QString& objectName, const QString& pl
 
 QString DlgPrimitives::changeLine(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.X1=%2\n"
         "%1.Y1=%3\n"
         "%1.Z1=%4\n"
@@ -1371,7 +1371,7 @@ QString DlgPrimitives::changeLine(const QString& objectName, const QString& plac
 
 QString DlgPrimitives::changeRegularPolygon(const QString& objectName, const QString& placement) const
 {
-    return QString::fromLatin1(
+    return QStringLiteral(
         "%1.Polygon=%2\n"
         "%1.Circumradius=%3\n"
         "%1.Placement=%4\n")

@@ -178,7 +178,7 @@ QList<App::SubObjectT> DlgPropertyLink::getLinksFromProperty(const App::Property
 QString DlgPropertyLink::formatObject(App::Document *ownerDoc, App::DocumentObject *obj, const char *sub)
 {
     if(!obj || !obj->getNameInDocument())
-        return QLatin1String("?");
+        return QStringLiteral("?");
 
     const char *objName = obj->getNameInDocument();
     std::string _objName;
@@ -190,16 +190,16 @@ QString DlgPropertyLink::formatObject(App::Document *ownerDoc, App::DocumentObje
     if(!sub || !sub[0]) {
         if(obj->Label.getStrValue() == obj->getNameInDocument())
             return QString::fromUtf8(objName);
-        return QString::fromLatin1("%1 (%2)").arg(QString::fromUtf8(objName),
+        return QStringLiteral("%1 (%2)").arg(QString::fromUtf8(objName),
                                                   QString::fromUtf8(obj->Label.getValue()));
     }
 
     auto sobj = obj->getSubObject(sub);
     if(!sobj || sobj->Label.getStrValue() == sobj->getNameInDocument())
-        return QString::fromLatin1("%1.%2").arg(QString::fromUtf8(objName),
+        return QStringLiteral("%1.%2").arg(QString::fromUtf8(objName),
                                                 QString::fromUtf8(sub));
 
-    return QString::fromLatin1("%1.%2 (%3)").arg(QString::fromUtf8(objName),
+    return QStringLiteral("%1.%2 (%3)").arg(QString::fromUtf8(objName),
                                                  QString::fromUtf8(sub),
                                                  QString::fromUtf8(sobj->Label.getValue()));
 }
@@ -233,7 +233,7 @@ void DlgPropertyLink::setItemLabel(QTreeWidgetItem *item, std::size_t idx) {
             item->setBackground(0, QBrush());
         item->setFont(0, ui->treeWidget->font());
     } else {
-        item->setText(0, QString::fromLatin1("%1: %2").arg(idx).arg(label));
+        item->setText(0, QStringLiteral("%1: %2").arg(idx).arg(label));
         if (item != searchItem)
             item->setBackground(0, selBrush);
         item->setFont(0, selFont);
@@ -247,7 +247,7 @@ QString DlgPropertyLink::formatLinks(App::Document *ownerDoc, QList<App::SubObje
 
     auto obj = links.front().getObject();
     if(!obj)
-        return QLatin1String("?");
+        return QStringLiteral("?");
 
     if(links.size() == 1 && links.front().getSubName().empty())
         return formatObject(ownerDoc, links.front());
@@ -260,9 +260,9 @@ QString DlgPropertyLink::formatLinks(App::Document *ownerDoc, QList<App::SubObje
             if( ++i >= 3)
                 break;
         }
-        return QString::fromLatin1("%1 [%2%3]").arg(formatObject(ownerDoc,obj,0),
-                                                    list.join(QLatin1String(", ")),
-                                                    QLatin1String(links.size()>3?" ...":""));
+        return QStringLiteral("%1 [%2%3]").arg(formatObject(ownerDoc,obj,0),
+                                               list.join(QStringLiteral(", ")),
+                    links.size() > 3 ? QStringLiteral(" ...") : QStringLiteral(""));
     }
 
     int i = 0;
@@ -271,8 +271,8 @@ QString DlgPropertyLink::formatLinks(App::Document *ownerDoc, QList<App::SubObje
         if( ++i >= 3)
             break;
     }
-    return QString::fromLatin1("[%1%2]").arg(list.join(QLatin1String(", ")),
-                                             QLatin1String(links.size()>3?" ...":""));
+    return QStringLiteral("[%1%2]").arg(list.join(QStringLiteral(", ")),
+                    links.size() > 3 ? QStringLiteral(" ...") : QStringLiteral(""));
 }
 
 void DlgPropertyLink::setTypeFilter(std::set<QByteArray> &&filter)
@@ -840,14 +840,14 @@ QTreeWidgetItem *DlgPropertyLink::selectionChanged(const Gui::SelectionChanges& 
 
     if(allowSubObject || (flags & AllowSubElement)) {
         if(element.size()) {
-            QString e = QString::fromLatin1(element.c_str());
+            QString e = QString::fromUtf8(element.c_str());
             QStringList list;
             QString text = item->text(1);
             if(text.size())
                 list = text.split(QLatin1Char(','));
             if(list.indexOf(e)<0) {
                 list << e;
-                item->setText(1, list.join(QLatin1String(",")));
+                item->setText(1, list.join(QStringLiteral(",")));
                 if (checked)
                     linkChanged();
             }
@@ -933,7 +933,7 @@ DlgPropertyLink::getLinkFromItem(QTreeWidgetItem *item, bool needElement) const
         res.append(App::SubObjectT());
         res.last() = App::SubObjectT(sobj.getDocumentName().c_str(),
                                      sobj.getObjectName().c_str(),
-                                     (sobj.getSubName() + element.toLatin1().constData()).c_str());
+                                     (sobj.getSubName() + element.toUtf8().constData()).c_str());
     }
     return res;
 }
@@ -953,11 +953,11 @@ void DlgPropertyLink::onTimer() {
             QString txt = item->text(1);
             if (txt.size()) {
                 const auto &fm = ui->treeWidget->fontMetrics();
-                int sepWidth = QtTools::horizontalAdvance(fm, QString::fromLatin1(","));
+                int sepWidth = QtTools::horizontalAdvance(fm, QStringLiteral(","));
                 for (auto &e : txt.split(QLatin1Char(','))) {
                     int w = QtTools::horizontalAdvance(fm, e);
                     if (pos.x() < offset + w) {
-                        element = e.toLatin1().constData();
+                        element = e.toUtf8().constData();
                         break;
                     }
                     offset += w + sepWidth;
@@ -1001,10 +1001,10 @@ QList<App::SubObjectT> DlgPropertyLink::originalLinks() const
 
 QString DlgPropertyLink::linksToPython(QList<App::SubObjectT> links) {
     if(links.isEmpty())
-        return QLatin1String("None");
+        return QStringLiteral("None");
 
     if(links.size() == 1)
-        return QString::fromLatin1(links.front().getSubObjectPython(false).c_str());
+        return QString::fromUtf8(links.front().getSubObjectPython(false).c_str());
 
     std::ostringstream ss;
 
@@ -1023,7 +1023,7 @@ QString DlgPropertyLink::linksToPython(QList<App::SubObjectT> links) {
         ss << ']';
     }
 
-    return QString::fromLatin1(ss.str().c_str());
+    return QString::fromUtf8(ss.str().c_str());
 }
 
 void DlgPropertyLink::filterObjects()
@@ -1246,7 +1246,7 @@ QTreeWidgetItem *DlgPropertyLink::createTypeItem(Base::Type type) {
     else
         item = new QTreeWidgetItem(item);
     item->setExpanded(true);
-    item->setText(0, QString::fromLatin1(type.getName()));
+    item->setText(0, QString::fromUtf8(type.getName()));
     if(type == App::DocumentObject::getClassTypeId())
         item->setFlags(Qt::ItemIsEnabled);
     return item;
@@ -1259,7 +1259,7 @@ bool DlgPropertyLink::filterType(QTreeWidgetItem *item) {
         auto &pitem = typeItems[proxyType];
         if(!pitem) {
             pitem = new QTreeWidgetItem(ui->typeTree);
-            pitem->setText(0,QString::fromLatin1(proxyType));
+            pitem->setText(0,QString::fromUtf8(proxyType));
             pitem->setIcon(0,item->icon(0));
             pitem->setData(0,Qt::UserRole,proxyType);
         }

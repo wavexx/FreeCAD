@@ -48,8 +48,8 @@ namespace Gui {
 namespace Dialog {
 QByteArray toParamEntry(QString name)
 {
-    name.replace(QString::fromLatin1(" "), QString::fromLatin1("_"));
-    return name.toLatin1();
+    name.replace(QStringLiteral(" "), QStringLiteral("_"));
+    return name.toUtf8();
 }
 
 void DlgCheckableMessageBox::showMessage(const QString& header, const QString& message, bool check, const QString& checkText)
@@ -72,7 +72,7 @@ void DlgCheckableMessageBox::showMessage(const QString& header, const QString& m
 void DlgCheckableMessageBox::showMessage(const QString& header, const QString& message, const QString& prefPath, const QString& paramEntry,
                                          bool entryDefault, bool check, const QString& checkText)
 {
-    bool checked = App::GetApplication().GetParameterGroupByPath(prefPath.toLatin1())->GetBool(paramEntry.toLatin1(), entryDefault);
+    bool checked = App::GetApplication().GetParameterGroupByPath(prefPath.toUtf8())->GetBool(paramEntry.toUtf8(), entryDefault);
 
     if(checked == entryDefault) {
         auto mb = new Gui::Dialog::DlgCheckableMessageBox(Gui::getMainWindow());
@@ -99,7 +99,7 @@ struct DlgCheckableMessageBoxPrivate {
 DlgCheckableMessageBox::DlgCheckableMessageBox(QWidget *parent) :
     QDialog(parent),
     m_d(new DlgCheckableMessageBoxPrivate),
-    prefPath(QLatin1String("User parameter:BaseApp/CheckMessages"))
+    prefPath(QStringLiteral("User parameter:BaseApp/CheckMessages"))
 {
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -118,7 +118,7 @@ DlgCheckableMessageBox::~DlgCheckableMessageBox()
 void DlgCheckableMessageBox::setPrefEntry(const QString& entry)
 {
     paramEntry = toParamEntry(entry);
-    bool checked = App::GetApplication().GetParameterGroupByPath(prefPath.toLatin1())->GetBool(paramEntry);
+    bool checked = App::GetApplication().GetParameterGroupByPath(prefPath.toUtf8())->GetBool(paramEntry);
     setChecked(checked);
 }
 
@@ -221,14 +221,14 @@ void DlgCheckableMessageBox::setDefaultButton(QDialogButtonBox::StandardButton s
 void DlgCheckableMessageBox::accept()
 {
     if(!paramEntry.isEmpty())
-        App::GetApplication().GetParameterGroupByPath(prefPath.toLatin1())->SetBool(paramEntry,isChecked());
+        App::GetApplication().GetParameterGroupByPath(prefPath.toUtf8())->SetBool(paramEntry,isChecked());
     QDialog::accept();
 }
 
 void DlgCheckableMessageBox::reject()
 {
     if(!paramEntry.isEmpty())
-        App::GetApplication().GetParameterGroupByPath(prefPath.toLatin1())->SetBool(paramEntry,isChecked());
+        App::GetApplication().GetParameterGroupByPath(prefPath.toUtf8())->SetBool(paramEntry,isChecked());
     QDialog::reject();
 }
 

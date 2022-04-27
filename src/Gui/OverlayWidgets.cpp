@@ -373,21 +373,21 @@ OverlayTabWidget::OverlayTabWidget(QWidget *parent, Qt::DockWidgetArea pos)
     hide();
 
     actTransparent.setCheckable(true);
-    actTransparent.setData(QString::fromLatin1("OBTN Transparent"));
+    actTransparent.setData(QStringLiteral("OBTN Transparent"));
     actTransparent.setParent(this);
     addAction(&actTransparent);
 
-    actAutoHide.setData(QString::fromLatin1("OBTN AutoHide"));
+    actAutoHide.setData(QStringLiteral("OBTN AutoHide"));
 
-    actEditHide.setData(QString::fromLatin1("OBTN EditHide"));
+    actEditHide.setData(QStringLiteral("OBTN EditHide"));
 
-    actEditShow.setData(QString::fromLatin1("OBTN EditShow"));
+    actEditShow.setData(QStringLiteral("OBTN EditShow"));
 
-    actTaskShow.setData(QString::fromLatin1("OBTN TaskShow"));
+    actTaskShow.setData(QStringLiteral("OBTN TaskShow"));
 
-    actNoAutoMode.setData(QString::fromLatin1("OBTN NoAutoMode"));
+    actNoAutoMode.setData(QStringLiteral("OBTN NoAutoMode"));
 
-    actAutoMode.setData(QString::fromLatin1("OBTN AutoMode"));
+    actAutoMode.setData(QStringLiteral("OBTN AutoMode"));
     actAutoMode.setParent(this);
     autoModeMenu.hide();
     autoModeMenu.setToolTipsVisible(true);
@@ -418,7 +418,7 @@ OverlayTabWidget::OverlayTabWidget(QWidget *parent, Qt::DockWidgetArea pos)
         pxIncrease = QIcon(QPixmap(bytes));
     }
     actIncrease.setIcon(pxIncrease);
-    actIncrease.setData(QString::fromLatin1("OBTN Increase"));
+    actIncrease.setData(QStringLiteral("OBTN Increase"));
     actIncrease.setParent(this);
     // addAction(&actIncrease);
 
@@ -442,11 +442,11 @@ OverlayTabWidget::OverlayTabWidget(QWidget *parent, Qt::DockWidgetArea pos)
         pxDecrease = QIcon(QPixmap(bytes));
     }
     actDecrease.setIcon(pxDecrease);
-    actDecrease.setData(QString::fromLatin1("OBTN Decrease"));
+    actDecrease.setData(QStringLiteral("OBTN Decrease"));
     actDecrease.setParent(this);
     // addAction(&actDecrease);
 
-    actOverlay.setData(QString::fromLatin1("OBTN Overlay"));
+    actOverlay.setData(QStringLiteral("OBTN Overlay"));
     actOverlay.setParent(this);
     addAction(&actOverlay);
 
@@ -769,7 +769,7 @@ void OverlayTabWidget::restore(ParameterGrp::handle handle)
     if (!parentWidget())
         return;
     std::string widgets = handle->GetASCII("Widgets","");
-    for(auto &name : QString::fromLatin1(widgets.c_str()).split(QLatin1Char(','))) {
+    for(auto &name : QString::fromUtf8(widgets.c_str()).split(QLatin1Char(','))) {
         if(name.isEmpty())
             continue;
         OverlayManager::instance()->registerDockWidget(name, this);
@@ -814,12 +814,12 @@ void OverlayTabWidget::restore(ParameterGrp::handle handle)
     std::string savedSizes = handle->GetASCII("Sizes","");
     QList<int> sizes;
     int idx = 0;
-    for(auto &size : QString::fromLatin1(savedSizes.c_str()).split(QLatin1Char(','))) {
+    for(auto &size : QString::fromUtf8(savedSizes.c_str()).split(QLatin1Char(','))) {
         sizes.append(size.toInt());
         _sizemap[dockWidget(idx++)] = sizes.back();
     }
 
-    FC_LOG("restore " << objectName().toLatin1().constData() << " " << savedSizes);
+    FC_LOG("restore " << objectName().toUtf8().constData() << " " << savedSizes);
 
     getSplitter()->setSizes(sizes);
     hGrp = handle;
@@ -839,7 +839,7 @@ void OverlayTabWidget::saveTabs()
         if (!dock)
             continue;
         if(dock->objectName().size()) {
-            os << dock->objectName().toLatin1().constData() << ",";
+            os << dock->objectName().toUtf8().constData() << ",";
             if (first)
                 first = false;
             else
@@ -851,7 +851,7 @@ void OverlayTabWidget::saveTabs()
     Base::StateLocker lock(_saving);
     hGrp->SetASCII("Widgets", os.str().c_str());
     hGrp->SetASCII("Sizes", os2.str().c_str());
-    FC_LOG("save " << objectName().toLatin1().constData() << " " << os2.str());
+    FC_LOG("save " << objectName().toUtf8().constData() << " " << os2.str());
 }
 
 void OverlayTabWidget::onTabMoved(int from, int to)
@@ -1101,14 +1101,14 @@ public:
     }
 
     void update() {
-        QString mainstyle = QString::fromLatin1(handle->GetASCII("StyleSheet").c_str());
+        QString mainstyle = QString::fromUtf8(handle->GetASCII("StyleSheet").c_str());
 
         QString prefix;
        
         if(!mainstyle.isEmpty()) {
-            int dark = mainstyle.indexOf(QLatin1String("dark"),0,Qt::CaseInsensitive);
-            prefix = QString::fromLatin1("overlay:%1").arg(
-                    dark<0 ? QLatin1String("Light") : QLatin1String("Dark"));
+            int dark = mainstyle.indexOf(QStringLiteral("dark"),0,Qt::CaseInsensitive);
+            prefix = QStringLiteral("overlay:%1").arg(
+                    dark<0 ? QStringLiteral("Light") : QStringLiteral("Dark"));
         }
 
         QString name;
@@ -1117,9 +1117,9 @@ public:
         if(ViewParams::getDockOverlayExtraState()) {
             name = QString::fromUtf8(handle->GetASCII("OverlayOnStyleSheet").c_str());
             if(name.isEmpty() && !prefix.isEmpty())
-                name = prefix + QLatin1String("-on.qss");
+                name = prefix + QStringLiteral("-on.qss");
             else if (!QFile::exists(name))
-                name = QString::fromLatin1("overlay:%1").arg(name);
+                name = QStringLiteral("overlay:%1").arg(name);
             if(QFile::exists(name)) {
                 QFile f(name);
                 if(f.open(QFile::ReadOnly)) {
@@ -1128,7 +1128,7 @@ public:
                 }
             }
             if(onStyleSheet.isEmpty()) {
-                static QLatin1String _default(
+                static QString _default = QStringLiteral(
                     "* { background-color: transparent;"
                         "border: 1px solid palette(dark);"
                         "alternate-background-color: rgba(255,255,255,100)}"
@@ -1144,9 +1144,9 @@ public:
 
         name = QString::fromUtf8(handle->GetASCII("OverlayOffStyleSheet").c_str());
         if(name.isEmpty() && !prefix.isEmpty())
-            name = prefix + QLatin1String("-off.qss");
+            name = prefix + QStringLiteral("-off.qss");
         else if (!QFile::exists(name))
-            name = QString::fromLatin1("overlay:%1").arg(name);
+            name = QStringLiteral("overlay:%1").arg(name);
         offStyleSheet.clear();
         if(QFile::exists(name)) {
             QFile f(name);
@@ -1156,7 +1156,7 @@ public:
             }
         }
         if(offStyleSheet.isEmpty()) {
-            static QLatin1String _default(
+            static QString _default = QStringLiteral(
                 "Gui--OverlayToolButton { background: transparent; padding: 0px; border: none }"
                 "Gui--OverlayToolButton:hover { background: palette(light); border: 1px solid palette(dark) }"
                 "Gui--OverlayToolButton:focus { background: palette(dark); border: 1px solid palette(dark) }"
@@ -1169,9 +1169,9 @@ public:
 
         name = QString::fromUtf8(handle->GetASCII("OverlayActiveStyleSheet").c_str());
         if(name.isEmpty() && !prefix.isEmpty())
-            name = prefix + QLatin1String(".qss");
+            name = prefix + QStringLiteral(".qss");
         else if (!QFile::exists(name))
-            name = QString::fromLatin1("overlay:%1").arg(name);
+            name = QStringLiteral("overlay:%1").arg(name);
         activeStyleSheet.clear();
         if(QFile::exists(name)) {
             QFile f(name);
@@ -1181,7 +1181,7 @@ public:
             }
         }
         if(activeStyleSheet.isEmpty()) {
-            static QLatin1String _default(
+            static QString _default = QStringLiteral(
                 "* {alternate-background-color: rgba(250,250,250,120)}"
 
                 "QComboBox, QComboBox:editable, QComboBox:!editable, QLineEdit,"
@@ -1253,7 +1253,7 @@ public:
             onStyleSheet = activeStyleSheet;
             hideTab = false;
         } else {
-            hideTab = (onStyleSheet.indexOf(QLatin1String("QTabBar")) < 0);
+            hideTab = (onStyleSheet.indexOf(QStringLiteral("QTabBar")) < 0);
         }
     }
 
@@ -1289,7 +1289,7 @@ void OverlayTabWidget::_setOverlayMode(QWidget *widget, int enable)
                     if (!ViewParams::getDockOverlayHidePropertyViewScrollBar() || enable==0)
                         widget->setStyleSheet(QString());
                     else {
-                        static QString _style = QLatin1String("*{width:0}");
+                        static QString _style = QStringLiteral("*{width:0}");
                         widget->setStyleSheet(_style);
                     }
                 }
@@ -1301,7 +1301,7 @@ void OverlayTabWidget::_setOverlayMode(QWidget *widget, int enable)
                     if (!TreeParams::getHideScrollBar() || enable==0)
                         widget->setStyleSheet(QString());
                     else {
-                        static QString _style = QLatin1String("*{width:0}");
+                        static QString _style = QStringLiteral("*{width:0}");
                         widget->setStyleSheet(_style);
                     }
                 }
@@ -1312,7 +1312,7 @@ void OverlayTabWidget::_setOverlayMode(QWidget *widget, int enable)
                 if (!TreeParams::getHideHeaderView() || enable==0)
                     header->setStyleSheet(QString());
                 else {
-                    static QString _style = QLatin1String(
+                    static QString _style = QStringLiteral(
                             "QHeaderView:section {"
                               "height: 0px;"
                               "background-color: transparent;"
@@ -1698,11 +1698,11 @@ void OverlayTabWidget::addWidget(QDockWidget *dock, const QString &title)
     getMainWindow()->removeDockWidget(dock);
 
     auto titleWidget = dock->titleBarWidget();
-    if(titleWidget && titleWidget->objectName()==QLatin1String("OverlayTitle")) {
+    if(titleWidget && titleWidget->objectName()==QStringLiteral("OverlayTitle")) {
         // replace the title bar with an invisible widget to hide it. The
         // OverlayTabWidget uses its own title bar for all docks.
         auto w = new QWidget();
-        w->setObjectName(QLatin1String("OverlayTitle"));
+        w->setObjectName(QStringLiteral("OverlayTitle"));
         dock->setTitleBarWidget(w);
         w->hide();
         titleWidget->deleteLater();
@@ -1766,7 +1766,7 @@ void OverlayTabWidget::removeWidget(QDockWidget *dock, QDockWidget *lastDock)
         hide();
 
     w = dock->titleBarWidget();
-    if(w && w->objectName() == QLatin1String("OverlayTitle")) {
+    if(w && w->objectName() == QStringLiteral("OverlayTitle")) {
         dock->setTitleBarWidget(nullptr);
         w->deleteLater();
     }
@@ -2623,7 +2623,7 @@ void OverlayGraphicsEffect::draw(QPainter* painter)
     if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG)) {
         static int count;
         getMainWindow()->showMessage(
-                QString::fromLatin1("dock overlay redraw %1").arg(count++));
+                QStringLiteral("dock overlay redraw %1").arg(count++));
     }
 #endif
 
@@ -2751,8 +2751,8 @@ struct OverlayInfo {
         : name(name), dockArea(pos), overlayMap(map)
     {
         tabWidget = new OverlayTabWidget(parent, dockArea);
-        tabWidget->setObjectName(QString::fromLatin1(name));
-        tabWidget->getProxyWidget()->setObjectName(tabWidget->objectName() + QString::fromLatin1("Proxy"));
+        tabWidget->setObjectName(QString::fromUtf8(name));
+        tabWidget->getProxyWidget()->setObjectName(tabWidget->objectName() + QStringLiteral("Proxy"));
         tabWidget->setMovable(true);
         hGrp = App::GetApplication().GetUserParameter().GetGroup("BaseApp")
                             ->GetGroup("MainWindow")->GetGroup("DockWindows")->GetGroup(name);
@@ -2933,9 +2933,9 @@ public:
             refresh();
         });
 
-        _actOverlay.setData(QString::fromLatin1("OBTN Overlay"));
-        _actFloat.setData(QString::fromLatin1("OBTN Float"));
-        _actClose.setData(QString::fromLatin1("OBTN Close"));
+        _actOverlay.setData(QStringLiteral("OBTN Overlay"));
+        _actFloat.setData(QStringLiteral("OBTN Float"));
+        _actClose.setData(QStringLiteral("OBTN Close"));
 
         retranslate();
         refreshIcons();
@@ -3465,7 +3465,7 @@ public:
     QWidget *createTitleBar(QWidget *parent)
     {
         OverlayTitleBar *widget = new OverlayTitleBar(parent);
-        widget->setObjectName(QLatin1String("OverlayTitle"));
+        widget->setObjectName(QStringLiteral("OverlayTitle"));
         bool vertical = false;
         QBoxLayout *layout = nullptr;
         auto tabWidget = qobject_cast<OverlayTabWidget*>(parent);
@@ -4125,7 +4125,7 @@ void OverlayManager::onDockVisibleChange(bool visible)
     auto dock = qobject_cast<QDockWidget*>(sender());
     if(!dock)
         return;
-    FC_TRACE("dock " << dock->objectName().toLatin1().constData()
+    FC_TRACE("dock " << dock->objectName().toUtf8().constData()
             << " visible change " << visible << ", " << dock->isVisible());
 }
 

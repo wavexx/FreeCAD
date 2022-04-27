@@ -140,7 +140,7 @@ void FitBSplineSurfaceWidget::on_makePlacement_clicked()
                     double q0, q1, q2, q3;
                     pm.getRotation().getValue(q0, q1, q2, q3);
 
-                    QString argument = QString::fromLatin1("Base.Placement(Base.Vector(%1, %2, %3), Base.Rotation(%4, %5, %6, %7))")
+                    QString argument = QStringLiteral("Base.Placement(Base.Vector(%1, %2, %3), Base.Rotation(%4, %5, %6, %7))")
                             .arg(base.x)
                             .arg(base.y)
                             .arg(base.z)
@@ -150,7 +150,7 @@ void FitBSplineSurfaceWidget::on_makePlacement_clicked()
                             .arg(q3);
 
                     QString document = QString::fromStdString(d->obj.getDocumentPython());
-                    QString command = QString::fromLatin1("%1.addObject(\"App::Placement\", \"Placement\").Placement = %2")
+                    QString command = QStringLiteral("%1.addObject(\"App::Placement\", \"Placement\").Placement = %2")
                         .arg(document, argument);
 
                     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Placement"));
@@ -164,7 +164,7 @@ void FitBSplineSurfaceWidget::on_makePlacement_clicked()
     }
     catch (const Base::Exception& e) {
         Gui::Command::abortCommand();
-        QMessageBox::warning(this, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(this, tr("Input error"), QString::fromUtf8(e.what()));
     }
 }
 
@@ -174,7 +174,7 @@ bool FitBSplineSurfaceWidget::accept()
         QString document = QString::fromStdString(d->obj.getDocumentPython());
         QString object = QString::fromStdString(d->obj.getObjectPython());
 
-        QString argument = QString::fromLatin1(
+        QString argument = QStringLiteral(
             "Points=getattr(%1, %1.getPropertyNameOfGeometry()), "
             "UDegree=%2, VDegree=%3, "
             "NbUPoles=%4, NbVPoles=%5, "
@@ -192,7 +192,7 @@ bool FitBSplineSurfaceWidget::accept()
             .arg(d->ui.degreeV->value())
             .arg(d->ui.polesU->value())
             .arg(d->ui.polesV->value())
-            .arg(d->ui.groupBoxSmooth->isChecked() ? QLatin1String("True") : QLatin1String("False"))
+            .arg(d->ui.groupBoxSmooth->isChecked() ? QStringLiteral("True") : QStringLiteral("False"))
             .arg(d->ui.totalWeight->value())
             .arg(d->ui.gradient->value())
             .arg(d->ui.bending->value())
@@ -215,10 +215,10 @@ bool FitBSplineSurfaceWidget::accept()
             Base::Vector3d v(0,1,0);
             rot.multVec(u, u);
             rot.multVec(v, v);
-            argument += QString::fromLatin1(", UVDirs=(FreeCAD.Vector(%1,%2,%3), FreeCAD.Vector(%4,%5,%6))")
+            argument += QStringLiteral(", UVDirs=(FreeCAD.Vector(%1,%2,%3), FreeCAD.Vector(%4,%5,%6))")
                 .arg(u.x).arg(u.y).arg(u.z).arg(v.x).arg(v.y).arg(v.z);
         }
-        QString command = QString::fromLatin1("%1.addObject(\"Part::Spline\", \"Spline\").Shape = "
+        QString command = QStringLiteral("%1.addObject(\"Part::Spline\", \"Spline\").Shape = "
             "ReverseEngineering.approxSurface(%2).toShape()")
             .arg(document, argument)
             ;
@@ -232,7 +232,7 @@ bool FitBSplineSurfaceWidget::accept()
     }
     catch (const Base::Exception& e) {
         Gui::Command::abortCommand();
-        QMessageBox::warning(this, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(this, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 

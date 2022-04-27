@@ -136,7 +136,7 @@ bool TaskDlgFemConstraintInitialTemperature::accept()
         Gui::Command::doCommand(Gui::Command::Doc,"App.ActiveDocument.%s.Scale = %s", name.c_str(), scale.c_str()); //OvG: implement modified scale
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(parameter, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(parameter, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 
@@ -148,7 +148,7 @@ bool TaskDlgFemConstraintInitialTemperature::accept()
         Gui::Command::commitCommand();
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(parameter, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(parameter, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 

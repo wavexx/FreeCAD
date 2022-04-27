@@ -1044,12 +1044,12 @@ Gui::Action * CmdTechDrawExtentGroup::createAction(void)
 
     QAction* p1 = pcAction->addAction(QString());
     p1->setIcon(Gui::BitmapFactory().iconFromTheme("TechDraw_HorizontalExtentDimension"));
-    p1->setObjectName(QString::fromLatin1("TechDraw_HorizontalExtentDimension"));
-    p1->setWhatsThis(QString::fromLatin1("TechDraw_HorizontalExtentDimension"));
+    p1->setObjectName(QStringLiteral("TechDraw_HorizontalExtentDimension"));
+    p1->setWhatsThis(QStringLiteral("TechDraw_HorizontalExtentDimension"));
     QAction* p2 = pcAction->addAction(QString());
     p2->setIcon(Gui::BitmapFactory().iconFromTheme("TechDraw_VerticalExtentDimension"));
-    p2->setObjectName(QString::fromLatin1("TechDraw_VerticalExtentDimension"));
-    p2->setWhatsThis(QString::fromLatin1("TechDraw_VerticalExtentDimension"));
+    p2->setObjectName(QStringLiteral("TechDraw_VerticalExtentDimension"));
+    p2->setWhatsThis(QStringLiteral("TechDraw_VerticalExtentDimension"));
 
     _pcAction = pcAction;
     languageChange();

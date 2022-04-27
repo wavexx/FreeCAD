@@ -222,7 +222,7 @@ QVector<QXmlName> QDomNodeModel::namespaceBindings(const QXmlNodeModelIndex & ni
 
                 if (x >= res.size()) {
                     res.append(QXmlName(m_Pool, QString::fromUtf8("xmlns"), attrs.item(i).nodeValue(), p));
-                    if (p == QString::fromLatin1("xml"))
+                    if (p == QStringLiteral("xml"))
                         xmlNamespaceWasDefined = true;
                 }
             }
@@ -238,7 +238,7 @@ QVector<QXmlName> QDomNodeModel::namespaceBindings(const QXmlNodeModelIndex & ni
     //
     // If the document does not specifically include this namespace, add it now:
     if (!xmlNamespaceWasDefined) {
-        res.append(QXmlName(m_Pool, QString::fromUtf8("xmlns"), QString::fromLatin1("http://www.w3.org/XML/1998/namespace"), QString::fromLatin1("xml")));
+        res.append(QXmlName(m_Pool, QString::fromUtf8("xmlns"), QStringLiteral("http://www.w3.org/XML/1998/namespace"), QStringLiteral("xml")));
     }
 
     return res;

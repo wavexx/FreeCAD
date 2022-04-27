@@ -276,7 +276,7 @@ bool TaskDlgPost::accept()
             (*it)->applyPythonCode();
     }
     catch (const Base::Exception& e) {
-        QMessageBox::warning(NULL, tr("Input error"), QString::fromLatin1(e.what()));
+        QMessageBox::warning(NULL, tr("Input error"), QString::fromUtf8(e.what()));
         return false;
     }
 

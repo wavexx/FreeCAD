@@ -247,7 +247,7 @@ void TaskPolarPatternParameters::onAxisChanged(int /*num*/)
             pcPolarPattern->Axis.Paste(axesLinks.getCurrentLink());
         }
     } catch (Base::Exception &e) {
-        QMessageBox::warning(0,tr("Error"),QString::fromLatin1(e.what()));
+        QMessageBox::warning(0,tr("Error"),QString::fromUtf8(e.what()));
     }
 
     kickUpdateViewTimer();

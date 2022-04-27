@@ -93,11 +93,11 @@ DlgProjectInformationImp::DlgProjectInformationImp(App::Document* doc, QWidget* 
     // See also accept().
     QString comment = QString::fromUtf8(doc->Comment.getValue());
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
-    QStringList lines = comment.split(QLatin1String("\\n"), Qt::KeepEmptyParts);
+    QStringList lines = comment.split(QStringLiteral("\\n"), Qt::KeepEmptyParts);
 #else
-    QStringList lines = comment.split(QLatin1String("\\n"), QString::KeepEmptyParts);
+    QStringList lines = comment.split(QStringLiteral("\\n"), QString::KeepEmptyParts);
 #endif
-    QString text = lines.join(QLatin1String("\n"));
+    QString text = lines.join(QStringLiteral("\n"));
     ui->textEditComment->setPlainText( text );
     connect(ui->pushButtonOpenURL, SIGNAL(clicked()),this, SLOT(open_url()));
     connect(ui->comboLicense, SIGNAL(currentIndexChanged(int)), this, SLOT(onLicenseTypeChanged(int)));
@@ -129,11 +129,11 @@ void DlgProjectInformationImp::accept()
     // Replace newline escape sequence through '\\n' string
     QStringList lines = ui->textEditComment->toPlainText().split
 #if QT_VERSION >= QT_VERSION_CHECK(5,15,0)
-        (QLatin1String("\n"), Qt::KeepEmptyParts);
+        (QStringLiteral("\n"), Qt::KeepEmptyParts);
 #else
-        (QLatin1String("\n"), QString::KeepEmptyParts);
+        (QStringLiteral("\n"), QString::KeepEmptyParts);
 #endif
-    QString text = lines.join(QLatin1String("\\n"));
+    QString text = lines.join(QStringLiteral("\\n"));
     _doc->Comment.setValue(text.isEmpty() ? "" : text.toUtf8());
 
     QDialog::accept();
@@ -143,31 +143,31 @@ void DlgProjectInformationImp::onLicenseTypeChanged(int index)
 {
     switch (index) {
         case 0:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://en.wikipedia.org/wiki/All_rights_reserved"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://en.wikipedia.org/wiki/All_rights_reserved"));
             break;
         case 1:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by/4.0/"));
             break;
         case 2:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-sa/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by-sa/4.0/"));
             break;
         case 3:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nd/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by-nd/4.0/"));
             break;
         case 4:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc/4.0/"));
             break;
         case 5:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc-sa/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc-sa/4.0/"));
             break;
         case 6:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://creativecommons.org/licenses/by-nc-nd/4.0/"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://creativecommons.org/licenses/by-nc-nd/4.0/"));
             break;
         case 7:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://en.wikipedia.org/wiki/Public_domain"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://en.wikipedia.org/wiki/Public_domain"));
             break;
         case 8:
-            ui->lineEditLicenseURL->setText(QString::fromLatin1("http://artlibre.org/licence/lal"));
+            ui->lineEditLicenseURL->setText(QStringLiteral("http://artlibre.org/licence/lal"));
             break;
         default:
             ui->lineEditLicenseURL->setText(QString::fromUtf8(_doc->LicenseURL.getValue()));

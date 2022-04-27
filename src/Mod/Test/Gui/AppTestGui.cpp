@@ -63,7 +63,7 @@ private:
 
         TestGui::UnitTestDialog* dlg = TestGui::UnitTestDialog::instance();
         if (pstr)
-            dlg->setUnitTest(QString::fromLatin1(pstr));
+            dlg->setUnitTest(QString::fromUtf8(pstr));
         dlg->show();
         dlg->raise();
         return Py::None();
@@ -76,7 +76,7 @@ private:
 
         TestGui::UnitTestDialog* dlg = TestGui::UnitTestDialog::instance();
         if (pstr)
-            dlg->addUnitTest(QString::fromLatin1(pstr));
+            dlg->addUnitTest(QString::fromUtf8(pstr));
         dlg->show();
         dlg->raise();
         return Py::None();

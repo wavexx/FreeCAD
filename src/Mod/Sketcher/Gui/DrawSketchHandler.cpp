@@ -94,7 +94,7 @@ int DrawSketchHandler::getHighestCurveIndex(void)
 }
 
 void DrawSketchHandler::setCrosshairCursor(const char* svgName) {
-    QString cursorName = QString::fromLatin1(svgName);
+    QString cursorName = QString::fromUtf8(svgName);
     const unsigned long defaultCrosshairColor = 0xFFFFFF;
     unsigned long color = getCrosshairColor();
     auto colorMapping = std::map<unsigned long, unsigned long>();
@@ -118,7 +118,7 @@ void DrawSketchHandler::setSvgCursor(const QString & cursorName, int x, int y, c
     qreal hotX = x;
     qreal hotY = y;
 #if !defined(Q_OS_WIN32) && !defined(Q_OS_MAC)
-    if (qGuiApp->platformName() == QLatin1String("xcb")) {
+    if (qGuiApp->platformName() == QStringLiteral("xcb")) {
         hotX *= pRatio;
         hotY *= pRatio;
     }
@@ -152,7 +152,7 @@ void DrawSketchHandler::setCursor(const QPixmap &p,int x,int y, bool autoScale)
             qreal hotX = x;
             qreal hotY = y;
 #if !defined(Q_OS_WIN32) && !defined(Q_OS_MAC)
-            if (qGuiApp->platformName() == QLatin1String("xcb")) {
+            if (qGuiApp->platformName() == QStringLiteral("xcb")) {
                 hotX *= pRatio;
                 hotY *= pRatio;
             }
@@ -269,19 +269,19 @@ std::vector<QPixmap> DrawSketchHandler::suggestedConstraintsPixmaps(
         switch (it->Type)
         {
         case Horizontal:
-            iconType = QString::fromLatin1("Constraint_Horizontal");
+            iconType = QStringLiteral("Constraint_Horizontal");
             break;
         case Vertical:
-            iconType = QString::fromLatin1("Constraint_Vertical");
+            iconType = QStringLiteral("Constraint_Vertical");
             break;
         case Coincident:
-            iconType = QString::fromLatin1("Constraint_PointOnPoint");
+            iconType = QStringLiteral("Constraint_PointOnPoint");
             break;
         case PointOnObject:
-            iconType = QString::fromLatin1("Constraint_PointOnObject");
+            iconType = QStringLiteral("Constraint_PointOnObject");
             break;
         case Tangent:
-            iconType = QString::fromLatin1("Constraint_Tangent");
+            iconType = QStringLiteral("Constraint_Tangent");
             break;
         default:
             break;

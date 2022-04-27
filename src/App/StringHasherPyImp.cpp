@@ -76,20 +76,9 @@ PyObject* StringHasherPy::getID(PyObject *args)
         }PY_CATCH;
     }
     std::string txt;
-#if PY_MAJOR_VERSION >= 3
     if (PyUnicode_Check(value)) {
         txt = PyUnicode_AsUTF8(value);
     }
-#else
-    if (PyUnicode_Check(value)) {
-        PyObject* unicode = PyUnicode_AsLatin1String(value);
-        txt = PyString_AsString(unicode);
-        Py_DECREF(unicode);
-    }
-    else if (PyString_Check(value)) {
-        txt = PyString_AsString(value);
-    }
-#endif
     else 
         throw Py::TypeError("expect argument of type string");
     PY_TRY {

@@ -108,11 +108,11 @@ QVariant QGIProjGroup::itemChange(GraphicsItemChange change, const QVariant &val
             TechDraw::DrawView *fView = gView->getViewObject();
             if(fView->getTypeId().isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
                 TechDraw::DrawProjGroupItem *projItemPtr = static_cast<TechDraw::DrawProjGroupItem *>(fView);
-                QString type = QString::fromLatin1(projItemPtr->Type.getValueAsString());
+                QString type = QString::fromUtf8(projItemPtr->Type.getValueAsString());
 
-                if (type == QString::fromLatin1("Front")) {
+                if (type == QStringLiteral("Front")) {
                     gView->setLocked(true);                  //this locks in GUI only
-                    gView->alignTo(m_origin, QString::fromLatin1("None"));
+                    gView->alignTo(m_origin, QStringLiteral("None"));
                     installSceneEventFilter(gView);
 #if 0
                     App::DocumentObject *docObj = getViewObject();
@@ -124,19 +124,19 @@ QVariant QGIProjGroup::itemChange(GraphicsItemChange change, const QVariant &val
                         projectionGroup->Anchor.setValue(fView);
                     updateView();
 #endif
-                } else if ( type == QString::fromLatin1("Top") ||
-                    type == QString::fromLatin1("Bottom")) {
-                    gView->alignTo(m_origin, QString::fromLatin1("Vertical"));
-                } else if ( type == QString::fromLatin1("Left")  ||
-                            type == QString::fromLatin1("Right") ||
-                            type == QString::fromLatin1("Rear") ) {
-                    gView->alignTo(m_origin, QString::fromLatin1("Horizontal"));
-                } else if ( type == QString::fromLatin1("FrontTopRight") ||
-                            type == QString::fromLatin1("FrontBottomLeft") ) {
-                    gView->alignTo(m_origin, QString::fromLatin1("45slash"));
-                } else if ( type == QString::fromLatin1("FrontTopLeft") ||
-                            type == QString::fromLatin1("FrontBottomRight") ) {
-                    gView->alignTo(m_origin, QString::fromLatin1("45backslash"));
+                } else if ( type == QStringLiteral("Top") ||
+                    type == QStringLiteral("Bottom")) {
+                    gView->alignTo(m_origin, QStringLiteral("Vertical"));
+                } else if ( type == QStringLiteral("Left")  ||
+                            type == QStringLiteral("Right") ||
+                            type == QStringLiteral("Rear") ) {
+                    gView->alignTo(m_origin, QStringLiteral("Horizontal"));
+                } else if ( type == QStringLiteral("FrontTopRight") ||
+                            type == QStringLiteral("FrontBottomLeft") ) {
+                    gView->alignTo(m_origin, QStringLiteral("45slash"));
+                } else if ( type == QStringLiteral("FrontTopLeft") ||
+                            type == QStringLiteral("FrontBottomRight") ) {
+                    gView->alignTo(m_origin, QStringLiteral("45backslash"));
                 }
             }
          }

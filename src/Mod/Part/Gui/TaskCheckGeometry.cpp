@@ -149,7 +149,7 @@ QString checkStatusToString(const int &index)
     }
     if (index > 33 || index < 0)
     {
-        QString message(QObject::tr("Out Of Enum Range:") + QString::fromLatin1(" "));
+        QString message(QObject::tr("Out Of Enum Range:") + QStringLiteral(" "));
         QString number;
         number.setNum(index);
         message += number;
@@ -891,7 +891,7 @@ void TaskCheckGeometryResults::currentRowChanged (const QModelIndex &current, co
 
 bool TaskCheckGeometryResults::split(QString &input, QString &doc, QString &object, QString &sub)
 {
-    QStringList strings = input.split(QString::fromLatin1("."));
+    QStringList strings = input.split(QStringLiteral("."));
     if (strings.size() != 3)
         return false;
     doc = strings.at(0);
@@ -1431,7 +1431,7 @@ Standard_Boolean BOPProgressIndicator::Show (const Standard_Boolean theForce)
     else {
         Handle(TCollection_HAsciiString) aName = GetScope(1).GetName(); //current step
         if (!aName.IsNull())
-            myProgress->setLabelText (QString::fromLatin1(aName->ToCString()));
+            myProgress->setLabelText (QString::fromUtf8(aName->ToCString()));
     }
 
     return Standard_True;
@@ -1441,7 +1441,7 @@ void BOPProgressIndicator::Show (const Message_ProgressScope& theScope,
                                  const Standard_Boolean isForce)
 {
     Standard_CString aName = theScope.Name(); //current step
-    myProgress->setLabelText (QString::fromLatin1(aName));
+    myProgress->setLabelText (QString::fromUtf8(aName));
 
     if (isForce) {
         myProgress->show();
