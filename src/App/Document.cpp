@@ -4658,11 +4658,14 @@ void Document::_removeObject(DocumentObject* pcObject)
         return;
     }
 
+#if 0 // Allow deleting editing object when undo/redo
+
     if (pcObject->testStatus(ObjectStatus::ObjEditing)) {
         FC_LOG("pending remove of editing object " << pcObject->getFullName());
         d->pendingRemove.emplace_back(pcObject);
         return;
     }
+#endif
 
     TransactionLocker tlock;
 
