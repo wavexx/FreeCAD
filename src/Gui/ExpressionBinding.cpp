@@ -198,7 +198,7 @@ std::string ExpressionBinding::getExpressionString(bool no_throw) const
 
 std::string ExpressionBinding::getEscapedExpressionString() const
 {
-    return Base::Tools::escapedUnicodeFromUtf8(getExpressionString(false).c_str());
+    return Base::Tools::escapeEncodeString(getExpressionString(false));
 }
 
 QPixmap ExpressionBinding::getIcon(const char* name, const QSize& size) const

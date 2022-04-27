@@ -784,8 +784,7 @@ void StdCmdSaveAsDirectory::activated(int iMsg)
         // save as new file name
         try {
             Gui::WaitCursor wc;
-            std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8(fn.toUtf8());
-            escapedstr = Base::Tools::escapeEncodeFilename(escapedstr);
+            std::string escapedstr = Base::Tools::escapeEncodeFilename(fn).toUtf8().constData();
             Command::doCommand(Command::Doc,"App.getDocument(\"%s\").saveAs(u\"%s\")"
                                            , DocName, escapedstr.c_str());
             gdoc->setModified(false);

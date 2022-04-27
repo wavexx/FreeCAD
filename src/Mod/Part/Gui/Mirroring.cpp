@@ -150,8 +150,7 @@ bool Mirroring::accept()
     double basez = ui->baseZ->value().getValue();
     for (QList<QTreeWidgetItem *>::iterator it = items.begin(); it != items.end(); ++it) {
         shape = (*it)->data(0, Qt::UserRole).toString();
-        std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8((*it)->text(0).toUtf8());
-        label = QString::fromStdString(escapedstr);
+        label = Base::Tools::escapeEncodeString((*it)->text(0));
 
         // if we already have the suffix " (Mirror #<number>)" remove it
         int pos = label.indexOf(rx);

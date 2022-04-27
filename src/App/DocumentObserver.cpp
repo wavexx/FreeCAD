@@ -559,7 +559,7 @@ std::string SubObjectT::getSubObjectPython(bool force) const {
         return getObjectPython();
     std::stringstream str;
     str << "(" << getObjectPython() << ", '"
-        << Base::Tools::escapedUnicodeFromUtf8(normalized().subname.c_str()) << "')";
+        << Base::Tools::escapeEncodeString(normalized().subname) << "')";
     return str.str();
 }
 

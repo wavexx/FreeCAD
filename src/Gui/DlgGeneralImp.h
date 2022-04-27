@@ -28,6 +28,7 @@
 #include <memory>
 
 class QTabWidget;
+class QComboBox;
 
 namespace Gui {
 
@@ -66,6 +67,7 @@ protected:
 private:
     void setRecentFileSize();
     void saveAsNewPreferencePack();
+    void setupToolBarIconSize(QComboBox *comboBox);
 
 private:
     std::unique_ptr<Ui_DlgGeneral> ui;

@@ -269,8 +269,7 @@ void PropertiesDialog::apply()
                 changes = true;
             }
             if (orgDisplayUnit != displayUnit) {
-                std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8(displayUnit.stringRep.c_str());
-                boost::replace_all(escapedstr,"'", "\\'");
+                std::string escapedstr = Base::Tools::escapeEncodeString(displayUnit.stringRep);
                 Gui::cmdAppObjectArgs(sheet, "setDisplayUnit('%s', u'%s')",
                                         i->rangeString().c_str(), escapedstr.c_str());
                 changes = true;

@@ -2927,19 +2927,12 @@ void PropertyEnumItem::setValue(const QVariant& value)
         QTextStream str(&data);
         str << "[";
         for (QStringList::Iterator it = values.begin(); it != values.end(); ++it) {
-            QString text(*it);
-            text.replace(QString::fromUtf8("'"),QString::fromUtf8("\\'"));
-
-            std::string pystr = Base::Tools::escapedUnicodeFromUtf8(text.toUtf8());
-            pystr = Base::Interpreter().strToPython(pystr.c_str());
-            str << "u\"" << pystr.c_str() << "\", ";
+            str << "u\"" << Base::Tools::escapeEncodeString(*it) << "\", ";
         }
         str << "]";
     }
     else if (value.canConvert(QVariant::String)) {
-        QByteArray val = value.toString().toUtf8();
-        std::string str = Base::Tools::escapedUnicodeFromUtf8(val);
-        data = QStringLiteral("u\"%1\"").arg(QString::fromStdString(str));
+        data = QStringLiteral("u\"%1\"").arg(Base::Tools::escapeEncodeString(value.toString()));
     }
     else
         return;

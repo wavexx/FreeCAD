@@ -1013,7 +1013,7 @@ QString DlgPropertyLink::linksToPython(QList<App::SubObjectT> links) {
         for(auto link : links) {
             const auto &sub = link.getSubName();
             if(sub.size())
-                ss << "u'" << Base::Tools::escapedUnicodeFromUtf8(sub.c_str()) << "',";
+                ss << "u'" << Base::Tools::escapeEncodeString(sub) << "',";
         }
         ss << "])";
     } else {

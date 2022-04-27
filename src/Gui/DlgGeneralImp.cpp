@@ -237,6 +237,26 @@ void DlgGeneralImp::populateStylesheets(const char *key,
     combo->onRestore();
 }
 
+void DlgGeneralImp::setupToolBarIconSize(QComboBox *comboBox)
+{
+    int current = getMainWindow()->iconSize().width();
+    int idx = 1;
+    if (comboBox->count() != 0) {
+        idx = comboBox->currentIndex();
+        if (comboBox->count() > 4)
+            current = comboBox->itemData(4).toInt();
+    }
+    QSignalBlocker blocker(comboBox);
+    comboBox->clear();
+    comboBox->addItem(tr("Small (%1px)").arg(16), QVariant((int)16));
+    comboBox->addItem(tr("Medium (%1px)").arg(24), QVariant((int)24));
+    comboBox->addItem(tr("Large (%1px)").arg(32), QVariant((int)32));
+    comboBox->addItem(tr("Extra large (%1px)").arg(48), QVariant((int)48));
+    if (comboBox->findData(QVariant(current)) < 0)
+        comboBox->addItem(tr("Custom (%1px)").arg(current), QVariant((int)current));
+    comboBox->setCurrentIndex(idx);
+}
+
 void DlgGeneralImp::loadSettings()
 {
     std::string start = App::Application::Config()["StartWorkbench"];
@@ -276,17 +296,7 @@ void DlgGeneralImp::loadSettings()
     if (model)
         model->sort(0);
 
-    int current = getMainWindow()->iconSize().width();
-    ui->toolbarIconSize->addItem(tr("Small (%1px)").arg(16), QVariant((int)16));
-    ui->toolbarIconSize->addItem(tr("Medium (%1px)").arg(24), QVariant((int)24));
-    ui->toolbarIconSize->addItem(tr("Large (%1px)").arg(32), QVariant((int)32));
-    ui->toolbarIconSize->addItem(tr("Extra large (%1px)").arg(48), QVariant((int)48));
-    index = ui->toolbarIconSize->findData(QVariant(current));
-    if (index < 0) {
-        ui->toolbarIconSize->addItem(tr("Custom (%1px)").arg(current), QVariant((int)current));
-        index = ui->toolbarIconSize->findData(QVariant(current));
-    }
-    ui->toolbarIconSize->setCurrentIndex(1);
+    setupToolBarIconSize(ui->toolbarIconSize);
     ui->toolbarIconSize->onRestore();
 
     ui->treeMode->addItem(tr("Combo View"));
@@ -357,6 +367,7 @@ void DlgGeneralImp::changeEvent(QEvent *e)
 {
     if (e->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
+        setupToolBarIconSize(ui->toolbarIconSize);
     }
     else {
         QWidget::changeEvent(e);

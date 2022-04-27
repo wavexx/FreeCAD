@@ -2443,8 +2443,7 @@ std::list<std::string> Application::processFiles(const std::list<std::string>& f
                 std::string ext = file.extension();
                 std::vector<std::string> mods = App::GetApplication().getImportModules(ext.c_str());
                 if (!mods.empty()) {
-                    std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8(file.filePath().c_str());
-                    escapedstr = Base::Tools::escapeEncodeFilename(escapedstr);
+                    std::string escapedstr = Base::Tools::escapeEncodeFilename(file.filePath());
 
                     Base::Interpreter().loadModule(mods.front().c_str());
                     Base::Interpreter().runStringArg("import %s",mods.front().c_str());

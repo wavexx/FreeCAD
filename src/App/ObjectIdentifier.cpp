@@ -554,7 +554,7 @@ bool ObjectIdentifier::replaceObject(ObjectIdentifier &res, const App::DocumentO
 
 std::string ObjectIdentifier::toEscapedString() const
 {
-    return Base::Tools::escapedUnicodeFromUtf8(toString().c_str());
+    return Base::Tools::escapeEncodeString(toString());
 }
 
 bool ObjectIdentifier::updateLabelReference(

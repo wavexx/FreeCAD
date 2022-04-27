@@ -80,8 +80,7 @@ void StartGui::Workbench::loadStartPage()
     }
 
     try {
-        QByteArray utf8Title = title.toUtf8();
-        std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8(utf8Title);
+        std::string escapedstr = Base::Tools::escapeEncodeString(title).toUtf8().constData();
         std::stringstream str;
         str << "import WebGui,sys,Start" << std::endl;
         str << "from StartPage import StartPage" << std::endl;

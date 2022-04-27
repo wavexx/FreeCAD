@@ -464,8 +464,7 @@ void CmdMeshImport::activated(int)
     QStringList fn = Gui::FileDialog::getOpenFileNames(Gui::getMainWindow(),
         QObject::tr("Import mesh"), QString(), filter.join(QLatin1String(";;")));
     for (QStringList::Iterator it = fn.begin(); it != fn.end(); ++it) {
-        std::string unicodepath = Base::Tools::escapedUnicodeFromUtf8((*it).toUtf8().data());
-        unicodepath = Base::Tools::escapeEncodeFilename(unicodepath);
+        std::string unicodepath = Base::Tools::escapeEncodeString((*it)).toUtf8().constData();
         openCommand(QT_TRANSLATE_NOOP("Command", "Import Mesh"));
         doCommand(Doc,"import Mesh");
         doCommand(Doc,"Mesh.insert(u\"%s\")",

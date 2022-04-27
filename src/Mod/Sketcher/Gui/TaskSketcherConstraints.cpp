@@ -602,9 +602,9 @@ void ConstraintView::swapNamedOfSelectedItems()
         return;
 
     ConstraintItem * item1 = static_cast<ConstraintItem*>(items[0]);
-    std::string escapedstr1 = Base::Tools::escapedUnicodeFromUtf8(item1->sketch->Constraints[item1->ConstraintNbr]->Name.c_str());
+    std::string escapedstr1 = Base::Tools::escapeEncodeString(item1->sketch->Constraints[item1->ConstraintNbr]->Name);
     ConstraintItem * item2 = static_cast<ConstraintItem*>(items[1]);
-    std::string escapedstr2 = Base::Tools::escapedUnicodeFromUtf8(item2->sketch->Constraints[item2->ConstraintNbr]->Name.c_str());
+    std::string escapedstr2 = Base::Tools::escapeEncodeString(item2->sketch->Constraints[item2->ConstraintNbr]->Name);
 
     // In commit 67800ec8c (21 Jul 2015) the implementation of on_listWidgetConstraints_itemChanged()
     // has changed ensuring that a name of a constraint cannot be reset any more.
@@ -1211,7 +1211,7 @@ void TaskSketcherConstraints::on_listWidgetConstraints_itemChanged(QListWidgetIt
     // otherwise a checkbox change will trigger a rename on the first execution, bloating the constraint icons with the
     // default constraint name "constraint1, constraint2"
     if (newName != currConstraintName && !basename.empty()) {
-        std::string escapedstr = Base::Tools::escapedUnicodeFromUtf8(newName.c_str());
+        std::string escapedstr = Base::Tools::escapeEncodeString(newName);
 
         Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Rename sketch constraint"));
         try {
