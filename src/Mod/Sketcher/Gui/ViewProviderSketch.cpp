@@ -194,9 +194,11 @@ SbVec2f ViewProviderSketch::prvPickedPoint;
 static bool _AllowFaceExternal = true;
 static double _SnapTolerance;
 static bool _ViewBottomOnEdit;
+static bool _AdjustCamera;
 static const char *_ParamAllowFaceExternal = "AllowFaceExternalPick";
 static const char *_ParamSnapTolerance = "SnapTolerance";
 static const char *_ParamViewBottomOnEdit = "ViewBottomOnEdit";
+static const char *_ParamAdjustCamera = "AdjustCamera";
 
 //**************************************************************************
 // Edit data structure
@@ -264,6 +266,7 @@ struct EditData {
         _AllowFaceExternal = hSketchGeneral->GetBool(_ParamAllowFaceExternal, true);
         _SnapTolerance = hSketchGeneral->GetFloat(_ParamSnapTolerance, 0.2);
         _ViewBottomOnEdit = hSketchGeneral->GetBool(_ParamViewBottomOnEdit, false);
+        _AdjustCamera = hSketchGeneral->GetBool(_ParamAdjustCamera, true);
 
         timer.setSingleShot(true);
         QObject::connect(&timer, &QTimer::timeout, [master]() {
@@ -4316,6 +4319,8 @@ void ViewProviderSketch::OnChange(Base::Subject<const char*> &rCaller, const cha
         _SnapTolerance = edit->hSketchGeneral->GetFloat(_ParamSnapTolerance, 0.2);
     else if (boost::equals(sReason, _ParamViewBottomOnEdit))
         _ViewBottomOnEdit = edit->hSketchGeneral->GetBool(_ParamViewBottomOnEdit, false);
+    else if (boost::equals(sReason, _ParamAdjustCamera))
+        _AdjustCamera = edit->hSketchGeneral->GetBool(_ParamAdjustCamera, false);
 }
 
 bool ViewProviderSketch::allowFaceExternalPick()
@@ -7588,38 +7593,40 @@ void ViewProviderSketch::setEditViewer(Gui::View3DInventorViewer* viewer, int Mo
     else
         editSubName.resize(dot-editSubName.c_str()+1);
 
-    auto transform = getEditingPlacement();
+    if (_AdjustCamera) {
+        auto transform = getEditingPlacement();
 
-    // Will the sketch be visible from the new position (#0000957)?
-    //
-    SoCamera* camera = viewer->getSoRenderManager()->getCamera();
-    SbVec3f curdir; // current view direction
-    camera->orientation.getValue().multVec(SbVec3f(0, 0, -1), curdir);
-    SbVec3f focal = camera->position.getValue() +
-                    camera->focalDistance.getValue() * curdir;
+        // Will the sketch be visible from the new position (#0000957)?
+        //
+        SoCamera* camera = viewer->getSoRenderManager()->getCamera();
+        SbVec3f curdir; // current view direction
+        camera->orientation.getValue().multVec(SbVec3f(0, 0, -1), curdir);
+        SbVec3f focal = camera->position.getValue() +
+                        camera->focalDistance.getValue() * curdir;
 
-    Base::Vector3d v0, v1; // future view direction
-    transform.multVec(Base::Vector3d(0, 0, -1), v1);
-    transform.multVec(Base::Vector3d(0, 0, 0), v0);
-    Base::Vector3d dir = (v1 - v0).Normalize();
-    SbVec3f newdir(dir.x, dir.y, dir.z);
-    SbVec3f newpos = focal - camera->focalDistance.getValue() * newdir;
+        Base::Vector3d v0, v1; // future view direction
+        transform.multVec(Base::Vector3d(0, 0, -1), v1);
+        transform.multVec(Base::Vector3d(0, 0, 0), v0);
+        Base::Vector3d dir = (v1 - v0).Normalize();
+        SbVec3f newdir(dir.x, dir.y, dir.z);
+        SbVec3f newpos = focal - camera->focalDistance.getValue() * newdir;
 
-    double dist = (SbVec3f(v0.x, v0.y, v0.z) - newpos).dot(newdir);
-    if (dist < 0) {
-        float focalLength = camera->focalDistance.getValue() - dist + 5;
-        camera->position = focal - focalLength * curdir;
-        camera->focalDistance.setValue(focalLength);
+        double dist = (SbVec3f(v0.x, v0.y, v0.z) - newpos).dot(newdir);
+        if (dist < 0) {
+            float focalLength = camera->focalDistance.getValue() - dist + 5;
+            camera->position = focal - focalLength * curdir;
+            camera->focalDistance.setValue(focalLength);
+        }
+
+
+        Base::Vector3d t,s;
+        Base::Rotation r, so;
+        transform.getTransform(t, r, s, so);
+        SbRotation rot((float)r[0],(float)r[1],(float)r[2],(float)r[3]);
+        if (viewBottomOnEdit())
+            rot = SbRotation(SbVec3f(0,1,0), M_PI) * rot;
+        viewer->setCameraOrientation(rot);
     }
-
-
-    Base::Vector3d t,s;
-    Base::Rotation r, so;
-    transform.getTransform(t, r, s, so);
-    SbRotation rot((float)r[0],(float)r[1],(float)r[2],(float)r[3]);
-    if (viewBottomOnEdit())
-        rot = SbRotation(SbVec3f(0,1,0), M_PI) * rot;
-    viewer->setCameraOrientation(rot);
 
     viewer->setEditing(true);
     SoNode* root = viewer->getSceneGraph();
@@ -8105,7 +8112,7 @@ bool ViewProviderSketchExport::doubleClicked(void) {
     // Now forward the editing request
     if(!vp->doubleClicked()) return false;
 
-    if(transform) {
+    if(transform && _AdjustCamera) {
         auto doc = Gui::Application::Instance->editDocument();
         if(doc) {
             auto cmd = Gui::Application::Instance->commandManager().getCommandByName(

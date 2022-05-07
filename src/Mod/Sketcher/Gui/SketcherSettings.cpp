@@ -159,6 +159,7 @@ void SketcherSettingsDisplay::saveSettings()
     ui->checkBoxTVRestoreCamera->onSave();
     ui->checkBoxTVForceOrtho->onSave();
     ui->checkBoxTVSectionView->onSave();
+    ui->checkBoxAdjustCamera->onSave();
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Part");
     QVariant data = ui->comboBox->itemData(ui->comboBox->currentIndex());
@@ -184,6 +185,7 @@ void SketcherSettingsDisplay::loadSettings()
     ui->checkBoxTVForceOrtho->onRestore();
     this->ui->checkBoxTVForceOrtho->setEnabled(this->ui->checkBoxTVRestoreCamera->isChecked());
     ui->checkBoxTVSectionView->onRestore();
+    ui->checkBoxAdjustCamera->onRestore();
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Part");
     int pattern = hGrp->GetInt("GridLinePattern", 0x0f0f);
