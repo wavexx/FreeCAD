@@ -1267,10 +1267,11 @@ void ObjectIdentifier::getDep(
     if(!result.resolvedDocumentObject)
        return;
 
-    if(!needProps) {
-        deps[result.resolvedDocumentObject];
-        return;
-    }
+    (void)needProps;
+    // if(!needProps) {
+    //     deps[result.resolvedDocumentObject];
+    //     return;
+    // }
 
     if(!result.resolvedProperty) {
         if(result.propertyName.size())
