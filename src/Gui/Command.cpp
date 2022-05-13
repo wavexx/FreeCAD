@@ -443,7 +443,7 @@ void Command::_invoke(int id, bool disablelog)
 {
     try {
         App::AutoTransaction committer(
-                (App::DocumentParams::ViewObjectTransaction()
+                (App::DocumentParams::getViewObjectTransaction()
                 || (eType&NoTransaction)) ? "" : displayText.c_str(), true);
 
 
