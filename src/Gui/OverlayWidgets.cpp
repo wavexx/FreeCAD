@@ -2862,6 +2862,7 @@ class OverlayManager::Private {
 public:
 
 #ifdef FC_HAS_DOCK_OVERLAY
+    QPointer<QWidget> lastIntercept;
     QTimer _timer;
     QTimer _reloadTimer;
 
@@ -4291,6 +4292,7 @@ bool OverlayManager::eventFilter(QObject *o, QEvent *ev)
     case QEvent::MouseMove:
     case QEvent::ContextMenu: {
         QWidget *grabber = QWidget::mouseGrabber();
+        d->lastIntercept = nullptr;
         if (d->mouseTransparent || (grabber && grabber != d->_trackingOverlay))
             return false;
         if (qobject_cast<QAbstractButton*>(o))
@@ -4424,6 +4426,7 @@ bool OverlayManager::eventFilter(QObject *o, QEvent *ev)
 void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
 {
     Base::StateLocker guard(this->intercepting);
+    lastIntercept = nullptr;
     auto getChildAt = [](QWidget *w, const QPoint &pos) {
         QWidget *res = w;
         for (; w; w = w->childAt(w->mapFromGlobal(pos)))
@@ -4437,21 +4440,21 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
     case QEvent::MouseMove:
     case QEvent::MouseButtonDblClick: {
         auto me = static_cast<QMouseEvent*>(ev);
-        QWidget *child = getChildAt(widget, me->globalPos());
+        lastIntercept = getChildAt(widget, me->globalPos());
         QMouseEvent mouseEvent(ev->type(),
-                            child->mapFromGlobal(me->globalPos()),
+                            lastIntercept->mapFromGlobal(me->globalPos()),
                             me->screenPos(),
                             me->button(),
                             me->buttons(),
                             me->modifiers());
-        QApplication::sendEvent(child, &mouseEvent);
+        QApplication::sendEvent(lastIntercept, &mouseEvent);
         break;
     }
     case QEvent::Wheel: {
         auto we = static_cast<QWheelEvent*>(ev);
-        QWidget *child = getChildAt(widget, we->globalPos());
+        lastIntercept = getChildAt(widget, we->globalPos());
 #if QT_VERSION >= QT_VERSION_CHECK(5,12,0)
-        QWheelEvent wheelEvent(child->mapFromGlobal(we->globalPos()),
+        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(we->globalPos()),
                                we->globalPos(),
                                we->pixelDelta(),
                                we->angleDelta(),
@@ -4461,7 +4464,7 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
                                we->inverted(),
                                we->source());
 #else
-        QWheelEvent wheelEvent(child->mapFromGlobal(we->globalPos()),
+        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(we->globalPos()),
                                we->globalPos(),
                                we->pixelDelta(),
                                we->angleDelta(),
@@ -4473,16 +4476,16 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
                                we->source(),
                                we->inverted());
 #endif
-        QApplication::sendEvent(child, &wheelEvent);
+        QApplication::sendEvent(lastIntercept, &wheelEvent);
         break;
     }
     case QEvent::ContextMenu: {
         auto ce = static_cast<QContextMenuEvent*>(ev);
-        QWidget *child = getChildAt(widget, ce->globalPos());
+        lastIntercept = getChildAt(widget, ce->globalPos());
         QContextMenuEvent contextMenuEvent(ce->reason(), 
-                                           child->mapFromGlobal(ce->globalPos()),
+                                           lastIntercept->mapFromGlobal(ce->globalPos()),
                                            ce->globalPos());
-        QApplication::sendEvent(child, &contextMenuEvent);
+        QApplication::sendEvent(lastIntercept, &contextMenuEvent);
     }
     default:
         break;
@@ -4580,6 +4583,11 @@ void OverlayManager::unregisterDockWidget(const QString &name, OverlayTabWidget 
 bool OverlayManager::isChangingMode() const
 {
     return _ChangingOverlayMode;
+}
+
+QWidget *OverlayManager::getLastMouseInterceptWidget() const
+{
+    return d->lastIntercept;
 }
 
 #include "moc_OverlayWidgets.cpp"

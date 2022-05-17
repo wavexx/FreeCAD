@@ -3749,8 +3749,11 @@ void StdCmdPickGeometry::activated(int iMsg)
 {
     Q_UNUSED(iMsg); 
 
-    QPoint pos = QCursor::pos();
-    QWidget *widget = qApp->widgetAt(pos);
+    auto widget = OverlayManager::instance()->getLastMouseInterceptWidget();
+    if (!widget) {
+        QPoint pos = QCursor::pos();
+        widget = qApp->widgetAt(pos);
+    }
     if (widget)
         widget = widget->parentWidget();
     auto viewer = qobject_cast<View3DInventorViewer*>(widget);
