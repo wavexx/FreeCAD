@@ -37,6 +37,7 @@
 # include <TopTools_MapOfShape.hxx>
 #endif
 #include "BRepOffsetAPI_MakeOffsetFix.h"
+#include "TopoShape.h"
 
 using namespace Part;
 
@@ -125,7 +126,7 @@ void BRepOffsetAPI_MakeOffsetFix::MakeWire(TopoDS_Shape& wire)
             TopoDS_Shape newShape = it.Value();
 
             if (aMap.Contains(newShape)) {
-                newShape.Move(itLoc.second);
+                TopoShape::move(newShape,itLoc.second);
                 edgeList.push_back(TopoDS::Edge(newShape));
             }
         }

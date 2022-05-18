@@ -591,6 +591,7 @@ Base::Matrix4D TopoShape::getTransform(void) const
 {
     Base::Matrix4D mtrx;
     gp_Trsf Trf = _Shape.Location().Transformation();
+    Trf.SetScaleFactor(1.0);
     convertToMatrix(Trf, mtrx);
     return mtrx;
 }

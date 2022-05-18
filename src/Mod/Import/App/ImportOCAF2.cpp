@@ -1327,7 +1327,7 @@ TDF_Label ExportOCAF2::exportObject(App::DocumentObject* parentObj,
             // retrieve OCAF computed shape, in case the current object returns
             // a new shape every time Part::Feature::getTopoShape() is called.
             auto baseShape = aShapeTool->GetShape(it->second);
-            shape.setShape(baseShape.Located(shape.getShape().Location()),false);
+            shape.setShape(Part::TopoShape::located(baseShape,shape.getShape().Location()),false);
             if(!parent.IsNull())
                 label = aShapeTool->AddComponent(parent,shape.getShape(),Standard_False);
             else
@@ -1482,7 +1482,7 @@ TDF_Label ExportOCAF2::exportObject(App::DocumentObject* parentObj,
 
     if(!parent.IsNull()) {
         // If we are a component, swap in the base shape but keep our location.
-        shape.setShape(baseShape.getShape().Located(shape.getShape().Location()),false);
+        shape.setShape(Part::TopoShape::located(baseShape.getShape(),shape.getShape().Location()),false);
         label = aShapeTool->AddComponent(parent,label,shape.getShape().Location());
         setupObject(label,name?parentObj:obj,shape,prefix,name);
     }

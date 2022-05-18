@@ -244,7 +244,7 @@ App::DocumentObjectExecReturn *RuledSurface::execute(void)
 
         // re-apply the placement in case we reset it
         if (!Loc.IsIdentity())
-            ruledShape.Move(Loc);
+            TopoShape::move(ruledShape,Loc);
         Loc = ruledShape.Location();
 
         if (!Loc.IsIdentity()) {

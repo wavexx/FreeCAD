@@ -377,7 +377,7 @@ public:
             res.Hasher = parent.Hasher;
 
             if(!parent.getShape().Location().IsIdentity())
-                res.setShape(res.getShape().Moved(parent.getShape().Location()),false);
+                res.setShape(moved(res._Shape,parent.getShape().Location()),false);
 
             if (s._Cache->cachedElementMap)
                 res.resetElementMap(s._Cache->cachedElementMap);
@@ -433,7 +433,7 @@ public:
                 owner->loc = parent.Location();
                 owner->locInv = parent.Location().Inverted();
             }
-            return child.Located(owner->locInv*child.Location());
+            return TopoShape::located(child,owner->locInv*child.Location());
         }
 
         int find(const TopoDS_Shape &parent, const TopoDS_Shape &subshape) {
@@ -448,7 +448,7 @@ public:
             if(parent.Location().IsIdentity())
                 return shapes.FindKey(index);
             else
-                return shapes.FindKey(index).Moved(parent.Location());
+                return moved(shapes.FindKey(index),parent.Location());
         }
 
         int count() const {
@@ -541,9 +541,9 @@ public:
         if(ancestors) {
             ancestors->reserve(ancestors->size()+shapes.Extent());
             for(TopTools_ListIteratorOfListOfShape it(shapes);it.More();it.Next())
-                ancestors->push_back(it.Value().Moved(parent.Location()));
+                ancestors->push_back(moved(it.Value(),parent.Location()));
         }
-        return shapes.First().Moved(parent.Location());
+        return moved(shapes.First(),parent.Location());
     }
 
     std::size_t getMemSize();
@@ -1370,8 +1370,9 @@ TopoShape &TopoShape::makETransform(const TopoShape &shape, const gp_Trsf &trsf,
         // parent relationship anyway. In short, STEP import/export will most
         // likely break badly if there is any scaling involved
         tmp.setShape(mkTrf.Shape().Moved(gp_Trsf()), false);
-    }else
-        tmp._Shape.Move(trsf);
+    } else
+        tmp.move(trsf);
+
     if(op || (shape.Tag && shape.Tag!=Tag)) {
         setShape(tmp._Shape);
         INIT_SHAPE_CACHE();
@@ -1647,7 +1648,7 @@ TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
 
     // re-apply the placement in case we reset it
     if (!Loc.IsIdentity())
-        ruledShape.Move(Loc);
+        move(ruledShape,Loc);
 
     // Use empty mapper and let makEShape name the created surface with lower elements.
     return makESHAPE(ruledShape,Mapper(),shapes,op);
@@ -1939,7 +1940,7 @@ TopoShape &TopoShape::makEPrism(const TopoShape &_base,
             if (!mkFace.IsDone()) 
                 remove_limits = false;
             else
-                uptoface.setShape(mkFace.Shape().Located(loc), false);
+                uptoface.setShape(located(mkFace.Shape(),loc), false);
         }
     }
 
@@ -5375,3 +5376,70 @@ TopoShape::renameDuplicateElement(int index,
     return Data::ComplexGeoData::renameDuplicateElement(index, element, element2, name, sids);
 }
 
+TopoDS_Shape &TopoShape::move(TopoDS_Shape &s, const TopLoc_Location &loc)
+{
+# if OCC_VERSION_HEX < 0x070600
+    s.Move(loc);
+#else
+    s.Move(loc, false);
+#endif
+    return s;
+}
+
+TopoDS_Shape TopoShape::moved(const TopoDS_Shape &s, const TopLoc_Location &loc)
+{
+# if OCC_VERSION_HEX < 0x070600
+    return s.Moved(loc);
+#else
+    return s.Moved(loc, false);
+#endif
+}
+
+TopoDS_Shape &TopoShape::move(TopoDS_Shape &s, const gp_Trsf &trsf)
+{
+# if OCC_VERSION_HEX < 0x070600
+    if (std::abs(trsf.ScaleFactor()) > 1e-14)
+#else
+    if (std::abs(trsf.ScaleFactor()) > TopLoc_Location::ScalePrec())
+#endif
+    {
+        auto trsfCopy(trsf);
+        trsfCopy.SetScaleFactor(1.0);
+        s.Move(trsfCopy);
+    }
+    else
+        s.Move(trsf);
+    return s;
+}
+
+TopoDS_Shape TopoShape::moved(const TopoDS_Shape &s, const gp_Trsf &trsf)
+{
+    TopoDS_Shape sCopy(s);
+    return move(sCopy, trsf);
+}
+
+TopoDS_Shape &TopoShape::locate(TopoDS_Shape &s, const TopLoc_Location &loc)
+{
+    s.Location(TopLoc_Location());
+    return move(s, loc);
+}
+
+TopoDS_Shape TopoShape::located(const TopoDS_Shape &s, const TopLoc_Location &loc)
+{
+    auto sCopy(s);
+    sCopy.Location(TopLoc_Location());
+    return moved(sCopy, loc);
+}
+
+TopoDS_Shape &TopoShape::locate(TopoDS_Shape &s, const gp_Trsf &trsf)
+{
+    s.Location(TopLoc_Location());
+    return move(s, trsf);
+}
+
+TopoDS_Shape TopoShape::located(const TopoDS_Shape &s, const gp_Trsf &trsf)
+{
+    auto sCopy(s);
+    sCopy.Location(TopLoc_Location());
+    return moved(sCopy, trsf);
+}

@@ -503,6 +503,35 @@ public:
         ret._Shape.Move(loc);
         return ret;
     }
+    void move(const gp_Trsf &trsf) {
+        move(_Shape._Shape, trsf);
+    }
+    TopoShape moved(const gp_Trsf &trsf) const {
+        return moved(_Shape._Shape, trsf);
+    }
+    void locate(const TopLoc_Location &loc) {
+        _Shape.Location(loc);
+    }
+    TopoShape located(const TopLoc_Location &loc) const {
+        TopoShape ret(*this);
+        ret._Shape.Location(loc);
+        return ret;
+    }
+    void locate(const gp_Trsf &trsf) {
+        located(_Shape._Shape, trsf);
+    }
+    TopoShape located(const gp_Trsf &trsf) const {
+        return located(_Shape._Shape, trsf);
+    }
+
+    static TopoDS_Shape &move(TopoDS_Shape &s, const TopLoc_Location &);
+    static TopoDS_Shape moved(const TopoDS_Shape &s, const TopLoc_Location &);
+    static TopoDS_Shape &move(TopoDS_Shape &s, const gp_Trsf &);
+    static TopoDS_Shape moved(const TopoDS_Shape &s, const gp_Trsf &);
+    static TopoDS_Shape &locate(TopoDS_Shape &s, const TopLoc_Location &loc);
+    static TopoDS_Shape located(const TopoDS_Shape &s, const TopLoc_Location &);
+    static TopoDS_Shape &locate(TopoDS_Shape &s, const gp_Trsf &);
+    static TopoDS_Shape located(const TopoDS_Shape &s, const gp_Trsf &);
 
     TopoShape &makEGTransform(const TopoShape &shape, const Base::Matrix4D &mat, 
             const char *op=0, bool copy=false);
@@ -817,7 +846,9 @@ private:
 
         Standard_Boolean IsNull() const { return _Shape.IsNull(); }
         const TopLoc_Location& Location() const { return _Shape.Location(); }
-        TopoDS_Shape Located (const TopLoc_Location& Loc) const { return _Shape.Located(Loc); }
+        TopoDS_Shape Located (const TopLoc_Location& Loc) const {
+            return TopoShape::located(_Shape, Loc);
+        }
         TopAbs_Orientation Orientation() const { return _Shape.Orientation(); }
         TopoDS_Shape Oriented (const TopAbs_Orientation Or) const { return _Shape.Oriented(Or); }
         const Handle(TopoDS_TShape)& TShape() const { return _Shape.TShape(); }
@@ -830,7 +861,9 @@ private:
         Standard_Boolean Closed() const { return _Shape.Closed(); }
         Standard_Boolean Infinite() const { return _Shape.Infinite(); }
         Standard_Boolean Convex() const { return _Shape.Convex(); }
-        TopoDS_Shape Moved (const TopLoc_Location& position) const { return _Shape.Moved(position); }
+        TopoDS_Shape Moved (const TopLoc_Location& position) const {
+            return TopoShape::moved(_Shape, position);
+        }
         TopoDS_Shape Reversed() const { return _Shape.Reversed(); }
         TopoDS_Shape Complemented() const { return _Shape.Complemented(); }
         TopoDS_Shape Composed (const TopAbs_Orientation Orient) const { return _Shape.Composed(Orient); }
@@ -865,7 +898,7 @@ private:
     
         void Location (const TopLoc_Location& Loc) {
             // Location does not affect element map or cache
-            _Shape.Location(Loc);
+            TopoShape::locate(_Shape, Loc);
         }
     
         void Orientation (const TopAbs_Orientation Orient) {
@@ -876,7 +909,7 @@ private:
     
         void Move (const TopLoc_Location& position) {
             // Move does not affect element map or cache
-            _Shape.Move(position);
+            TopoShape::move(_Shape, position);
         }
     
         void Reverse() {
