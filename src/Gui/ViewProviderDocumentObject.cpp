@@ -1024,7 +1024,7 @@ bool ViewProviderDocumentObject::isShowable(bool refresh) {
         return showable;
 
     _Showable = showable;
-    FC_LOG((_Showable?"showable ":"not showable ") << obj->getNameInDocument());
+    FC_TRACE((_Showable?"showable ":"not showable ") << obj->getNameInDocument());
 
     // showability changed
 
