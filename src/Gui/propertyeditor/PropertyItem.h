@@ -186,6 +186,7 @@ public:
     void reset();
 
     bool hasAnyExpression() const;
+    bool hasAnyChildExpression() const;
 
     virtual QVariant toString(const QVariant&) const;
 
