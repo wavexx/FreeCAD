@@ -164,8 +164,9 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
         TopoShape prism(0,getDocument()->getStringHasher());
 
         if (method == "UpToFirst" || method == "UpToFace") {
-            if (base.isNull())
-                return new App::DocumentObjectExecReturn("Pocket: Extruding up to a face is only possible if the sketch is located on a face");
+            TopoShape sketchBase(base);
+            if (sketchBase.isNull())
+                sketchBase = getBaseShape(true, true);
 
             // Note: This will return an unlimited planar face if support is a datum plane
             TopoShape supportface = getSupportFace();
@@ -180,7 +181,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 getUpToFaceFromLinkSub(upToFace, UpToFace);
                 upToFace.move(invObjLoc);
             }
-            getUpToFace(upToFace, base, supportface, profileshape, method, dir);
+            getUpToFace(upToFace, sketchBase, supportface, profileshape, method, dir);
             addOffsetToFace(upToFace, dir, Offset.getValue());
 
             // BRepFeat_MakePrism(..., 2, 1) in combination with PerForm(upToFace) is buggy when the
@@ -195,8 +196,9 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
             profileshape.reTagElementMap(-getID(), getDocument()->getStringHasher());
 
             if (_Version.getValue() < 1) {
-                auto mode = TopoShape::PrismMode::CutFromBase;
-                prism = base.makEPrism(profileshape, supportface, upToFace,
+                auto mode = base.isNull() ? TopoShape::PrismMode::None
+                                          : TopoShape::PrismMode::CutFromBase;
+                prism = sketchBase.makEPrism(profileshape, supportface, upToFace,
                         dir, mode, CheckUpToFaceLimits.getValue());
                 // DO NOT assign id to the generated prism, because this prism is
                 // actually the final result. We obtain the subtracted shape by cut
@@ -209,8 +211,10 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 // And the really expensive way to get the SubShape...
                 try {
                     TopoShape result(0,getDocument()->getStringHasher());
-                    result.makECut({base,prism});
-                    // FIXME: In some cases this affects the Shape property: It is set to the same shape as the SubShape!!!!
+                    if (base.isNull())
+                        result = prism;
+                    else
+                        result.makECut({sketchBase,prism});
                     result = refineShapeIfActive(result);
                     this->AddSubShape.setValue(result);
                 }catch(Standard_Failure &) {
@@ -220,9 +224,9 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 if (NewSolid.getValue())
                     prism = this->AddSubShape.getShape();
                 else if (getAddSubType() == Intersecting)
-                    prism.makEShape(TOPOP_COMMON, {base, this->AddSubShape.getShape()});
+                    prism.makEShape(TOPOP_COMMON, {sketchBase, this->AddSubShape.getShape()});
                 else if (getAddSubType() == Additive)
-                    prism = base.makEFuse(this->AddSubShape.getShape());
+                    prism = sketchBase.makEFuse(this->AddSubShape.getShape());
                 else
                     prism = refineShapeIfActive(prism);
 
@@ -230,7 +234,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 return App::DocumentObject::StdReturn;
             }
 
-            prism = base.makEPrism(profileshape, supportface, upToFace,
+            prism = sketchBase.makEPrism(profileshape, supportface, upToFace,
                     dir, TopoShape::PrismMode::None, CheckUpToFaceLimits.getValue());
 
         } else {
