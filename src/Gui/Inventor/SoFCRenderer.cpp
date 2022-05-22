@@ -1077,17 +1077,17 @@ SoFCRendererP::updateSelection()
               this->selstriangleontop.emplace_back(idx);
             break;
           case Material::Line:
-            if (sel.first & SoFCRenderer::SelIdPartial)
+            if (sel.first & SoFCRenderer::SelIdSelected)
               this->selslineontop.emplace_back(idx);
-            else if (!(sel.first & SoFCRenderer::SelIdFull) || material.partialhighlight)
+            else if (material.partialhighlight)
               this->selsontop.emplace_back(idx);
             else
               this->transpselectionsontop.emplace_back(idx);
             break;
           case Material::Point:
-            if (sel.first & SoFCRenderer::SelIdPartial)
+            if (sel.first & SoFCRenderer::SelIdSelected)
               this->selspointontop.emplace_back(idx);
-            else if (!(sel.first & SoFCRenderer::SelIdFull) || material.partialhighlight)
+            else if (material.partialhighlight)
               this->selsontop.emplace_back(idx);
             else
               this->transpselectionsontop.emplace_back(idx);
