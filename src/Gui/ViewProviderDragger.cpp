@@ -27,6 +27,7 @@
 # include <cfloat>
 # include <QAction>
 # include <QMenu>
+# include <QPointer>
 # include <Inventor/actions/SoSearchAction.h>
 # include <Inventor/draggers/SoDragger.h>
 # include <Inventor/draggers/SoCenterballDragger.h>
@@ -194,6 +195,8 @@ Base::Matrix4D ViewProviderDragger::getDragOffset()
     return getDragOffset(this);
 }
 
+static QPointer<TaskCSysDragger> _TaskDragger;
+
 bool ViewProviderDragger::setEdit(int ModNum)
 {
   if (ModNum != ViewProvider::Transform 
@@ -237,8 +240,8 @@ bool ViewProviderDragger::setEdit(int ModNum)
     // pcRoot->insertChild(csysDragger, 0);
     csysDragger->ref();
 
-    TaskCSysDragger *task = new TaskCSysDragger(this, csysDragger);
-    Gui::Control().showDialog(task);
+    _TaskDragger = new TaskCSysDragger(this, csysDragger);
+    Gui::Control().showDialog(_TaskDragger);
   }
 
   return true;
@@ -320,6 +323,8 @@ void ViewProviderDragger::onDragFinish(SoDragger *d)
     SoFCCSysDragger *dragger = static_cast<SoFCCSysDragger *>(d);
     updatePlacementFromDragger(dragger);
 
+    if (_TaskDragger)
+        _TaskDragger->onEndMove();
     Gui::Application::Instance->activeDocument()->commitCommand();
 }
 

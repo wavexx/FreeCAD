@@ -44,6 +44,7 @@
 # include <QApplication>
 # include <QMouseEvent>
 # include <QCheckBox>
+# include <QPointer>
 #endif
 #include <QFileInfo>
 #include <cctype>
@@ -3179,6 +3180,8 @@ bool ViewProviderLink::setEdit(int ModNum)
     return inherited::setEdit(ModNum);
 }
 
+static QPointer<TaskCSysDragger> _TaskDragger;
+
 void ViewProviderLink::setEditViewer(Gui::View3DInventorViewer* viewer, int ModNum)
 {
     if (ModNum == ViewProvider::Color) {
@@ -3233,8 +3236,8 @@ void ViewProviderLink::setEditViewer(Gui::View3DInventorViewer* viewer, int ModN
             dragger->setUpAutoScale(viewer->getSoRenderManager()->getCamera());
             viewer->setupEditingRoot(pcDragger,&dragCtx->preTransform);
 
-            TaskCSysDragger *task = new TaskCSysDragger(this, dragger);
-            Gui::Control().showDialog(task);
+            _TaskDragger = new TaskCSysDragger(this, dragger);
+            Gui::Control().showDialog(_TaskDragger);
         }
     }
 }
@@ -3353,8 +3356,11 @@ void ViewProviderLink::dragFinishCallback(void *data, SoDragger *) {
     if(me->dragCtx->cmdPending) {
         if(me->currentDraggingPlacement() == me->dragCtx->initialPlacement)
             me->getDocument()->abortCommand();
-        else
+        else {
+            if (_TaskDragger)
+                _TaskDragger->onEndMove();
             me->getDocument()->commitCommand();
+        }
     }
 }
 
