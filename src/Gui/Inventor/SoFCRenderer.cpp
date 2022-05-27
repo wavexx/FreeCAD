@@ -1082,7 +1082,7 @@ SoFCRendererP::updateSelection()
             else if (!(sel.first & SoFCRenderer::SelIdFull) || material.partialhighlight)
               this->selsontop.emplace_back(idx);
             else
-              this->transpselectionsontop.emplace_back(idx);
+              this->selslineontop.emplace_back(idx);
             break;
           case Material::Point:
             if (sel.first & SoFCRenderer::SelIdPartial)
@@ -1090,7 +1090,7 @@ SoFCRendererP::updateSelection()
             else if (!(sel.first & SoFCRenderer::SelIdFull) || material.partialhighlight)
               this->selsontop.emplace_back(idx);
             else
-              this->transpselectionsontop.emplace_back(idx);
+              this->selslineontop.emplace_back(idx);
             break;
         }
       }
