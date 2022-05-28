@@ -965,6 +965,7 @@ SET(Viewprovider_CPP_SRCS
     AxisOriginPyImp.cpp
     AxisOrigin.cpp
     ViewProviderSavedView.cpp
+    ViewProviderDatum.cpp
 )
 SET(Viewprovider_SRCS
     ${Viewprovider_CPP_SRCS}
@@ -996,6 +997,7 @@ SET(Viewprovider_SRCS
     ViewProviderMaterialObject.h
     ViewProviderTextDocument.h
     ViewProviderLink.h
+    ViewProviderDatum.h
     AxisOrigin.h
     ViewProviderSavedView.h
 )
