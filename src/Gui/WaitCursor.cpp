@@ -143,7 +143,7 @@ bool WaitCursorP::eventFilter(QObject* o, QEvent* e)
     return false;
 }
 
-int WaitCursor::instances = 0;
+static int WaitCursorInstances = 0;
 
 /**
  * Constructs this object and shows the wait cursor immediately. If you need to open a dialog as
@@ -153,7 +153,7 @@ int WaitCursor::instances = 0;
  */
 WaitCursor::WaitCursor()
 {
-    if (instances++ == 0)
+    if (WaitCursorInstances++ == 0)
         setWaitCursor();
     filter = WaitCursorP::getInstance()->ignoreEvents();
 }
@@ -161,7 +161,7 @@ WaitCursor::WaitCursor()
 /** Restores the last cursor again. */
 WaitCursor::~WaitCursor()
 {
-    if (--instances == 0)
+    if (--WaitCursorInstances == 0)
         restoreCursor();
     WaitCursorP::getInstance()->setIgnoreEvents(filter);
 }
@@ -190,4 +190,19 @@ WaitCursor::FilterEventsFlags WaitCursor::ignoreEvents() const
 void WaitCursor::setIgnoreEvents(FilterEventsFlags flags)
 {
     WaitCursorP::getInstance()->setIgnoreEvents(flags);
+}
+
+static int RestoreInstance;
+
+WaitCursorRestorer::WaitCursorRestorer()
+{
+    ++RestoreInstance;
+    if (WaitCursorInstances > 0)
+        WaitCursor::restoreCursor();
+}
+
+WaitCursorRestorer::~WaitCursorRestorer()
+{
+    if (--RestoreInstance == 0 && WaitCursorInstances > 0)
+        WaitCursor::setWaitCursor();
 }
