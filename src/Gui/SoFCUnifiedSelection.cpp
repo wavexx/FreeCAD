@@ -215,6 +215,8 @@ public:
         return master->colorSelection.getValue().getPackedValue(t);
     }
 
+    bool addSelection(SelectionChanges::MsgType selType, const App::SubObjectT &);
+
     void clearHighlight() {
         if(preselTimer.isScheduled())
             preselTimer.unschedule();
@@ -568,7 +570,6 @@ SoFCUnifiedSelection::Private::getPickedInfoOnTop(std::vector<PickedInfo> &ret,
     tmpPath.ref();
     tmpPath.truncate(0);
     if (useRenderer()) {
-        const auto & paths = this->manager.getSelectionPaths();
         tmpPath.append(pcViewer->getRootPath());
         tmpPath.append(master);
         int pathLength = tmpPath.getLength();
@@ -585,6 +586,7 @@ SoFCUnifiedSelection::Private::getPickedInfoOnTop(std::vector<PickedInfo> &ret,
                 tmpPath.truncate(pathLength);
             }
         }
+        const auto & paths = this->manager.getSelectionPaths();
         for (auto it=paths.lower_bound(1); it!=paths.end(); ++it) {
             if (!it->second || !it->second->getLength())
                 continue;
@@ -893,6 +895,90 @@ void SoFCUnifiedSelection::Private::applyOverrideMode(SoState * state) const
     }
 }
 
+bool SoFCUnifiedSelection::Private::addSelection(SelectionChanges::MsgType selType, const App::SubObjectT &objT)
+{
+    ViewProvider* vp = Application::Instance->getViewProvider(objT.getObject());
+    if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel())
+            && (vp->isSelectable() || ViewParams::getOverrideSelectability()))
+    {
+        SoDetail *detail = nullptr;
+        detailPath->truncate(0);
+        if (useRenderer()) {
+            if (!pcViewer || !pcViewer->hasViewProvider(vp))
+                return false;
+            detailPath->append(master);
+            if (selType != SelectionChanges::AddSelection) {
+                manager.removeSelection(objT.getSubNameNoElement(true),
+                                        objT.getOldElementName());
+                touch();
+                return false;
+            }
+        }
+        if(vp->getDetailPath(objT.getSubName().c_str(),detailPath,true,detail)) {
+            SoSelectionElementAction::Type type = SoSelectionElementAction::None;
+            if (selType == SelectionChanges::AddSelection) {
+                if (detail)
+                    type = SoSelectionElementAction::Append;
+                else
+                    type = SoSelectionElementAction::All;
+            }
+            else {
+                if (detail)
+                    type = SoSelectionElementAction::Remove;
+                else
+                    type = SoSelectionElementAction::None;
+            }
+
+            if (useRenderer()) {
+                if(detailPath->getLength()) {
+                    CoinPtr<SoPath> nodePath = detailPath;
+                    if (ViewParams::getShowSelectionOnTop()) {
+                        // The render manager requires a path without
+                        // sub-element detail to bring the whole object
+                        // on top if any of its sub element is
+                        // selected.
+                        nodePath = new SoPath(detailPath->getLength());
+                        nodePath->append(master);
+                        SoDetail *tmp = nullptr;
+                        std::string sub = objT.getSubNameNoElement();
+                        vp->getDetailPath(sub.c_str(),
+                                            static_cast<SoFullPath*>(nodePath.get()),
+                                            true,
+                                            tmp);
+                        delete tmp;
+                    }
+                    manager.addSelection(objT.getSubNameNoElement(true),
+                                            objT.getOldElementName(),
+                                            nodePath,
+                                            detailPath,
+                                            detail,
+                                            getSelectionColor(),
+                                            ViewParams::getShowSelectionOnTop()); 
+                } else
+                    manager.addSelection(objT.getSubNameNoElement(true),
+                                            objT.getOldElementName(),
+                                            vp->getRoot(),
+                                            getSelectionColor(),
+                                            ViewParams::getShowSelectionOnTop()); 
+                touch();
+            }
+            else {
+                slaction.setType(type);
+                slaction.setColor(master->colorSelection.getValue());
+                slaction.setElement(detail);
+                if(detailPath->getLength())
+                    slaction.apply(detailPath);
+                else
+                    slaction.apply(vp->getRoot());
+                slaction.setElement(nullptr);
+            }
+        }
+        detailPath->truncate(0);
+        delete detail;
+    }
+    return true;
+}
+
 bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
 {
     if (action->getTypeId() == SoFCEnableHighlightAction::getClassTypeId()) {
@@ -971,88 +1057,13 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 || selaction->SelChange->Type == SelectionChanges::RmvSelection))
         {
             // selection changes inside the 3d view are handled in handleEvent()
-            App::Document* doc = App::GetApplication().getDocument(selaction->SelChange->pDocName);
-            App::DocumentObject* obj = doc->getObject(selaction->SelChange->pObjectName);
-            ViewProvider*vp = Application::Instance->getViewProvider(obj);
-            if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel())
-                   && (vp->isSelectable() || ViewParams::getOverrideSelectability()))
-            {
-                SoDetail *detail = nullptr;
-                detailPath->truncate(0);
-                if (useRenderer()) {
-                    if (!pcViewer || !pcViewer->hasViewProvider(vp))
-                        return false;
-                    detailPath->append(master);
-                    if (selaction->SelChange->Type != SelectionChanges::AddSelection) {
-                        manager.removeSelection(selaction->SelChange->Object.getSubNameNoElement(true),
-                                                selaction->SelChange->Object.getOldElementName());
-                        touch();
-                        return false;
-                    }
-                }
-                if(vp->getDetailPath(selaction->SelChange->pSubName,detailPath,true,detail)) {
-                    SoSelectionElementAction::Type type = SoSelectionElementAction::None;
-                    if (selaction->SelChange->Type == SelectionChanges::AddSelection) {
-                        if (detail)
-                            type = SoSelectionElementAction::Append;
-                        else
-                            type = SoSelectionElementAction::All;
-                    }
-                    else {
-                        if (detail)
-                            type = SoSelectionElementAction::Remove;
-                        else
-                            type = SoSelectionElementAction::None;
-                    }
-
-                    if (useRenderer()) {
-                        if(detailPath->getLength()) {
-                            CoinPtr<SoPath> nodePath = detailPath;
-                            if (ViewParams::getShowSelectionOnTop()) {
-                                // The render manager requires a path without
-                                // sub-element detail to bring the whole object
-                                // on top if any of its sub element is
-                                // selected.
-                                nodePath = new SoPath(detailPath->getLength());
-                                nodePath->append(master);
-                                SoDetail *tmp = nullptr;
-                                std::string sub = selaction->SelChange->Object.getSubNameNoElement();
-                                vp->getDetailPath(sub.c_str(),
-                                                  static_cast<SoFullPath*>(nodePath.get()),
-                                                  true,
-                                                  tmp);
-                                delete tmp;
-                            }
-                            manager.addSelection(selaction->SelChange->Object.getSubNameNoElement(true),
-                                                 selaction->SelChange->Object.getOldElementName(),
-                                                 nodePath,
-                                                 detailPath,
-                                                 detail,
-                                                 getSelectionColor(),
-                                                 ViewParams::getShowSelectionOnTop()); 
-                        } else
-                            manager.addSelection(selaction->SelChange->Object.getSubNameNoElement(true),
-                                                 selaction->SelChange->Object.getOldElementName(),
-                                                 vp->getRoot(),
-                                                 getSelectionColor(),
-                                                 ViewParams::getShowSelectionOnTop()); 
-                        touch();
-                    }
-                    else {
-                        slaction.setType(type);
-                        slaction.setColor(master->colorSelection.getValue());
-                        slaction.setElement(detail);
-                        if(detailPath->getLength())
-                            slaction.apply(detailPath);
-                        else
-                            slaction.apply(vp->getRoot());
-                        slaction.setElement(nullptr);
-                    }
-                }
-                detailPath->truncate(0);
-                delete detail;
-            }
-        }else if (selaction->SelChange->Type == SelectionChanges::ClrSelection) {
+            if (!addSelection(selaction->SelChange->Type, selaction->SelChange->Object))
+                return false;
+        }else if (selaction->SelChange->Type == SelectionChanges::ClrSelection
+                || (master->selectionMode.getValue() == ON 
+                    && selaction->SelChange->Type == SelectionChanges::SetSelection))
+        {
+            master->setSelectAll(false);
             if (useRenderer()) {
                 manager.clearSelection();
                 touch();
@@ -1062,37 +1073,11 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 for(int i=0;i<master->getNumChildren();++i)
                     slaction.apply(master->getChild(i));
             }
-        }else if(master->selectionMode.getValue() == ON 
-                    && selaction->SelChange->Type == SelectionChanges::SetSelection) {
-            std::vector<ViewProvider*> vps;
-            if (this->pcDocument)
-                vps = this->pcDocument->getViewProvidersOfType(ViewProviderDocumentObject::getClassTypeId());
-            for (std::vector<ViewProvider*>::iterator it = vps.begin(); it != vps.end(); ++it) {
-                ViewProviderDocumentObject* vpd = static_cast<ViewProviderDocumentObject*>(*it);
-                if (master->useNewSelection.getValue() || vpd->useNewSelectionModel()) {
-                    SoSelectionElementAction::Type type;
-                    if(Selection().isSelected(vpd->getObject())
-                            && (vpd->isSelectable() || ViewParams::getOverrideSelectability()))
-                        type = SoSelectionElementAction::All;
-                    else
-                        type = SoSelectionElementAction::None;
-
-                    if (useRenderer()) {
-                        if (type == SoSelectionElementAction::All) {
-                            manager.addSelection(selaction->SelChange->Object.getSubNameNoElement(true), 
-                                                 selaction->SelChange->Object.getOldElementName(),
-                                                 vpd->getRoot(),
-                                                 getSelectionColor(),
-                                                 ViewParams::getShowSelectionOnTop());
-                            touch();
-                        }
-                    }
-                    else {
-                        slaction.setType(type);
-                        slaction.setColor(master->colorSelection.getValue());
-                        slaction.apply(vpd->getRoot());
-                    }
-                }
+            if (selaction->SelChange->Type == SelectionChanges::SetSelection && this->pcDocument) {
+                auto sels = Selection().getSelectionT(this->pcDocument->getDocument()->getName(), 0);
+                master->setSelectAll((int)sels.size() > ViewParams::getMaxOnTopSelections());
+                for (const auto &sel : sels)
+                    addSelection(SelectionChanges::AddSelection, sel);
             }
         }
         if(master->useNewSelection.getValue())

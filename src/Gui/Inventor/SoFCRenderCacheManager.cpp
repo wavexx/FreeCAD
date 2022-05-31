@@ -365,6 +365,7 @@ public:
   RenderCachePtr highlightcache;
   CoinPtr<SoPath> highlightpath;
   bool nosectionontop = false;
+  bool override_selectstyle = false;
 
   SoCallbackAction *action;
   int shapetypeid;
@@ -571,6 +572,7 @@ SoFCRenderCacheManager::setHighlight(SoPath * path,
       SoFCSwitch::setOverrideSwitch(state, true);
       SoFCSwitch::pushSwitchPath(path);
     }
+    PRIVATE(this)->override_selectstyle = false;
     PRIVATE(this)->action->apply(path);
     if (ontop) {
       SoFCSwitch::popSwitchPath();
@@ -631,6 +633,18 @@ SoFCRenderCacheManagerP::updateSelection(void * userdata, SoSensor * _sensor)
     SoFCSwitch::setOverrideSwitch(state, true);
     SoFCSwitch::pushSwitchPath(path);
   }
+
+  self->override_selectstyle = false;
+  if (sensor->ontop && (int)self->selpaths.size() >= ViewParams::getMaxOnTopSelections()) {
+    for (auto & v : sensor->elements) {
+      auto & elentry = v.second;
+      if (elentry.id & SoFCRenderer::SelIdFull) {
+        self->override_selectstyle = true;
+        break;
+      }
+    }
+  }
+
   self->action->apply(path);
   if (sensor->ontop) {
     SoFCSwitch::popSwitchPath();
@@ -1000,6 +1014,7 @@ SoFCRenderCacheManager::render(SoGLRenderAction * action)
     cache->resetActionStateStackDepth();
     PRIVATE(this)->stack.resize(1, cache);
     PRIVATE(this)->initAction();
+    PRIVATE(this)->override_selectstyle = false;
     PRIVATE(this)->action->apply(path->getTail());
     cache->close(state);
     PRIVATE(this)->renderer->setScene(cache);
@@ -1061,6 +1076,8 @@ SoFCRenderCacheManagerP::preSeparator(void *userdata,
       selectstyle = Material::Unpickable;
     break;
   default:
+    if (self->override_selectstyle)
+      selectstyle = Material::BoxFull;
     break;
   }
 

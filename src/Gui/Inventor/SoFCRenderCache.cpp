@@ -674,7 +674,9 @@ SoFCRenderCacheP::mergeMaterial(const SbMatrix &matrix,
   if (parent.annotation > child.annotation)
     res.annotation = parent.annotation;
 
-  if (res.selectstyle != Material::Box && res.selectstyle != Material::Unpickable)
+  if (res.selectstyle != Material::Box
+      && res.selectstyle != Material::BoxFull
+      && res.selectstyle != Material::Unpickable)
     res.selectstyle = parent.selectstyle;
 
   res.outline |= parent.outline;
@@ -1781,6 +1783,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
       material.depthfunc = SoDepthBuffer::LEQUAL;
 
       if (color && (material.selectstyle == Material::Box
+                    || (material.selectstyle == Material::BoxFull && !detail)
                     || (ViewParams::getShowSelectionBoundingBox()
                         && (!detail || !preselect))
                     || (ViewParams::getShowSelectionBoundingBoxThreshold()
