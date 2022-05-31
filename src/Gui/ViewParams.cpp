@@ -540,7 +540,7 @@ public:
         funcs["SectionHatchTexture"] = &ViewParamsP::updateSectionHatchTexture;
         SectionHatchTextureEnable = handle->GetBool("SectionHatchTextureEnable", true);
         funcs["SectionHatchTextureEnable"] = &ViewParamsP::updateSectionHatchTextureEnable;
-        SectionFillGroup = handle->GetBool("SectionFillGroup", true);
+        SectionFillGroup = handle->GetBool("SectionFillGroup", false);
         funcs["SectionFillGroup"] = &ViewParamsP::updateSectionFillGroup;
         ShowClipPlane = handle->GetBool("ShowClipPlane", false);
         funcs["ShowClipPlane"] = &ViewParamsP::updateShowClipPlane;
@@ -1245,7 +1245,7 @@ public:
     }
     // Auto generated code. See class document of ViewParams.
     static void updateSectionFillGroup(ViewParamsP *self) {
-        self->SectionFillGroup = self->handle->GetBool("SectionFillGroup", true);
+        self->SectionFillGroup = self->handle->GetBool("SectionFillGroup", false);
     }
     // Auto generated code. See class document of ViewParams.
     static void updateShowClipPlane(ViewParamsP *self) {
@@ -5570,7 +5570,7 @@ const bool & ViewParams::getSectionFillGroup() {
 
 // Auto generated code. See class document of ViewParams.
 const bool & ViewParams::defaultSectionFillGroup() {
-    const static bool def = true;
+    const static bool def = false;
     return def;
 }
 

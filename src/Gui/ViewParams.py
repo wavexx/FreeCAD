@@ -257,7 +257,7 @@ Params = [
     ParamString('SectionHatchTexture',  ":icons/section-hatch.png", on_change=True,
         doc="Section filling texture image path."),
     ParamBool('SectionHatchTextureEnable',  True, "Enable section fill texture."),
-    ParamBool('SectionFillGroup',  True,
+    ParamBool('SectionFillGroup',  False,
         "Render cross section filling of objects with similar materials together.\n"
         "Intersecting objects will act as boolean cut operation"),
     ParamBool('ShowClipPlane',  False,  "Show clip plane"),
