@@ -36,6 +36,7 @@ ViewParams.declare_begin()
 
 #include <Base/Parameter.h>
 
+
 namespace Gui {
 /** Convenient class to obtain view provider related parameters
 
@@ -570,6 +571,24 @@ public:
     static void removeMaxOnTopSelections();
     static void setMaxOnTopSelections(const long &v);
     static const char *docMaxOnTopSelections();
+    //@}
+
+    //@{
+    /// Accessor for parameter MaxViewSelections
+    static const long & getMaxViewSelections();
+    static const long & defaultMaxViewSelections();
+    static void removeMaxViewSelections();
+    static void setMaxViewSelections(const long &v);
+    static const char *docMaxViewSelections();
+    //@}
+
+    //@{
+    /// Accessor for parameter MaxSelectionNotification
+    static const long & getMaxSelectionNotification();
+    static const long & defaultMaxSelectionNotification();
+    static void removeMaxSelectionNotification();
+    static void setMaxSelectionNotification(const long &v);
+    static const char *docMaxSelectionNotification();
     //@}
 
     //@{

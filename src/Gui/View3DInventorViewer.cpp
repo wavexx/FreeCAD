@@ -1171,6 +1171,8 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
             break;
         }
         case SelectionChanges::ClrSelection:
+            if(!alt)
+                selectionRoot->setSelectAll(false);
             manager->clearSelection(true);
             if (guiDocument && _pimpl->objectsOnTop.size()) {
                 _pimpl->objectsOnTop.clear();
@@ -3517,12 +3519,10 @@ void View3DInventorViewer::renderScene(void)
         stream.setf(std::ios::fixed | std::ios::showpoint);
         stream << framesPerSecond[0] << " ms / " << framesPerSecond[1] << " fps";
 
-        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG)) {
-            if (auto manager = selectionRoot->getRenderManager()) {
-                auto stats = manager->getRenderStatistics();
-                if (stats)
-                    stream << ". " << stats;
-            }
+        if (auto manager = selectionRoot->getRenderManager()) {
+            auto stats = manager->getRenderStatistics();
+            if (stats)
+                stream << ". " << stats;
         }
 
         draw2DString(stream.str().c_str(), SbVec2s(10,10), SbVec2f(0.1f,0.1f));
@@ -3609,7 +3609,7 @@ void View3DInventorViewer::selectAll()
     }
 
     if (!objs.empty())
-        Gui::Selection().setSelection(objs.front()->getDocument()->getName(), objs);
+        Gui::Selection().setSelection(objs);
 }
 
 bool View3DInventorViewer::processSoEvent(const SoEvent* ev)
@@ -4541,7 +4541,8 @@ void View3DInventorViewer::viewSelection(bool extend)
         sels.push_back(Gui::Selection().getContext());
         if (sels.back().getDocument() != guiDocument->getDocument())
             return;
-    }
+    } else if (ViewParams::getMaxViewSelections() < (int)sels.size())
+        sels.resize(ViewParams::getMaxViewSelections());
     viewObjects(sels, extend);
 }
 
