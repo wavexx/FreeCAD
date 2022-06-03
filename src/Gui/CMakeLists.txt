@@ -339,7 +339,6 @@ SET(Gui_UIC_SRCS
     DlgSettingsSelection.ui
     DlgSettingsUnits.ui
     DlgSettingsViewColor.ui
-    DlgSettingsDrawStyles.ui
     DlgSettingsColorGradient.ui
     DlgSettingsDocument.ui
     DlgSettingsImage.ui
@@ -626,7 +625,6 @@ SET(Dialog_Settings_SRCS
     DlgSettingsSelection.ui
     DlgSettingsUnits.ui
     DlgSettingsViewColor.ui
-    DlgSettingsDrawStyles.ui
     DlgSettingsColorGradient.ui
     DlgSettingsDocument.ui
     DlgSettingsImage.ui
