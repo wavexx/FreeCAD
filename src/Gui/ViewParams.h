@@ -2084,6 +2084,18 @@ public:
     static void setSelectionStackSize(const unsigned long &v);
     static const char *docSelectionStackSize();
     //@}
+
+    // Auto generated code (Tools/params_utils.py:95)
+    //@{
+    /// Accessor for parameter DefaultDrawStyle
+    ///
+    /// Default draw style of a new document
+    static const long & getDefaultDrawStyle();
+    static const long & defaultDefaultDrawStyle();
+    static void removeDefaultDrawStyle();
+    static void setDefaultDrawStyle(const long &v);
+    static const char *docDefaultDrawStyle();
+    //@}
 //[[[end]]]
 
     static bool highlightIndicesOnFullSelect() {
@@ -2107,7 +2119,7 @@ ViewParams.declare_end()
 }; // class ViewParams
 } // namespace Gui
 
-// Auto generated code (Gui/ViewParams.py:366)
+// Auto generated code (Gui/ViewParams.py:369)
 namespace Gui {
 /// Obtain draw style name from index. Returns nullptr if out of range.
 GuiExport const char *drawStyleNameFromIndex(int index);

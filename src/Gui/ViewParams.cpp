@@ -230,6 +230,7 @@ public:
     double BacklightIntensity;
     bool OverrideSelectability;
     unsigned long SelectionStackSize;
+    long DefaultDrawStyle;
 
     // Auto generated code (Tools/params_utils.py:176)
     ViewParamsP() {
@@ -584,6 +585,8 @@ public:
         funcs["OverrideSelectability"] = &ViewParamsP::updateOverrideSelectability;
         SelectionStackSize = handle->GetUnsigned("SelectionStackSize", 30);
         funcs["SelectionStackSize"] = &ViewParamsP::updateSelectionStackSize;
+        DefaultDrawStyle = handle->GetInt("DefaultDrawStyle", 0);
+        funcs["DefaultDrawStyle"] = &ViewParamsP::updateDefaultDrawStyle;
     }
 
     // Auto generated code (Tools/params_utils.py:190)
@@ -1345,6 +1348,10 @@ public:
     // Auto generated code (Tools/params_utils.py:211)
     static void updateSelectionStackSize(ViewParamsP *self) {
         self->SelectionStackSize = self->handle->GetUnsigned("SelectionStackSize", 30);
+    }
+    // Auto generated code (Tools/params_utils.py:211)
+    static void updateDefaultDrawStyle(ViewParamsP *self) {
+        self->DefaultDrawStyle = self->handle->GetInt("DefaultDrawStyle", 0);
     }
 };
 
@@ -6207,7 +6214,35 @@ void ViewParams::removeSelectionStackSize() {
     instance()->handle->RemoveUnsigned("SelectionStackSize");
 }
 
-// Auto generated code (Gui/ViewParams.py:381)
+// Auto generated code (Tools/params_utils.py:261)
+const char *ViewParams::docDefaultDrawStyle() {
+    return QT_TRANSLATE_NOOP("ViewParams",
+"Default draw style of a new document");
+}
+
+// Auto generated code (Tools/params_utils.py:267)
+const long & ViewParams::getDefaultDrawStyle() {
+    return instance()->DefaultDrawStyle;
+}
+
+// Auto generated code (Tools/params_utils.py:273)
+const long & ViewParams::defaultDefaultDrawStyle() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:280)
+void ViewParams::setDefaultDrawStyle(const long &v) {
+    instance()->handle->SetInt("DefaultDrawStyle",v);
+    instance()->DefaultDrawStyle = v;
+}
+
+// Auto generated code (Tools/params_utils.py:287)
+void ViewParams::removeDefaultDrawStyle() {
+    instance()->handle->RemoveInt("DefaultDrawStyle");
+}
+
+// Auto generated code (Gui/ViewParams.py:384)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -6220,7 +6255,7 @@ static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Shadow"),
 };
 
-// Auto generated code (Gui/ViewParams.py:390)
+// Auto generated code (Gui/ViewParams.py:393)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -6234,7 +6269,7 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:399)
+// Auto generated code (Gui/ViewParams.py:402)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -6242,7 +6277,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:408)
+// Auto generated code (Gui/ViewParams.py:411)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -6254,7 +6289,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:421)
+// Auto generated code (Gui/ViewParams.py:424)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)
