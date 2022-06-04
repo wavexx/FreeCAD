@@ -6242,7 +6242,52 @@ void ViewParams::removeDefaultDrawStyle() {
     instance()->handle->RemoveInt("DefaultDrawStyle");
 }
 
-// Auto generated code (Gui/ViewParams.py:407)
+// Auto generated code (Gui/ViewParams.py:475)
+const std::vector<QString> ViewParams::AnimationCurveTypes = {
+    QStringLiteral("Linear"),
+    QStringLiteral("InQuad"),
+    QStringLiteral("OutQuad"),
+    QStringLiteral("InOutQuad"),
+    QStringLiteral("OutInQuad"),
+    QStringLiteral("InCubic"),
+    QStringLiteral("OutCubic"),
+    QStringLiteral("InOutCubic"),
+    QStringLiteral("OutInCubic"),
+    QStringLiteral("InQuart"),
+    QStringLiteral("OutQuart"),
+    QStringLiteral("InOutQuart"),
+    QStringLiteral("OutInQuart"),
+    QStringLiteral("InQuint"),
+    QStringLiteral("OutQuint"),
+    QStringLiteral("InOutQuint"),
+    QStringLiteral("OutInQuint"),
+    QStringLiteral("InSine"),
+    QStringLiteral("OutSine"),
+    QStringLiteral("InOutSine"),
+    QStringLiteral("OutInSine"),
+    QStringLiteral("InExpo"),
+    QStringLiteral("OutExpo"),
+    QStringLiteral("InOutExpo"),
+    QStringLiteral("OutInExpo"),
+    QStringLiteral("InCirc"),
+    QStringLiteral("OutCirc"),
+    QStringLiteral("InOutCirc"),
+    QStringLiteral("OutInCirc"),
+    QStringLiteral("InElastic"),
+    QStringLiteral("OutElastic"),
+    QStringLiteral("InOutElastic"),
+    QStringLiteral("OutInElastic"),
+    QStringLiteral("InBack"),
+    QStringLiteral("OutBack"),
+    QStringLiteral("InOutBack"),
+    QStringLiteral("OutInBack"),
+    QStringLiteral("InBounce"),
+    QStringLiteral("OutBounce"),
+    QStringLiteral("InOutBounce"),
+    QStringLiteral("OutInBounce"),
+};
+
+// Auto generated code (Gui/ViewParams.py:483)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -6255,7 +6300,7 @@ static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Shadow"),
 };
 
-// Auto generated code (Gui/ViewParams.py:416)
+// Auto generated code (Gui/ViewParams.py:492)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -6269,7 +6314,7 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:425)
+// Auto generated code (Gui/ViewParams.py:501)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -6277,7 +6322,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:434)
+// Auto generated code (Gui/ViewParams.py:510)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -6289,7 +6334,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:447)
+// Auto generated code (Gui/ViewParams.py:523)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)
