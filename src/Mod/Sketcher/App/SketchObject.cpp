@@ -9670,7 +9670,12 @@ Data::IndexedName SketchObject::checkSubName(const char *sub) const{
     if(!sub) return Data::IndexedName();
     const char *subname = Data::ComplexGeoData::isMappedElement(sub);
     if(!subname)  {
-        return Data::IndexedName(sub, types, true);
+        Data::IndexedName res(sub, types, true);
+        if (boost::equals(res.getType(), "edge"))
+            return Data::IndexedName("Edge", res.getIndex());
+        else if (boost::starts_with(res.getType(), "vertex"))
+            return Data::IndexedName("Vertex", res.getIndex());
+        return res;
     }
     if(!subname[0]) {
         FC_ERR("invalid subname " << sub);
