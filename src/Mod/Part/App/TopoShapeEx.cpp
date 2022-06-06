@@ -179,6 +179,10 @@
 # include <GeomFill_BezierCurves.hxx>
 # include <BRepFill_Generator.hxx>
 
+#if OCC_VERSION_HEX >= 0x070500
+#   include <OSD_Parallel.hxx>
+#endif
+
 #include <array>
 #include <deque>
 #include <boost/algorithm/string/predicate.hpp>
@@ -3270,19 +3274,26 @@ TopoShape &TopoShape::makEShape(const char *maker,
     }
 
 # if OCC_VERSION_HEX >= 0x060900
+#   if OCC_VERSION_HEX >= 0x070500
+    if (PartParams::ParallelRunThreshold() > 0) {
+        mk->SetRunParallel(Standard_True);
+        OSD_Parallel::SetUseOcctThreads(Standard_True);
+    }
+#   else
     // Only run parallel 
     if (shapeArguments.Size() + shapeTools.Size() > 2)
         mk->SetRunParallel(true);
-    else {
+    else if (PartParams::ParallelRunThreshold() > 0) {
         int total = 0;
         for (const auto &shape : inputs) {
             total += shape.countSubShapes(TopAbs_FACE);
-            if (total > 1000) {
+            if (total > PartParams::ParallelRunThreshold()) {
                 mk->SetRunParallel(true);
                 break;
             }
         }
     }
+#   endif
 # endif
 
     mk->SetArguments(shapeArguments);
