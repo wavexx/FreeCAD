@@ -215,7 +215,7 @@ public:
         return master->colorSelection.getValue().getPackedValue(t);
     }
 
-    bool addSelection(SelectionChanges::MsgType selType, const App::SubObjectT &);
+    bool checkSelection(SelectionChanges::MsgType selType, const App::SubObjectT &);
 
     void clearHighlight() {
         if(preselTimer.isScheduled())
@@ -895,8 +895,18 @@ void SoFCUnifiedSelection::Private::applyOverrideMode(SoState * state) const
     }
 }
 
-bool SoFCUnifiedSelection::Private::addSelection(SelectionChanges::MsgType selType, const App::SubObjectT &objT)
+bool SoFCUnifiedSelection::Private::checkSelection(SelectionChanges::MsgType selType, const App::SubObjectT &objT)
 {
+    if (useRenderer() && selType == SelectionChanges::RmvSelection) {
+        // Selection notification maybe delayed, so the view provider may
+        // already be deleted at the calling time. However,
+        // SoFCRenderCacheManager uses string key to register selection, so no
+        // need to check for view provider.
+        manager.removeSelection(objT.getSubNameNoElement(true),
+                                objT.getOldElementName());
+        touch();
+        return false;
+    }
     ViewProvider* vp = Application::Instance->getViewProvider(objT.getObject());
     if (vp && (master->useNewSelection.getValue()||vp->useNewSelectionModel())
             && (vp->isSelectable() || ViewParams::getOverrideSelectability()))
@@ -907,12 +917,6 @@ bool SoFCUnifiedSelection::Private::addSelection(SelectionChanges::MsgType selTy
             if (!pcViewer || !pcViewer->hasViewProvider(vp))
                 return false;
             detailPath->append(master);
-            if (selType != SelectionChanges::AddSelection) {
-                manager.removeSelection(objT.getSubNameNoElement(true),
-                                        objT.getOldElementName());
-                touch();
-                return false;
-            }
         }
         if(vp->getDetailPath(objT.getSubName().c_str(),detailPath,true,detail)) {
             SoSelectionElementAction::Type type = SoSelectionElementAction::None;
@@ -1057,7 +1061,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 || selaction->SelChange->Type == SelectionChanges::RmvSelection))
         {
             // selection changes inside the 3d view are handled in handleEvent()
-            if (!addSelection(selaction->SelChange->Type, selaction->SelChange->Object))
+            if (!checkSelection(selaction->SelChange->Type, selaction->SelChange->Object))
                 return false;
         }else if (selaction->SelChange->Type == SelectionChanges::ClrSelection
                 || (master->selectionMode.getValue() == ON 
@@ -1077,7 +1081,7 @@ bool SoFCUnifiedSelection::Private::doAction(SoAction * action)
                 auto sels = Selection().getSelectionT(this->pcDocument->getDocument()->getName(), 0);
                 master->setSelectAll((int)sels.size() > ViewParams::getMaxOnTopSelections());
                 for (const auto &sel : sels)
-                    addSelection(SelectionChanges::AddSelection, sel);
+                    checkSelection(SelectionChanges::AddSelection, sel);
             }
         }
         if(master->useNewSelection.getValue())
