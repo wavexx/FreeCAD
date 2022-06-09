@@ -951,9 +951,10 @@ Sheet::getCellBinding(Range &range,
                       ExpressionPtr *pEnd,
                       App::ObjectIdentifier *pTarget) const 
 {
+    range.normalize();
     do {
         CellAddress addr = *range;
-        for(auto &r : boundRanges) {
+        for(const auto &r : boundRanges) {
             if(addr.row()>=r.from().row()
                     && addr.row()<=r.to().row()
                     && addr.col()>=r.from().col()
@@ -1006,11 +1007,11 @@ void Sheet::updateBindings()
     std::set<Range> newRangeSet;
     std::set<Range> rangeSet;
     boundRanges.clear();
-    for(auto &v : ExpressionEngine.getExpressions()) {
+    for(const auto &v : ExpressionEngine.getExpressions()) {
         CellAddress from,to;
         if(!cells.isBindingPath(v.first,&from,&to))
             continue;
-        App::Range range(from,to);
+        App::Range range(from,to,true);
         if(!oldRangeSet.erase(range))
             newRangeSet.insert(range);
         rangeSet.insert(range);
@@ -1026,9 +1027,9 @@ void Sheet::updateBindings()
             }
         } while (range.next());
     }
-    for(auto &range : oldRangeSet)
+    for(const auto &range : oldRangeSet)
         rangeUpdated(range);
-    for(auto &range : newRangeSet)
+    for(const auto &range : newRangeSet)
         rangeUpdated(range);
 }
 
