@@ -93,6 +93,7 @@
 #include "View.h"
 #include "Macro.h"
 #include "ProgressBar.h"
+#include "Widgets.h"
 
 #include "WidgetFactory.h"
 #include "BitmapFactory.h"
@@ -492,6 +493,9 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags f)
         [this](const QString &msg) {
             if (msg.size()) d->actionLabel->clear();
         });
+
+    // Initialize customized tooltip manager
+    ToolTip::instance();
 }
 
 MainWindow::~MainWindow()
@@ -2284,10 +2288,11 @@ void MainWindowP::applyOverrideIcons(const QStringList &icons)
             FC_WARN("Invalid icon override in stylesheet: " << s.toUtf8().constData());
             continue;
         }
+        QString path;
         QByteArray name = pair[0].trimmed().toUtf8();
         QPixmap icon;
         if (pair.size() >= 2) {
-            QString path = pair[1].trimmed();
+            path = pair[1].trimmed();
             if (path.size()) {
                 QSize size(64, 64);
                 if (pair.size() == 3) {
@@ -2308,7 +2313,7 @@ void MainWindowP::applyOverrideIcons(const QStringList &icons)
                             << " from " << path.toUtf8().constData());
             }
         }
-        BitmapFactory().addPixmapToCache(name, icon, true);
+        BitmapFactory().addPixmapToCache(name, icon, path.toUtf8().constData(), true);
     }
 }
 
@@ -2394,6 +2399,7 @@ void MainWindow::changeEvent(QEvent *e)
         BitmapFactory().onStyleChange();
         Application::Instance->commandManager().refreshIcons();
         OverlayManager::instance()->refreshIcons();
+        TipLabel::refreshIcons();
     }
     else if (e->type() == QEvent::ActivationChange) {
         if (isActiveWindow()) {
