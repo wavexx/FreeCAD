@@ -478,7 +478,7 @@ class GuiExport TipLabel: public QLabel
 public:
     TipLabel(QWidget *parent, Qt::WindowFlags flags = Qt::WindowFlags());
     static TipLabel *instance(QWidget *parent, const QPoint &pos, bool overlay);
-    static void hideLabel();
+    static void hideLabel(bool hideOverlay=true);
     static void refreshIcons();
     void set(const QString &, const QString &iconPath = QString());
 protected:
@@ -526,7 +526,7 @@ protected:
     virtual ~ToolTip();
 
     void onShowTimer();
-    void onHideTimer();
+    void onHideTimer(bool hideOverlay);
     bool eventFilter(QObject* o, QEvent*e);
     static bool checkToolTip(QWidget *w, QHelpEvent *e);
 
@@ -541,6 +541,7 @@ private:
     QPointer<QWidget> w; // need guard in case widget gets destroyed
     QTimer tooltipTimer;
     QTimer hideTimer;
+    QTimer hideTimerNoOverlay;
     QElapsedTimer displayTime;
 };
 
