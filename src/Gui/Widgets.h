@@ -480,7 +480,9 @@ public:
     static TipLabel *instance(QWidget *parent, const QPoint &pos, bool overlay);
     static void hideLabel(bool hideOverlay=true);
     static void refreshIcons();
-    void set(const QString &, const QString &iconPath = QString());
+    void set(const QString &, const QString &iconPath);
+    void set(const QString &, QPixmap pixmap);
+    void set(const QString &);
 protected:
     void paintEvent(QPaintEvent *e);
     void resizeEvent(QResizeEvent *e);
@@ -517,6 +519,10 @@ public:
                          const QString & text,
                          const QString & iconPath,
                          QWidget * w = 0);
+    static void showText(const QPoint & pos,
+                         const QString & text,
+                         const QPixmap & pixmap,
+                         QWidget * w = 0);
     static void hideText(int delay=0, bool hideOverlay=true);
 
     static ToolTip* instance();
@@ -536,6 +542,7 @@ private:
     bool overlay = false;
     QString text;
     QString iconPath;
+    QPixmap iconPixmap;
     QPoint pos;
     Corner corner;
     QPointer<QWidget> w; // need guard in case widget gets destroyed
