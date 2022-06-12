@@ -2007,3 +2007,8 @@ bool PropertySheet::isTouched() const
 {
     return isDirty();
 }
+
+bool PropertySheet::hasSpan() const
+{
+    return !mergedCells.empty();
+}
