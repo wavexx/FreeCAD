@@ -47,6 +47,7 @@
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoAnnotation.h>
+#include <Inventor/nodes/SoIndexedShape.h>
 #include <Inventor/sensors/SoDataSensor.h>
 #include <Inventor/sensors/SoIdleSensor.h>
 #include <Inventor/sensors/SoNodeSensor.h>
@@ -432,6 +433,25 @@ SoFCRenderCacheManagerP::SoFCRenderCacheManagerP()
             if (_shapetypeid < static_cast<int>(node->getTypeId().getData())) {
                 node->touch(); // make sure to revisit
                 _shapetypeid = 0;
+            }
+
+            // Sanity check for indexed shape to make sure all indices are
+            // within the boundary. There is a bug in
+            // SoIndexedLineSet::generatePrimitive() that causing visual
+            // defects if there is invalid index. In libCoin3D debug build,
+            // this will trigger assertion.
+            //
+            // See https://github.com/realthunder/FreeCAD/issues/445
+
+            if (static_cast<SoShape*>(node)->isOfType(SoIndexedShape::getClassTypeId())) {
+              auto indexed_shape = static_cast<SoIndexedShape*>(node);
+              auto callback = static_cast<SoCallbackAction*>(action);
+              int numcoords = callback->getNumCoordinates();
+              auto indices = indexed_shape->coordIndex.getValues(0);
+              for (int i=0, count=indexed_shape->coordIndex.getNum(); i<count; ++i) {
+                if (indices[i] < -1 || indices[i] >= numcoords)
+                  return;
+              }
             }
             SoNode::callbackS(action, node);
         }
