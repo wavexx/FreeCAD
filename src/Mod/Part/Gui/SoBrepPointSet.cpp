@@ -291,7 +291,7 @@ void SoBrepPointSet::getBoundingBox(SoGetBoundingBoxAction * action) {
             bbox.extendBy(coords3d[idx]);
     }
 
-    if(!bbox.isEmpty())
+    if(isValidBBox(bbox))
         action->extendBy(bbox);
 }
 
@@ -495,7 +495,7 @@ void SoBrepPointSet::rayPick(SoRayPickAction *action) {
 
     if (getBoundingBoxCache() && getBoundingBoxCache()->isValid(state)) {
         SbBox3f box = getBoundingBoxCache()->getProjectedBox();
-        if(box.isEmpty() || !action->intersect(box,TRUE))
+        if(!isValidBBox(box) || !action->intersect(box,TRUE))
             return;
     }
 
@@ -534,7 +534,7 @@ void SoBrepPointSet::rayPick(SoRayPickAction *action) {
     if(!PartParams::SelectionPickRTree() || numparts < threshold) {
         for(int bboxId=0;bboxId<numparts;++bboxId) {
             auto &box = boxes[bboxId];
-            if(box.isEmpty() || !action->intersect(box,TRUE))
+            if(!isValidBBox(box) || !action->intersect(box,TRUE))
                 continue;
             pick(bboxId);
         }

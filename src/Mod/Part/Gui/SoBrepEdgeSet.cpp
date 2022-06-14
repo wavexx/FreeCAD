@@ -71,6 +71,7 @@
 #include "PartParams.h"
 #include <Gui/SoFCUnifiedSelection.h>
 #include <Gui/SoFCSelectionAction.h>
+#include <Gui/InventorBase.h>
 #include <Gui/ViewParams.h>
 
 using namespace Gui;
@@ -382,7 +383,7 @@ void SoBrepEdgeSet::getBoundingBox(SoGetBoundingBoxAction * action) {
         }
     }
 
-    if(!bbox.isEmpty())
+    if(isValidBBox(bbox))
         action->extendBy(bbox);
 }
 
@@ -582,7 +583,7 @@ void SoBrepEdgeSet::initBoundingBoxes(const SbVec3f *coords, int numverts)
     SegmentInfo *info = nullptr;
 
     auto pushInfo = [&](bool force) {
-        if (!info || bbox.isEmpty())
+        if (!info || !isValidBBox(bbox))
             return;
         if (!force && info->count < step) {
             if (info->count <= 1 || cindices[info->start + info->count - 2] == -1)
@@ -661,7 +662,7 @@ void SoBrepEdgeSet::rayPick(SoRayPickAction *action) {
 
     if (getBoundingBoxCache() && getBoundingBoxCache()->isValid(state)) {
         SbBox3f box = getBoundingBoxCache()->getProjectedBox();
-        if(box.isEmpty() || !action->intersect(box,TRUE))
+        if(!isValidBBox(box)|| !action->intersect(box,TRUE))
             return;
     }
 
@@ -728,7 +729,7 @@ void SoBrepEdgeSet::rayPick(SoRayPickAction *action) {
     if(!PartParams::SelectionPickRTree() || numparts < threshold) {
         for(int bboxId=0;bboxId<numparts;++bboxId) {
             auto &box = boxes[bboxId];
-            if(box.isEmpty() || !action->intersect(box,TRUE))
+            if(!isValidBBox(box)|| !action->intersect(box,TRUE))
                 continue;
             pick(bboxId);
         }

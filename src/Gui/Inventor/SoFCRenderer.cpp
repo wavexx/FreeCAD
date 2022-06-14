@@ -1131,11 +1131,11 @@ void
 SoFCRenderer::getBoundingBox(SbBox3f & bbox) const
 {
   PRIVATE(this)->updateSelection();
-  if (!PRIVATE(this)->scenebbox.isEmpty())
+  if (isValidBBox(PRIVATE(this)->scenebbox))
     bbox.extendBy(PRIVATE(this)->scenebbox);
-  if (!PRIVATE(this)->highlightbbox.isEmpty())
+  if (isValidBBox(PRIVATE(this)->highlightbbox))
     bbox.extendBy(PRIVATE(this)->highlightbbox);
-  if (!PRIVATE(this)->selectionbbox.isEmpty())
+  if (isValidBBox(PRIVATE(this)->selectionbbox))
     bbox.extendBy(PRIVATE(this)->selectionbbox);
 }
 

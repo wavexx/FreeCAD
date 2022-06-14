@@ -2069,7 +2069,7 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
         << PRIVATE(this)->facecount << " faces");
 
   // if (!bbox.isEmpty() && res.empty()) {
-  if (!bbox.isEmpty()) {
+  if (isValidBBox(bbox)) {
     SbVec3f unitsize(1.f, 1.f, 1.f);
     auto size = bbox.getSize();
     int cacheid = 0;
