@@ -645,7 +645,7 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
     SoPickStyleElement::set(this->rayPickAction.getState(),
             (!this->rayPickAction.pickBackFace() && singlePick) ?
                 SoPickStyleElement::SHAPE_FRONTFACES : SoPickStyleElement::SHAPE);
-    SoOverrideElement::setPickStyleOverride(this->rayPickAction.getState(),0,true);
+    // SoOverrideElement::setPickStyleOverride(this->rayPickAction.getState(),0,true);
 
     SoFCDisplayModeElement::set(this->rayPickAction.getState(),0,SbName::empty(),false);
 
