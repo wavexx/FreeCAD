@@ -1308,9 +1308,13 @@ public:
     static void updateRenderCacheMergeDepthMin(ViewParamsP *self) {
         self->RenderCacheMergeDepthMin = self->handle->GetInt("RenderCacheMergeDepthMin", 1);
     }
-    // Auto generated code (Tools/params_utils.py:234)
+    // Auto generated code (Tools/params_utils.py:240)
     static void updateForceSolidSingleSideLighting(ViewParamsP *self) {
-        self->ForceSolidSingleSideLighting = self->handle->GetBool("ForceSolidSingleSideLighting", true);
+        auto v = self->handle->GetBool("ForceSolidSingleSideLighting", true);
+        if (self->ForceSolidSingleSideLighting != v) {
+            self->ForceSolidSingleSideLighting = v;
+            ViewParams::onForceSolidSingleSideLightingChanged();
+        }
     }
     // Auto generated code (Tools/params_utils.py:240)
     static void updateDefaultFontSize(ViewParamsP *self) {
@@ -6493,4 +6497,19 @@ bool ViewParams::highlightPick()
 bool ViewParams::hiddenLineSelectionOnTop()
 {
     return getHiddenLineSelectionOnTop() || highlightPick();
+}
+
+void ViewParams::refreshRenderCache() {
+    for (auto doc : App::GetApplication().getDocuments()) {
+        if (auto gdoc = Gui::Application::Instance->getDocument(doc)) {
+            gdoc->foreachView<View3DInventor>([](View3DInventor *view){
+                view->getViewer()->refreshRenderCache();
+            });
+        }
+    }
+}
+
+void ViewParams::onForceSolidSingleSideLightingChanged()
+{
+    refreshRenderCache();
 }

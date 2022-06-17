@@ -5745,6 +5745,14 @@ struct HatchTextureFile {
 
 static std::map<QString, HatchTextureFile> _HatchTextures;
 
+void View3DInventorViewer::refreshRenderCache()
+{
+    if (auto manager = selectionRoot->getRenderManager()) {
+        manager->clear();
+        selectionRoot->touch();
+    }
+}
+
 void View3DInventorViewer::updateHatchTexture()
 {
     if (auto manager = selectionRoot->getRenderManager()) {

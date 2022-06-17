@@ -39,8 +39,9 @@ ClassDoc = 'Preference dialog for various draw styles related settings'
 _ViewParams = { param.name : param for param in ViewParams.Params }
 
 ParamGroup = (
-    ('Document', [_ViewParams[name] for name in (
+    ('General', [_ViewParams[name] for name in (
         'DefaultDrawStyle',
+        'ForceSolidSingleSideLighting',
     )]),
 
     ('Selection', [_ViewParams[name] for name in (

@@ -441,6 +441,7 @@ public:
     void setRendererType(const std::string &);
 
     void updateHatchTexture();
+    void refreshRenderCache();
 
     NavigationStyle* navigationStyle() const;
 

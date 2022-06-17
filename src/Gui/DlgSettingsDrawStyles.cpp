@@ -53,23 +53,30 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
 
 
     // Auto generated code (Tools/params_utils.py:338)
-    groupDocument = new QGroupBox(this);
-    layout->addWidget(groupDocument);
-    auto layoutHorizDocument = new QHBoxLayout(groupDocument);
-    auto layoutDocument = new QGridLayout();
-    layoutHorizDocument->addLayout(layoutDocument);
-    layoutHorizDocument->addStretch();
+    groupGeneral = new QGroupBox(this);
+    layout->addWidget(groupGeneral);
+    auto layoutHorizGeneral = new QHBoxLayout(groupGeneral);
+    auto layoutGeneral = new QGridLayout();
+    layoutHorizGeneral->addLayout(layoutGeneral);
+    layoutHorizGeneral->addStretch();
 
     // Auto generated code (Tools/params_utils.py:349)
     labelDefaultDrawStyle = new QLabel(this);
-    layoutDocument->addWidget(labelDefaultDrawStyle, 0, 0);
+    layoutGeneral->addWidget(labelDefaultDrawStyle, 0, 0);
     DefaultDrawStyle = new Gui::PrefComboBox(this);
-    layoutDocument->addWidget(DefaultDrawStyle, 0, 1);
+    layoutGeneral->addWidget(DefaultDrawStyle, 0, 1);
     for (int i=0; i<9; ++i) // Auto generated code (Tools/params_utils.py:839)
         DefaultDrawStyle->addItem(QString());
     DefaultDrawStyle->setCurrentIndex(Gui::ViewParams::defaultDefaultDrawStyle());
     DefaultDrawStyle->setEntryName("DefaultDrawStyle");
     DefaultDrawStyle->setParamGrpPath("View");
+
+    // Auto generated code (Tools/params_utils.py:349)
+    ForceSolidSingleSideLighting = new Gui::PrefCheckBox(this);
+    layoutGeneral->addWidget(ForceSolidSingleSideLighting, 1, 0);
+    ForceSolidSingleSideLighting->setChecked(Gui::ViewParams::defaultForceSolidSingleSideLighting());
+    ForceSolidSingleSideLighting->setEntryName("ForceSolidSingleSideLighting");
+    ForceSolidSingleSideLighting->setParamGrpPath("View");
 
 
     // Auto generated code (Tools/params_utils.py:338)
@@ -499,6 +506,7 @@ void DlgSettingsDrawStyles::saveSettings()
 {
     // Auto generated code (Tools/params_utils.py:381)
     DefaultDrawStyle->onSave();
+    ForceSolidSingleSideLighting->onSave();
     TransparencyOnTop->onSave();
     SelectionLineThicken->onSave();
     SelectionLineMaxWidth->onSave();
@@ -549,6 +557,7 @@ void DlgSettingsDrawStyles::loadSettings()
 {
     // Auto generated code (Tools/params_utils.py:371)
     DefaultDrawStyle->onRestore();
+    ForceSolidSingleSideLighting->onRestore();
     TransparencyOnTop->onRestore();
     SelectionLineThicken->onRestore();
     SelectionLineMaxWidth->onRestore();
@@ -598,7 +607,7 @@ void DlgSettingsDrawStyles::loadSettings()
 void DlgSettingsDrawStyles::retranslateUi()
 {
     setWindowTitle(QObject::tr("Draw styles"));
-    groupDocument->setTitle(QObject::tr("Document"));
+    groupGeneral->setTitle(QObject::tr("General"));
     DefaultDrawStyle->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docDefaultDrawStyle()));
     labelDefaultDrawStyle->setText(QObject::tr("Default draw style"));
     labelDefaultDrawStyle->setToolTip(DefaultDrawStyle->toolTip());
@@ -621,6 +630,8 @@ void DlgSettingsDrawStyles::retranslateUi()
     DefaultDrawStyle->setItemData(7, QObject::tr("Draw style, show tessellation wire frame"), Qt::ToolTipRole);
     DefaultDrawStyle->setItemText(8, QObject::tr("Shadow"));
     DefaultDrawStyle->setItemData(8, QObject::tr("Draw style, drop shadows for the scene.\nClick this button while in shadow mode to toggle light manipulator"), Qt::ToolTipRole);
+    ForceSolidSingleSideLighting->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docForceSolidSingleSideLighting()));
+    ForceSolidSingleSideLighting->setText(QObject::tr("Force single side lighting on solid"));
     groupSelection->setTitle(QObject::tr("Selection"));
     TransparencyOnTop->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docTransparencyOnTop()));
     labelTransparencyOnTop->setText(QObject::tr("Transparency"));

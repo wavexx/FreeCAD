@@ -531,8 +531,8 @@ SoFCRenderCacheManager::clear()
   PRIVATE(this)->stack.clear();
   PRIVATE(this)->selnodeid.clear();
   PRIVATE(this)->nodeset.clear();
-  // PRIVATE(this)->cachetable.clear();
-  // PRIVATE(this)->vcachetable.clear();
+  PRIVATE(this)->cachetable.clear();
+  PRIVATE(this)->vcachetable.clear();
   PRIVATE(this)->selcaches.clear();
   PRIVATE(this)->selpaths.clear();
   PRIVATE(this)->renderer->clear();

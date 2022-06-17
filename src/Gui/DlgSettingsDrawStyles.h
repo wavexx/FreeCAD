@@ -69,9 +69,10 @@ protected:
 private:
 
     // Auto generated code (Tools/params_utils.py:323)
-    QGroupBox * groupDocument = nullptr;
+    QGroupBox * groupGeneral = nullptr;
     QLabel *labelDefaultDrawStyle = nullptr;
     Gui::PrefComboBox *DefaultDrawStyle = nullptr;
+    Gui::PrefCheckBox *ForceSolidSingleSideLighting = nullptr;
 
     // Auto generated code (Tools/params_utils.py:323)
     QGroupBox * groupSelection = nullptr;

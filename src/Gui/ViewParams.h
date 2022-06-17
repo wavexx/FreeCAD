@@ -2000,6 +2000,7 @@ public:
     static void removeForceSolidSingleSideLighting();
     static void setForceSolidSingleSideLighting(const bool &v);
     static const char *docForceSolidSingleSideLighting();
+    static void onForceSolidSingleSideLightingChanged();
     //@}
 
     // Auto generated code (Tools/params_utils.py:118)
@@ -2129,6 +2130,7 @@ public:
     static bool hiddenLineSelectionOnTop();
     static bool highlightPick();
     static void init();
+    static void refreshRenderCache();
 
 
 /*[[[cog
