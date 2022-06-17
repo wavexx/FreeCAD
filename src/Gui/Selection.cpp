@@ -1561,6 +1561,8 @@ void SelectionSingleton::selStackGoForward(int count, const std::vector<int> &in
 std::vector<SelectionObject> SelectionSingleton::selStackGet(
         const char* pDocName, int resolve, int index) const
 {
+    if (!pDocName)
+        pDocName = "*";
     const SelStackItem *item = 0;
     if(index>=0) {
         if(index>=(int)_SelStackBack.size())
@@ -1581,7 +1583,7 @@ std::vector<SelectionObject> SelectionSingleton::selStackGet(
                           sobjT.getSubName().c_str(),
                           0,
                           sel,
-                          &selList)==0)
+                          &selList)!=-1)
         {
             selList.get<0>().push_back(sel);
         }
