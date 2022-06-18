@@ -392,6 +392,7 @@ struct View3DInventorViewer::Private
     CoinPtr<SoGroup>                  pcAuxRoot;
 
     CoinPtr<SoShadowGroup>            pcShadowGroup;
+    CoinPtr<SoShapeHints>             pcShadowShapeHints;
     CoinPtr<SoFCDirectionalLight>     pcShadowDirectionalLight;
     CoinPtr<SoFCSpotLight>            pcShadowSpotLight;
     CoinPtr<SoGroup>                  pcShadowGroundGroup;
@@ -1944,6 +1945,10 @@ void View3DInventorViewer::Private::deactivate()
         int index = superScene->findChild(pcShadowGroup);
         if(index >= 0)
             superScene->replaceChild(index, owner->pcViewProviderRoot);
+        index = superScene->findChild(pcShadowShapeHints);
+        if (index >= 0)
+            superScene->removeChild(index);
+        pcShadowShapeHints.reset();
         pcShadowGroup.reset();
         pcShadowGroundSwitch->whichChild = -1;
         owner->pcRootPath->truncate(1);
@@ -2112,6 +2117,17 @@ void View3DInventorViewer::Private::activate()
         }
 
         pcShadowGroup->addChild(pcShadowGroundSwitch);
+
+        // SoShadowGroup is currently incapable of supporting per object
+        // lighting model setup. It only checks the setting on toggling shadow
+        // enable/disable. So as a not so good work aournd, we put a shape
+        // hints node before entering SoShadowGroup to provide a default light
+        // model (LIGHT_MODEL_TWO_SIDEDE).
+        pcShadowShapeHints = new SoShapeHints;
+        pcShadowShapeHints->vertexOrdering = ViewParams::getForceSolidSingleSideLighting() ?
+            SoShapeHints::UNKNOWN_ORDERING : SoShapeHints::COUNTERCLOCKWISE;
+        pcShadowShapeHints->shapeType = SoShapeHints::UNKNOWN_SHAPE_TYPE;
+
     }
     static const App::PropertyFloatConstraint::Constraints _precision_cstr(0.0,1.0,0.1);
     // pcShadowGroup->quality = _shadowParam<App::PropertyFloatConstraint>(
@@ -2286,6 +2302,7 @@ void View3DInventorViewer::Private::activate()
     int index = superScene->findChild(owner->pcViewProviderRoot);
     if(index >= 0) {
         superScene->replaceChild(index, pcShadowGroup);
+        superScene->insertChild(pcShadowShapeHints, index);
         owner->pcRootPath->append(pcShadowGroup);
     }
 }
