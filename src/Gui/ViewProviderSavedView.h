@@ -66,6 +66,8 @@ protected:
     void prepareMenu(QMenu *);
 };
 
-}
+} // namespace Gui
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Gui::ViewProviderSavedView::CaptureOptions);
 
 #endif //GUI_VIEWPROVIDER_SAVED_VIEW_H
