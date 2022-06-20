@@ -1121,9 +1121,9 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
             return;
         switch(Reason.Type) {
         case SelectionChanges::AddSelection: {
-            auto objT = Reason.Object.normalized();
+            auto objT = Reason.Object.normalized(App::SubObjectT::ConvertIndex);
             ViewProvider *vp = Application::Instance->getViewProvider(objT.getObject());
-            if (vp) {
+            if (vp && objT.getSubObject()) {
                 SoDetail *detail = nullptr;
                 SoFullPath * nodePath = _pimpl->tmpPath.get();
                 nodePath->truncate(0);
@@ -1160,7 +1160,7 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
             break;
         }
         case SelectionChanges::RmvSelection: {
-            auto objT = Reason.Object.normalized();
+            auto objT = Reason.Object.normalized(App::SubObjectT::ConvertIndex);
             manager->removeSelection(objT.getSubNameNoElement(true),
                                      objT.getOldElementName(),
                                      true);
@@ -1184,7 +1184,6 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
             return;
         }
         this->getSoRenderManager()->scheduleRedraw();
-        return;
     }
 
     bool preselect = false;
@@ -1203,7 +1202,7 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
                 return;
             }
             for(auto &sel : sels ) {
-                checkGroupOnTop(SelectionChanges(SelectionChanges::AddSelection,sel));
+                checkGroupOnTop(SelectionChanges(SelectionChanges::AddSelection,sel), alt);
             }
         }
         return;
@@ -1224,7 +1223,7 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
         return;
 
     std::string element = Reason.Object.getOldElementName();
-    auto objT = Reason.Object.normalized(App::SubObjectT::NoElement);
+    auto objT = Reason.Object.normalized(App::SubObjectT::ConvertIndex|App::SubObjectT::NoElement);
     if (alt && Reason.Type == SelectionChanges::RmvSelection) {
         _pimpl->objectsOnTop.erase(objT);
         guiDocument->signalOnTopObject(Reason.Type, objT);
