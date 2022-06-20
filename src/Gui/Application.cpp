@@ -179,12 +179,22 @@ struct ApplicationP
 
         // Create the Theme Manager
         prefPackManager = new PreferencePackManager();
+        timer.setSingleShot(true);
+        QObject::connect(&timer, &QTimer::timeout, [this](){onTimer();});
     }
 
     ~ApplicationP()
     {
         delete macroMngr;
         delete prefPackManager;
+    }
+
+    void onTimer() {
+        for (const auto &v : documents) {
+            v.second->foreachView<View3DInventor>([](View3DInventor *view) {
+                view->getViewer()->refreshGroupOnTop();
+            });
+        }
     }
 
     /// list of all handled documents
@@ -202,6 +212,7 @@ struct ApplicationP
     CommandManager commandManager;
     std::string initWorkbench;
     std::unordered_map<const App::DocumentObject *, ViewProvider *> viewproviderMap;
+    QTimer timer;
 };
 
 static PyObject *
@@ -978,8 +989,10 @@ void Application::slotDeletedObject(const ViewProvider& vp)
 {
     this->signalDeletedObject(vp);
     auto vpd = Base::freecad_dynamic_cast<ViewProviderDocumentObject>(const_cast<ViewProvider*>(&vp));
-    if (vpd && vpd->getObject())
+    if (vpd && vpd->getObject()) {
         d->viewproviderMap.erase(vpd->getObject());
+        d->timer.start(100);
+    }
 }
 
 void Application::slotChangedObject(const ViewProvider& vp, const App::Property& prop)
