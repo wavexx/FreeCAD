@@ -1212,6 +1212,7 @@ void View3DInventorViewer::checkGroupOnTop(const SelectionChanges &Reason, bool 
             return;
         }
         this->getSoRenderManager()->scheduleRedraw();
+        return;
     }
 
     bool preselect = false;
