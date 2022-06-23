@@ -30,6 +30,10 @@
 # include <QMutexLocker>
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+# include<QRecursiveMutex>
+#endif
+
 #include "Sequencer.h"
 #include "Console.h"
 #include <CXX/Objects.hxx>
