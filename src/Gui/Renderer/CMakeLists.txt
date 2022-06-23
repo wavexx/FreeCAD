@@ -56,22 +56,10 @@ set(Renderer_SRCS ${Renderer_CPP_SRCS} ${Renderer_HPP_SRCS})
 # Create the library
 IF(Renderer_BUILD_STATIC_LIBRARY)
     add_library(${Library} STATIC ${Renderer_SRCS})
-    target_compile_definitions(${Library}
-                                PUBLIC RendererExport=
-                                PRIVATE RendererExport=)
+    target_compile_definitions(${Library} INTERFACE FreeCADRenderer_STATIC=1)
 ELSE(Renderer_BUILD_STATIC_LIBRARY)
     add_library(${Library} SHARED ${Renderer_SRCS})
     target_link_libraries(${Library} ${Renderer_LIBS})
-    # Ensure export of DLL definitions on Windows
-    if(WIN32)
-        target_compile_definitions(${Library}
-                                   PUBLIC RendererExport=__declspec\(dllimport\)
-                                   PRIVATE RendererExport=__declspec\(dllexport\))
-    else(WIN32)
-        target_compile_definitions(${Library}
-                                   PUBLIC RendererExport=
-                                   PRIVATE RendererExport=)
-    endif(WIN32)
 ENDIF(Renderer_BUILD_STATIC_LIBRARY)
 
 source_group("source" FILES ${Renderer_CPP_SRCS})
