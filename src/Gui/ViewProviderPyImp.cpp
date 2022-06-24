@@ -607,7 +607,7 @@ PyObject *ViewProviderPy::getBoundingBox(PyObject *args, PyObject *kwd) {
     int depth=0;
     static char *kwlist[] = {"subname","transform","view","mat","depth", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwd, "|sOO!O!i", kwlist,
-                &transform, View3DInventorPy::type_object(), &pyView,
+                &subname, &transform, View3DInventorPy::type_object(), &pyView,
                 &subname,&Base::MatrixPy::Type, &pyMat, &depth))
         return NULL;
     PY_TRY {
