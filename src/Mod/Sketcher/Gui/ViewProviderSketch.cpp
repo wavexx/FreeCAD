@@ -555,6 +555,7 @@ void ViewProviderSketch::forceUpdateData()
         Gui::Command::updateActive();
     }
 #endif
+    draw(true, true);
 }
 
 // handler management ***************************************************************
