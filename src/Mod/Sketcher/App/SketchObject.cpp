@@ -9610,7 +9610,7 @@ SketchObject::getHigherElements(const char *element, bool silent) const
 {
     if (testStatus(App::ObjEditing)) {
         std::vector<Data::IndexedName> res;
-        if (boost::starts_with(element, "vertex")) {
+        if (boost::istarts_with(element, "vertex")) {
             int n = 0;
             int index = atoi(element+6);
             for (auto cstr : Constraints.getValues()) {
