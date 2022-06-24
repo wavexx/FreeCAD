@@ -3403,13 +3403,33 @@ TopoShape::decodeElementComboName(const Data::IndexedName &element,
         return names;
     if (!marker)
         marker = "";
-
+    int plen = (int)elementMapPrefix().size();
+    int markerLen = strlen(marker);
     int len;
     int pos = findTagInElementName(name, nullptr, &len);
-    if (len < 0)
-        return names;
+    if (pos < 0) {
+        // It is possible to encode combo name without using a tag, e.g.
+        // Sketcher object creates wire using edges that are created by itself,
+        // so there will be no tag to encode.
+        //
+        // In this case, just search for the brackets
+        len = name.find("(");
+        if (len < 0) {
+            // No bracket is also possible, if there is only one name in the combo
+            pos = len = name.size();
+        } else {
+            pos = name.find(")");
+            if (pos < 0) {
+                // non closing bracket?
+                return {};
+            }
+            ++pos;
+        }
+        if (len <= (int)markerLen)
+            return {};
+        len -= markerLen+plen;
+    }
 
-    int plen = (int)elementMapPrefix().size();
     if (name.find(elementMapPrefix(), len) != len
             || name.find(marker, len+plen) != len+plen)
         return {};
@@ -3417,7 +3437,7 @@ TopoShape::decodeElementComboName(const Data::IndexedName &element,
     names.emplace_back(name, 0, len);
 
     std::string text;
-    len += plen + strlen(marker);
+    len += plen + markerLen;
     name.toString(text, len, pos-len);
 
     if (this->Hasher) {
@@ -3427,20 +3447,20 @@ TopoShape::decodeElementComboName(const Data::IndexedName &element,
                 names.emplace_back(sid);
             }
             else
-                return {};
+                return names;
         }
         if (auto id = App::StringID::fromString(text.c_str())) {
             if (App::StringIDRef sid = this->Hasher->getID(id))
                 text = sid.dataToText();
             else
-                return {};
+                return names;
         }
     }
     if (text.empty() || text[0] != '(')
-        return {};
+        return names;
     auto endPos = text.rfind(')');
     if (endPos == std::string::npos)
-        return {};
+        return names;
 
     if (postfix)
         *postfix = text.substr(endPos+1);
