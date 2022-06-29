@@ -578,8 +578,8 @@ void ViewProviderSketch::activateHandler(DrawSketchHandler *newHandler)
     // make sure receiver has focus so immediately pressing Escape will be handled by
     // ViewProviderSketch::keyPressed() and dismiss the active handler, and not the entire
     // sketcher editor
-    Gui::MDIView *mdi = Gui::Application::Instance->activeDocument()->getActiveView();
-    mdi->setFocus();
+    if (edit->viewer)
+        edit->viewer->setFocus();
 }
 
 void ViewProviderSketch::deactivateHandler()
@@ -6568,10 +6568,7 @@ Restart:
         }
     }
 
-    Gui::MDIView *mdi = this->getActiveView();
-    if (mdi && mdi->isDerivedFrom(Gui::View3DInventor::getClassTypeId())) {
-        static_cast<Gui::View3DInventor *>(mdi)->getViewer()->redraw();
-    }
+    edit->viewer->redraw();
 }
 
 void ViewProviderSketch::rebuildConstraintsVisual(void)
@@ -6931,9 +6928,7 @@ void ViewProviderSketch::slotSolverUpdate()
     auto sketch = getSketchObject();
     if(sketch->getExternalGeometryCount()+sketch->getHighestCurveIndex() + 1 ==
         getSolvedSketch().getGeometrySize()) {
-        Gui::MDIView *mdi = Gui::Application::Instance->editDocument()->getActiveView();
-        if (mdi->isDerivedFrom(Gui::View3DInventor::getClassTypeId()))
-            draw(false,true);
+        draw(false,true);
 
         signalConstraintsChanged();
     }
