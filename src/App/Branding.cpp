@@ -51,6 +51,8 @@ Branding::Branding()
     filter.push_back("BuildRevision");
     filter.push_back("BuildRevisionDate");
 
+    filter.push_back("AboutImage");
+
     filter.push_back("SplashScreen");
     filter.push_back("SplashAlignment");
     filter.push_back("SplashTextColor");
