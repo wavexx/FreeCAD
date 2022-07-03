@@ -1514,7 +1514,8 @@ void SelectionSingleton::selStackGoBack(int count, const std::vector<int> &indic
     }
     _SelStackForward = std::move(tmpStack);
     getMainWindow()->updateActions();
-    TreeWidget::scrollItemToTop();
+    if (TreeParams::getSyncSelection())
+        TreeWidget::scrollItemToTop();
 }
 
 void SelectionSingleton::selStackGoForward(int count, const std::vector<int> &indices, bool skipEmpty)
@@ -1555,7 +1556,8 @@ void SelectionSingleton::selStackGoForward(int count, const std::vector<int> &in
     }
     _SelStackForward = std::move(tmpStack);
     getMainWindow()->updateActions();
-    TreeWidget::scrollItemToTop();
+    if (TreeParams::getSyncSelection())
+        TreeWidget::scrollItemToTop();
 }
 
 std::vector<SelectionObject> SelectionSingleton::selStackGet(
