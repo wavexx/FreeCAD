@@ -372,6 +372,9 @@ void PropertyPartShape::Restore(Base::XMLReader &reader)
     }
 
     if(has_ver) {
+        // The file name here is not used for restore, but just a way to get
+        // more useful error message if something wrong when restoring
+        _Shape.setPersistenceFileName(getFileName().c_str());
         if(owner && owner->getDocument()->testStatus(App::Document::PartialDoc))
             _Shape.Restore(reader);
         else if(_Ver == "?" || _Ver.empty()) {
@@ -423,7 +426,18 @@ void PropertyPartShape::Restore(Base::XMLReader &reader)
     }
 }
 
-// The following function is copied from OCCT BRepTools.cxx and modified
+void PropertyPartShape::afterRestore()
+{
+    if (_Shape.isRestoreFailed()) {
+        // this cause GeoFeature::updateElementReference() to call
+        // PropertyLinkBase::updateElementReferences() with reverse = true, in
+        // order to try to regenerate the element map
+        _Ver = "?"; 
+    }
+    PropertyComplexGeoData::afterRestore();
+}
+
+// The following two functions are copied from OCCT BRepTools.cxx and modified
 // to disable saving of triangulation
 //
 
