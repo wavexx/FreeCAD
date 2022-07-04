@@ -161,6 +161,8 @@ TaskAttacher::TaskAttacher(Gui::ViewProviderDocumentObject *ViewProvider, QWidge
     ui->setupUi(proxy);
     QMetaObject::connectSlotsByName(this);
 
+    ui->checkBoxRecompute->initAutoSave();
+
     auto pcAttach = ViewProvider->getObject()->getExtensionByType<Part::AttachExtension>();
 
     App::GetApplication().getActiveTransaction(&transactionID);
@@ -445,7 +447,10 @@ void TaskAttacher::updatePreview()
     setupTransaction();
     Part::AttachExtension* pcAttach = ViewProvider->getObject()->getExtensionByType<Part::AttachExtension>();
     try{
-        pcAttach->positionBySupport();
+        if (ui->checkBoxRecompute->isChecked())
+            ViewProvider->getObject()->getDocument()->recomputeFeature(ViewProvider->getObject(), true);
+        else
+            pcAttach->positionBySupport();
         errMessage.clear();
     } catch (Base::Exception &err){
         errMessage = QString::fromUtf8(err.what());
