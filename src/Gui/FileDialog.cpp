@@ -277,6 +277,7 @@ QString FileDialog::getSaveFileName (QWidget * parent, const QString & caption, 
         urls << QUrl::fromLocalFile(QDir::currentPath());
 
         FileDialog dlg(parent);
+        dlg.setOptions(options);
         dlg.setWindowTitle(windowTitle);
         dlg.setSidebarUrls(urls);
         auto iconprov = std::make_unique<FileIconProvider>();
@@ -286,7 +287,6 @@ QString FileDialog::getSaveFileName (QWidget * parent, const QString & caption, 
         dlg.setDirectory(dirName);
         if (hasFilename)
             dlg.selectFile(dirName);
-        dlg.setOptions(options);
         dlg.setNameFilters(filter.split(QStringLiteral(";;")));
         if (selectedFilter && !selectedFilter->isEmpty())
             dlg.selectNameFilter(*selectedFilter);
@@ -369,13 +369,14 @@ QString FileDialog::getOpenFileName(QWidget * parent, const QString & caption, c
         urls << QUrl::fromLocalFile(QDir::currentPath());
 
         FileDialog dlg(parent);
+        dlg.setOptions(options);
         dlg.setWindowTitle(windowTitle);
         dlg.setSidebarUrls(urls);
-        dlg.setIconProvider(new FileIconProvider());
+        auto iconprov = std::make_unique<FileIconProvider>();
+        dlg.setIconProvider(iconprov.get());
         dlg.setFileMode(fileMode);
         dlg.setAcceptMode(QFileDialog::AcceptOpen);
         dlg.setDirectory(dirName);
-        dlg.setOptions(options);
         dlg.setNameFilters(filter.split(QStringLiteral(";;")));
         dlg.setOption(QFileDialog::HideNameFilterDetails, false);
         if (selectedFilter && !selectedFilter->isEmpty())
@@ -437,13 +438,14 @@ QStringList FileDialog::getOpenFileNames (QWidget * parent, const QString & capt
         urls << QUrl::fromLocalFile(QDir::currentPath());
 
         FileDialog dlg(parent);
+        dlg.setOptions(options);
         dlg.setWindowTitle(windowTitle);
         dlg.setSidebarUrls(urls);
-        dlg.setIconProvider(new FileIconProvider());
+        auto iconprov = std::make_unique<FileIconProvider>();
+        dlg.setIconProvider(iconprov.get());
         dlg.setFileMode(fileMode);
         dlg.setAcceptMode(QFileDialog::AcceptOpen);
         dlg.setDirectory(dirName);
-        dlg.setOptions(options);
         dlg.setNameFilters(filter.split(QStringLiteral(";;")));
         dlg.setOption(QFileDialog::HideNameFilterDetails, false);
         if (selectedFilter && !selectedFilter->isEmpty())
