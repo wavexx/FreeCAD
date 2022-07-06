@@ -1343,7 +1343,6 @@ void SheetTableView::mousePressEvent(QMouseEvent* event)
 void SheetTableView::closeEditor(QWidget * editor, QAbstractItemDelegate::EndEditHint hint)
 {
     if (qobject_cast<SpreadsheetGui::TextEdit*>(editor)
-            || qobject_cast<Gui::ColorButton*>(editor)
             || !qobject_cast<QPushButton*>(editor))
     {
         QTableView::closeEditor(editor, hint);
