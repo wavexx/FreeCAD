@@ -788,8 +788,8 @@ void PropertyEditor::contextMenuEvent(QContextMenuEvent *ev) {
         action = menu.addSeparator();
         hiddenActions.push_back(action);
 
-        QCheckBox *checkbox;
         auto setupAction = [&](const char *name, int action_type, int ptype, int prop_type) {
+            QCheckBox *checkbox;
             QString text = tr({name});
             bool checked = (propStatus & (1<<ptype)) ? true : false;
             action = Action::addCheckBox(&menu, text, checked, &checkbox);
