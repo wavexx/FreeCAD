@@ -110,7 +110,7 @@ PropertyView::PropertyView(QWidget *parent)
     tabs->setTabPosition(QTabWidget::South);
     pLayout->addWidget(tabs, 0, 0);
 
-    propertyEditorView = new Gui::PropertyEditor::PropertyEditor();
+    propertyEditorView = new Gui::PropertyEditor::PropertyEditor(true);
     tabs->addTab(propertyEditorView, tr("View"));
 
     propertyEditorData = new Gui::PropertyEditor::PropertyEditor();
