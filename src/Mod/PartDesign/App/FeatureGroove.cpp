@@ -169,6 +169,7 @@ App::DocumentObjectExecReturn *Groove::execute(void)
         }
 
         result.Tag = -getID();
+        TopoShape boolOp(0,getDocument()->getStringHasher());
 
         try {
             const char *maker;
@@ -182,17 +183,16 @@ App::DocumentObjectExecReturn *Groove::execute(void)
             default:
                 maker = TOPOP_CUT;
             }
-            result.makEShape(maker, {base,result});
+            boolOp.makEShape(maker, {base,result});
         }catch(Standard_Failure &) {
             return new App::DocumentObjectExecReturn("Failed to cut base feature");
         }
-        auto solRes = this->getSolid(result);
-        if (solRes.isNull())
+        boolOp = this->getSolid(boolOp);
+        if (boolOp.isNull())
             return new App::DocumentObjectExecReturn("Resulting shape is not a solid");
 
-        solRes = refineShapeIfActive(solRes);
-        this->Shape.setValue(getSolid(solRes));
-
+        boolOp = refineShapeIfActive(boolOp);
+        Shape.setValue(getSolid(boolOp));
         return App::DocumentObject::StdReturn;
     }
     catch (Standard_Failure& e) {
