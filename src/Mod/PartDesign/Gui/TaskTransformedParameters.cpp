@@ -163,7 +163,7 @@ void TaskTransformedParameters::kickUpdateViewTimer() const
 {
     if (updateViewTimer) {
         PartDesign::Transformed* pcTransformed = getObject();
-        int interval = PartGui::PartParams::EditRecomputeWait();
+        int interval = PartGui::PartParams::getEditRecomputeWait();
         if (pcTransformed && pcTransformed->isRecomputePaused())
             interval /= 3;
         updateViewTimer->start(interval);

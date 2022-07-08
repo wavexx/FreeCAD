@@ -446,7 +446,7 @@ void SoBrepPointSet::initBoundingBoxes(const SbVec3f *coords, int numverts)
     bboxMap.clear();
     bboxPicker.clear();
 
-    int threshold = PartParams::SelectionPickThreshold();
+    int threshold = PartParams::getSelectionPickThreshold();
     int step = std::max(10, (numverts / threshold));
     std::vector<SbBox3f> boxes;
     boxes.reserve(step * threshold + 1);
@@ -478,7 +478,7 @@ void SoBrepPointSet::rayPick(SoRayPickAction *action) {
 
     SoState *state = action->getState();
 
-    int threshold = PartParams::SelectionPickThreshold();
+    int threshold = PartParams::getSelectionPickThreshold();
     auto coords = SoCoordinateElement::getInstance(state);
     const SbVec3f *coords3d = coords->getArrayPtr3();
     int numverts = coords->getNum();
@@ -531,7 +531,7 @@ void SoBrepPointSet::rayPick(SoRayPickAction *action) {
 
     const auto &boxes = bboxPicker.getBoundBoxes();
     int numparts = (int)bboxMap.size();
-    if(!PartParams::SelectionPickRTree() || numparts < threshold) {
+    if(!PartParams::getSelectionPickRTree() || numparts < threshold) {
         for(int bboxId=0;bboxId<numparts;++bboxId) {
             auto &box = boxes[bboxId];
             if(!isValidBBox(box) || !action->intersect(box,TRUE))

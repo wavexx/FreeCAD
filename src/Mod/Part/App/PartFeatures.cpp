@@ -435,7 +435,7 @@ App::DocumentObjectExecReturn *Loft::execute(void)
 void Part::Loft::setupObject()
 {
     Feature::setupObject();
-    Linearize.setValue(PartParams::LinearizeExtrusionDraft());
+    Linearize.setValue(PartParams::getLinearizeExtrusionDraft());
 }
 
 // ----------------------------------------------------------------------------
@@ -694,7 +694,7 @@ App::DocumentObjectExecReturn *Sweep::execute(void)
 void Part::Sweep::setupObject()
 {
     Feature::setupObject();
-    Linearize.setValue(PartParams::LinearizeExtrusionDraft());
+    Linearize.setValue(PartParams::getLinearizeExtrusionDraft());
 }
 
 // ----------------------------------------------------------------------------

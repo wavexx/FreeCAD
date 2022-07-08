@@ -573,8 +573,8 @@ void SoBrepEdgeSet::initBoundingBoxes(const SbVec3f *coords, int numverts)
     const int32_t* cindices = this->coordIndex.getValues(0);
     int numcindices = this->coordIndex.getNum();
 
-    int threshold = PartParams::SelectionPickThreshold();
-    int threshold2 = PartParams::SelectionPickThreshold2();
+    int threshold = PartParams::getSelectionPickThreshold();
+    int threshold2 = PartParams::getSelectionPickThreshold2();
     int step = std::max(10, (numcindices / threshold));
     std::vector<SbBox3f> boxes;
     boxes.reserve(step * threshold + 1);
@@ -642,8 +642,8 @@ void SoBrepEdgeSet::rayPick(SoRayPickAction *action) {
 
     SoState *state = action->getState();
 
-    int threshold = PartParams::SelectionPickThreshold();
-    int threshold2 = PartParams::SelectionPickThreshold2();
+    int threshold = PartParams::getSelectionPickThreshold();
+    int threshold2 = PartParams::getSelectionPickThreshold2();
     const int32_t *cindices = this->coordIndex.getValues(0);
     int numindices = this->coordIndex.getNum();
     auto coords = SoCoordinateElement::getInstance(state);
@@ -711,7 +711,7 @@ void SoBrepEdgeSet::rayPick(SoRayPickAction *action) {
 
     auto pick = [&](int bboxId) {
         auto &info = bboxMap[bboxId];
-        if (!PartParams::SelectionPickRTree() || threshold2 < 0 || info.count < threshold2) {
+        if (!PartParams::getSelectionPickRTree() || threshold2 < 0 || info.count < threshold2) {
             for (int i = info.start+1, end = info.start + info.count; i < end; ++i)
                 pickSegment(i);
         } else {
@@ -726,7 +726,7 @@ void SoBrepEdgeSet::rayPick(SoRayPickAction *action) {
     const auto &boxes = bboxPicker.getBoundBoxes();
     int numparts = (int)bboxMap.size();
 
-    if(!PartParams::SelectionPickRTree() || numparts < threshold) {
+    if(!PartParams::getSelectionPickRTree() || numparts < threshold) {
         for(int bboxId=0;bboxId<numparts;++bboxId) {
             auto &box = boxes[bboxId];
             if(!isValidBBox(box)|| !action->intersect(box,TRUE))

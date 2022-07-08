@@ -1042,7 +1042,7 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
                         subs.push_back(sels[j].getOldElementName());
                 }
                 base_worker(obj, subs);
-                if (PartGui::PartParams::AdjustCameraForNewFeature())
+                if (PartGui::PartParams::getAdjustCameraForNewFeature())
                     cmd->adjustCameraPosition();
                 return;
             }

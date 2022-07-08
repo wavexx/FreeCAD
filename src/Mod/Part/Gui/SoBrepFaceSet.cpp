@@ -2747,7 +2747,7 @@ void SoBrepFaceSet::rayPick(SoRayPickAction *action) {
 
     FC_TIME_INIT(t);
 
-    int threshold = PartParams::SelectionPickThreshold();
+    int threshold = PartParams::getSelectionPickThreshold();
     int numparts = partIndex.getNum();
     const int32_t *cindices = this->coordIndex.getValues(0);
     int numindices = this->coordIndex.getNum();
@@ -2764,14 +2764,14 @@ void SoBrepFaceSet::rayPick(SoRayPickAction *action) {
     buildPartBBoxes(state);
     const auto &partBBoxes = bboxPicker.getBoundBoxes();
 
-    int threshold2 = PartParams::SelectionPickThreshold2();
+    int threshold2 = PartParams::getSelectionPickThreshold2();
     const int32_t *pindices = partIndex.getValues(0);
 
     static thread_local std::vector<int> results;
     results.clear();
 
     auto pick = [&](int id) {
-        if(!PartParams::SelectionPickRTree() || threshold2<=0 || pindices[id] <= threshold2) {
+        if(!PartParams::getSelectionPickRTree() || threshold2<=0 || pindices[id] <= threshold2) {
             this->generatePrimitivesRange(action,id,
                     this->indexOffset[id], this->indexOffset[id]*4, this->indexOffset[id+1]*4);
         } else {
@@ -2824,7 +2824,7 @@ void SoBrepFaceSet::rayPick(SoRayPickAction *action) {
                 continue;
             pick(id);
         }
-    } else if(!PartParams::SelectionPickRTree() || numparts <= threshold) {
+    } else if(!PartParams::getSelectionPickRTree() || numparts <= threshold) {
         for(int id=0;id<numparts;++id) {
             auto &box = partBBoxes[id];
             if(!isValidBBox(box) || !action->intersect(box,TRUE))

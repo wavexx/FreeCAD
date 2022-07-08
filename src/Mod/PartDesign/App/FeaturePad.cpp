@@ -124,7 +124,7 @@ App::DocumentObjectExecReturn *Pad::execute(void)
 void Pad::setupObject()
 {
     ProfileBased::setupObject();
-    UsePipeForDraft.setValue(Part::PartParams::UsePipeForExtrusionDraft());
+    UsePipeForDraft.setValue(Part::PartParams::getUsePipeForExtrusionDraft());
 }
 
 App::DocumentObjectExecReturn *Pad::_execute(bool makeface, bool fuse)

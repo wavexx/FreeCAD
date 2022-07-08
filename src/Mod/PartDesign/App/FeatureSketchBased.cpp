@@ -131,7 +131,7 @@ void ProfileBased::setupObject()
 {
     FeatureAddSub::setupObject();
     AllowMultiFace.setValue(true);
-    Linearize.setValue(Part::PartParams::LinearizeExtrusionDraft());
+    Linearize.setValue(Part::PartParams::getLinearizeExtrusionDraft());
     _ProfileBasedVersion.setValue(1);
 }
 

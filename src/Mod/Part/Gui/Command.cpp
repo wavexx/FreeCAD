@@ -1646,7 +1646,7 @@ void CmdPartOffset::activated(int iMsg)
     cmdSetEdit(feat);
 
     //commitCommand();
-    if (PartGui::PartParams::AdjustCameraForNewFeature())
+    if (PartGui::PartParams::getAdjustCameraForNewFeature())
         adjustCameraPosition();
 
     copyVisual(feat, "ShapeColor", shape);
@@ -1700,7 +1700,7 @@ void CmdPartOffset2D::activated(int iMsg)
     cmdSetEdit(feat);
 
     //commitCommand();
-    if (PartGui::PartParams::AdjustCameraForNewFeature())
+    if (PartGui::PartParams::getAdjustCameraForNewFeature())
         adjustCameraPosition();
 
     copyVisual(feat, "ShapeColor", shape);
@@ -1870,7 +1870,7 @@ void CmdPartThickness::activated(int iMsg)
     cmdSetEdit(feat);
 
     //commitCommand();
-    if (PartGui::PartParams::AdjustCameraForNewFeature())
+    if (PartGui::PartParams::getAdjustCameraForNewFeature())
         adjustCameraPosition();
 
     copyVisual(feat, "ShapeColor", shape);

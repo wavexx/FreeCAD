@@ -341,7 +341,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
 void Pocket::setupObject()
 {
     ProfileBased::setupObject();
-    UsePipeForDraft.setValue(Part::PartParams::UsePipeForExtrusionDraft());
+    UsePipeForDraft.setValue(Part::PartParams::getUsePipeForExtrusionDraft());
     _Version.setValue(1);
 }
 

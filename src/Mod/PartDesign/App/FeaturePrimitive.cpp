@@ -425,7 +425,7 @@ Ellipsoid::Ellipsoid()
 
 void Ellipsoid::setupObject()
 {
-    Split.setValue(Part::PartParams::SplitEllipsoid());
+    Split.setValue(Part::PartParams::getSplitEllipsoid());
     FeaturePrimitive::setupObject();
 }
 
