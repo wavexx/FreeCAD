@@ -53,6 +53,7 @@
 # include <BRepBuilderAPI_MakeEdge.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
 # include <BRepBuilderAPI_MakeVertex.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 #endif
 
 #include <boost/range.hpp>
@@ -83,6 +84,7 @@ typedef boost::iterator_range<const char*> CharRange;
 #include "PartFeaturePy.h"
 #include "TopoShapePy.h"
 #include "PartParams.h"
+#include "TopoShapeOpCode.h"
 
 using namespace Part;
 namespace bp = boost::placeholders;
@@ -123,7 +125,7 @@ App::DocumentObjectExecReturn *Feature::recompute(void)
 
 App::DocumentObjectExecReturn *Feature::execute(void)
 {
-    // this->Shape.touch();
+    mergeShapeContents();
     return GeoFeature::execute();
 }
 
@@ -1313,6 +1315,256 @@ Feature *Feature::create(const TopoShape &s, const char *name, App::Document *do
     res->Shape.setValue(s);
     res->purgeTouched();
     return res;
+}
+
+/*[[[cog
+import PartParams
+PartParams.define_properties()
+]]]*/
+
+// Auto generated code (Tools/params_utils.py:942)
+App::PropertyLinkList *Part::Feature::getShapeContentsProperty(bool force)
+{
+    if (auto prop = Base::freecad_dynamic_cast<App::PropertyLinkList>(
+            this->getPropertyByName("ShapeContents")))
+        return prop;
+    if (!force)
+        return nullptr;
+    return static_cast<App::PropertyLinkList*>(
+            this->addDynamicProperty("App::PropertyLinkList", "ShapeContents"));
+}
+
+// Auto generated code (Tools/params_utils.py:942)
+App::PropertyBool *Part::Feature::getShapeContentSuppressedProperty(bool force)
+{
+    if (auto prop = Base::freecad_dynamic_cast<App::PropertyBool>(
+            this->getPropertyByName("ShapeContentSuppressed")))
+        return prop;
+    if (!force)
+        return nullptr;
+    return static_cast<App::PropertyBool*>(
+            this->addDynamicProperty("App::PropertyBool", "ShapeContentSuppressed"));
+}
+
+// Auto generated code (Tools/params_utils.py:942)
+App::PropertyLinkHidden *Part::Feature::get_ShapeContentOwnerProperty(bool force)
+{
+    if (auto prop = Base::freecad_dynamic_cast<App::PropertyLinkHidden>(
+            this->getPropertyByName("_ShapeContentOwner")))
+        return prop;
+    if (!force)
+        return nullptr;
+    return static_cast<App::PropertyLinkHidden*>(
+            this->addDynamicProperty("App::PropertyLinkHidden", "_ShapeContentOwner"));
+}
+//[[[end]]]
+
+void Feature::expandShapeContents()
+{
+    if (this->Shape.getShape().isNull())
+        return;
+    bool touched = isTouched() || isError();
+    auto prop = getShapeContentsProperty();
+    if (!prop)
+        return;
+    std::vector<App::DocumentObject*> objs = prop->getValues();
+    std::size_t i = 0;
+    for (const auto &s : this->Shape.getShape().located(TopLoc_Location()).getSubTopoShapes(TopAbs_SHAPE)) {
+        bool expandChild = false;
+        Feature *feature = nullptr;
+        for (;; ++i) {
+            if (i < objs.size()) {
+                if (auto feat = static_cast<Part::Feature*>(objs[i])) {
+                    if (auto p = feat->getShapeContentSuppressedProperty()) {
+                        if (p->getValue()) {
+                            feat->Shape.setStatus(App::Property::Transient, false);
+                            break;
+                        }
+                    }
+                    if (auto p = feat->get_ShapeContentOwnerProperty()) {
+                        if (p->getValue() == this)
+                            feature = feat;
+                    }
+                }
+                if (!feature)
+                    break;
+                if (feature->getShapeContentsProperty())
+                    expandChild = true;
+            } else {
+                feature = static_cast<Part::Feature*>(this->getDocument()->addObject("Part::Feature", "Content"));
+                feature->Visibility.setValue(false);
+                feature->get_ShapeContentOwnerProperty(true)->setValue(this);
+                std::string label = this->Label.getStrValue();
+                if (!boost::ends_with(label, ":"))
+                    label += ":";
+                feature->Label.setValue(label + s.shapeName() + std::to_string(i+1) + ":");
+                if (auto group = App::GeoFeatureGroupExtension::getGroupOfObject(this)) {
+                    auto ext = group->getExtensionByType<App::GeoFeatureGroupExtension>();
+                    ext->addObject(feature);
+                }
+            }
+            break;
+        }
+        if (!feature)
+            continue;
+        if (i >= objs.size())
+            objs.push_back(feature);
+        feature->Shape.setStatus(App::Property::Transient, true);
+        feature->Shape.setValue(s);
+        ++i;
+        if (expandChild)
+            feature->expandShapeContents();
+        feature->purgeTouched();
+    }
+    prop->setValues(objs);
+    if (!touched)
+        purgeTouched();
+}
+
+void Feature::beforeSave() const
+{
+    const_cast<Feature*>(this)->expandShapeContents();
+    inherited::beforeSave();
+}
+
+void Feature::unsetupObject()
+{
+    collapseShapeContents(false);
+}
+
+void Feature::collapseShapeContents(bool removeProperty)
+{
+    if (auto prop = getShapeContentsProperty()) {
+        std::vector<std::string> removes;
+        for (auto obj : prop->getValues()) {
+            if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(obj)) {
+                if (auto prop = feat->get_ShapeContentOwnerProperty()) {
+                    if (prop->getValue() == this)
+                        removes.push_back(obj->getNameInDocument());
+                }
+            }
+        }
+        prop->setValues();
+        if (removeProperty)
+            removeDynamicProperty(prop->getName());
+        for (const auto &name : removes)
+            getDocument()->removeObject(name.c_str());
+    }
+}
+
+void Feature::onDocumentRestored() {
+    expandShapeContents();
+    App::GeoFeature::onDocumentRestored();
+}
+
+void Feature::mergeShapeContents()
+{
+    auto prop = getShapeContentsProperty();
+    if (!prop)
+        return;
+    std::vector<TopoShape> shapes;
+    for (auto obj : prop->getValues()) {
+        if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(obj)) {
+            if (auto prop = feat->getShapeContentSuppressedProperty()) {
+                if (prop->getValue())
+                    continue;
+            }
+        }
+        shapes.push_back(getTopoShape(obj));
+    }
+
+    TopoShape shape = Shape.getShape().located(TopLoc_Location());
+    auto subShapes = shape.getSubTopoShapes();
+    std::vector<int> removed, added;
+    int i = -1;
+    auto isSameShape = [](const TopoShape &a, const TopoShape &b) {
+        if (!a.getShape().IsPartner(b.getShape()))
+            return false;
+        auto pla1 = a.getPlacement();
+        auto pla2 = b.getPlacement();
+        if (!pla1.getPosition().IsEqual(pla2.getPosition(), Precision::Confusion()))
+            return false;
+        return pla1.getRotation().isSame(pla1.getRotation(), 1e-12);
+    };
+    for (auto &subShape : subShapes) {
+        ++i;
+        bool found = false;
+        for (const auto &s : shapes) {
+            if (isSameShape(s, subShape)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            removed.push_back(i);
+    }
+    i = -1;
+    for (const auto &s : shapes) {
+        ++i;
+        bool found = false;
+        for (auto &subShape : subShapes) {
+            if (isSameShape(s, subShape)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            added.push_back(i);
+    }
+    if (added.empty() && removed.empty())
+        return;
+    if (added.size() == removed.size()) {
+        shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
+        auto subShapes = shape.getSubTopoShapes();
+        std::vector<std::pair<TopoShape, TopoShape>> replacements;
+        std::size_t i = 0;
+        for (; i<added.size(); ++i) {
+            if (added[i] != removed[i])
+                break;
+            replacements.emplace_back(subShapes[removed[i]], shapes[added[i]]);
+        }
+        shape = shape.replacEShape(replacements);
+    }
+    else if (added.empty()) {
+        shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
+        auto subShapes = shape.getSubTopoShapes();
+        std::vector<TopoShape> removedShape;
+        for (int i : removed)
+            removedShape.push_back(subShapes[i]);
+        shape = shape.removEShape(removedShape);
+    }
+    else {
+        switch (shape.shapeType(true)) {
+        case TopAbs_VERTEX:
+            throw Base::CADKernelError("Reshaping vertex is not supported");
+        case TopAbs_FACE:
+            if (shape.isPlanarFace())
+                shape.makEFace(shapes);
+            else
+                throw Base::CADKernelError("Reshaping non-planar face is not supported");
+            break;
+        case TopAbs_WIRE:
+            shape.makEWires(shapes);
+            break;
+        case TopAbs_EDGE:
+            throw Base::CADKernelError("Reshaping edge is not supported");
+        case TopAbs_SOLID:
+            shape.makESolid(shapes);
+            break;
+        case TopAbs_SHELL:
+            shape.makECompound(shapes).makEShell(false);
+            break;
+        case TopAbs_COMPSOLID:
+            shape.makEShape(TOPOP_COMPSOLID, shapes);
+            break;
+        default:
+            shape.makECompound(shapes);
+            break;
+        }
+    }
+    shape.setPlacement(Placement.getValue());
+    this->Shape.setValue(shape);
+    expandShapeContents();
 }
 
 // ---------------------------------------------------------

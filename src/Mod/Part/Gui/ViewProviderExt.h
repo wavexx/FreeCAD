@@ -113,6 +113,14 @@ public:
 
     virtual PyObject *getPyObject() override;
 
+    virtual void getExtraIcons(std::vector<std::pair<QByteArray, QPixmap> > &) const override;
+
+    virtual QString getToolTip(const QByteArray &iconTag) const override;
+
+    virtual std::vector<App::DocumentObject*> claimChildren(void) const override;
+
+    virtual bool iconMouseEvent(QMouseEvent *ev, const QByteArray &iconTag) override;
+
     /** @name Selection handling
      * This group of methods do the selection handling.
      * Here you can define how the selection for your ViewProfider

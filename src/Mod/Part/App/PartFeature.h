@@ -59,6 +59,7 @@ class PartFeaturePy;
  */
 class PartExport Feature : public App::GeoFeature
 {
+    typedef App::GeoFeature inherited;
     PROPERTY_HEADER_WITH_OVERRIDE(Part::Feature);
 
 public:
@@ -158,6 +159,23 @@ public:
 
     virtual const std::vector<const char*>& getElementTypes(bool all=false) const override;
 
+    virtual void beforeSave() const override;
+
+    void expandShapeContents();
+    void mergeShapeContents();
+    void collapseShapeContents(bool removeProperty=false);
+
+    /*[[[cog
+    import PartParams
+    PartParams.declare_properties()
+    ]]]*/
+
+    // Auto generated code (Tools/params_utils.py:957)
+    App::PropertyLinkList *getShapeContentsProperty(bool force=false);
+    App::PropertyBool *getShapeContentSuppressedProperty(bool force=false);
+    App::PropertyLinkHidden *get_ShapeContentOwnerProperty(bool force=false);
+    //[[[end]]]
+
     boost::signals2::signal<void (App::Document *)> signalMapShapeColors;
 
     static Feature *create(const TopoShape &s,
@@ -171,6 +189,8 @@ protected:
     virtual App::DocumentObjectExecReturn *execute() override;
     virtual void onBeforeChange(const App::Property* prop) override;
     virtual void onChanged(const App::Property* prop) override;
+    virtual void unsetupObject() override;
+    virtual void onDocumentRestored() override;
 
 private:
     struct ElementCache;
