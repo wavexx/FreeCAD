@@ -3083,7 +3083,7 @@ void TreeWidget::contextMenuEvent (QContextMenuEvent * e)
         contextMenu.addAction(this->markRecomputeAction);
         contextMenu.addAction(this->recomputeObjectAction);
 
-        if(this->selectedItems().size()==1) {
+        if(this->selectedItems().size() > 0) {
             // relabeling is only possible for a single selected document
             contextMenu.addAction(this->relabelObjectAction);
 
