@@ -285,7 +285,8 @@ void SketchObject::buildShape() {
     int i=0;
     for(auto geo : getInternalGeometry()) {
         ++i;
-        if(GeometryFacade::getConstruction(geo))
+        if(GeometryFacade::getConstruction(geo)
+                || geo->isDerivedFrom(Part::GeomPoint::getClassTypeId()))
             continue;
         shapes.push_back(getEdge(geo,convertSubName(
                         Data::IndexedName::fromConst("Edge", i), false).c_str()));
