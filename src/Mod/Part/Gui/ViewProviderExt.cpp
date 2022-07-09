@@ -1662,6 +1662,22 @@ void ViewProviderPartExt::updateData(const App::Property* prop)
     Gui::ViewProviderGeometryObject::updateData(prop);
 }
 
+template<class F>
+static inline void foreachFeature(Part::Feature *mainFeature, F func)
+{
+    for (const auto &selT : Gui::Selection().getSelectionT()) {
+        if (auto obj = selT.getObject()) {
+            if (obj->getTypeId() == Part::Feature::getClassTypeId()) {
+                if (obj == mainFeature)
+                    mainFeature = nullptr;
+                func(static_cast<Part::Feature*>(obj));
+            }
+        }
+    }
+    if (mainFeature)
+        func(mainFeature);
+}
+
 void ViewProviderPartExt::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
     if (!getObject())
@@ -1677,8 +1693,10 @@ void ViewProviderPartExt::setupContextMenu(QMenu* menu, QObject* receiver, const
             menu->addAction(QObject::tr(title), [feat](){
                 try {
                     App::AutoTransaction guard(title);
-                    feat->getShapeContentsProperty(true);
-                    feat->expandShapeContents();
+                    foreachFeature(feat, [](Part::Feature *f) {
+                        f->getShapeContentsProperty(true);
+                        f->expandShapeContents();
+                    });
                     Gui::Command::updateActive();
                 } catch (Base::Exception &e) {
                     e.ReportException();
@@ -1690,7 +1708,10 @@ void ViewProviderPartExt::setupContextMenu(QMenu* menu, QObject* receiver, const
             menu->addAction(QObject::tr(title), [feat](){
                 try {
                     App::AutoTransaction guard(title);
-                    feat->collapseShapeContents(true);
+                    foreachFeature(feat, [](Part::Feature *f) {
+                        f->collapseShapeContents(true);
+                    });
+                    Gui::Command::updateActive();
                 } catch (Base::Exception &e) {
                     e.ReportException();
                 }
@@ -1702,8 +1723,12 @@ void ViewProviderPartExt::setupContextMenu(QMenu* menu, QObject* receiver, const
                 menu->addAction(QObject::tr(title), [feat](){
                     try {
                         App::AutoTransaction guard(title);
-                        auto prop = feat->getShapeContentSuppressedProperty(true);
-                        prop->setValue(!prop->getValue());
+                        foreachFeature(feat, [](Part::Feature *f) {
+                            if (f->get_ShapeContentOwnerProperty()) {
+                                auto prop = f->getShapeContentSuppressedProperty(true);
+                                prop->setValue(!prop->getValue());
+                            }
+                        });
                         Gui::Command::updateActive();
                     } catch (Base::Exception &e) {
                         e.ReportException();
