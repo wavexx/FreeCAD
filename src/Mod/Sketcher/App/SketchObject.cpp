@@ -282,13 +282,20 @@ void SketchObject::buildShape() {
     // We use the following instead to map element names
 
     std::vector<Part::TopoShape> shapes;
+    std::vector<Part::TopoShape> vertices;
     int i=0;
     for(auto geo : getInternalGeometry()) {
         ++i;
-        if(GeometryFacade::getConstruction(geo)
-                || geo->isDerivedFrom(Part::GeomPoint::getClassTypeId()))
+        if(GeometryFacade::getConstruction(geo))
             continue;
-        shapes.push_back(getEdge(geo,convertSubName(
+        if (geo->isDerivedFrom(Part::GeomPoint::getClassTypeId())) {
+            vertices.emplace_back(TopoDS::Vertex(geo->toShape()));
+            int idx = getVertexIndexGeoPos(i-1, Sketcher::start);
+            std::string name = convertSubName(Data::IndexedName::fromConst("Vertex", idx+1), false);
+            vertices.back().setElementName(Data::IndexedName::fromConst("Vertex", 1), 
+                                           Data::MappedName::fromRawData(name.c_str()));
+        } else 
+            shapes.push_back(getEdge(geo,convertSubName(
                         Data::IndexedName::fromConst("Edge", i), false).c_str()));
     }
 
@@ -300,10 +307,30 @@ void SketchObject::buildShape() {
         shapes.push_back(getEdge(geo, convertSubName(
                         Data::IndexedName::fromConst("ExternalEdge", i-1), false).c_str()));
     }
-    if(shapes.empty())
+    if(shapes.empty() && vertices.empty())
         Shape.setValue(Part::TopoShape());
-    else
+    else if (vertices.empty()) {
+        // Notice here we supply op code TOPOP_SKETCH to makEWires().
         Shape.setValue(Part::TopoShape().makEWires(shapes,TOPOP_SKETCH));
+    } else {
+        std::vector<Part::TopoShape> results;
+        if (!shapes.empty()) {
+            // This call of makEWires() does not have the op code, in order to
+            // avoid duplication. Because we'll going to make a compound (to
+            // include the vertices) below with the same op code.
+            //
+            // Note, that we HAVE TO add the TOPOP_SKETCH op code to all
+            // geometry exposed through the Shape property, because
+            // SketchObject::getElementName() relies on this op code to
+            // differentiate geometries that are exposed with those in edit
+            // mode.
+            auto wires = Part::TopoShape().makEWires(shapes);
+            for (const auto &wire : wires.getSubTopoShapes(TopAbs_WIRE))
+                results.push_back(wire);
+        }
+        results.insert(results.end(), vertices.begin(), vertices.end());
+        Shape.setValue(Part::TopoShape().makECompound(results, TOPOP_SKETCH));
+    }
 }
 
 static const char *hasSketchMarker(const char *name) {
