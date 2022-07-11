@@ -618,7 +618,7 @@ void ViewProviderPartExt::attach(App::DocumentObject *pcFeat)
     addDisplayMaskMode(pcNormalRoot, "Flat Lines");
     addDisplayMaskMode(pcFlatRoot, "Shaded");
     addDisplayMaskMode(pcWireframeRoot, "Wireframe");
-    addDisplayMaskMode(pcPointsRoot, "Point");
+    addDisplayMaskMode(pcPointsRoot, "Points");
 }
 
 void ViewProviderPartExt::setDisplayMode(const char* ModeName)
@@ -630,7 +630,7 @@ void ViewProviderPartExt::setDisplayMode(const char* ModeName)
     else if ( strcmp("Wireframe",ModeName)==0 )
         setDisplayMaskMode("Wireframe");
     else if ( strcmp("Points",ModeName)==0 )
-        setDisplayMaskMode("Point");
+        setDisplayMaskMode("Points");
 
     ViewProviderGeometryObject::setDisplayMode( ModeName );
 }
