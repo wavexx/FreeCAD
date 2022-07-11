@@ -1425,7 +1425,6 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
   };
 
   for (auto & entry : PRIVATE(this)->caches) {
-    bool identity = entry.identity;
     if (entry.vcache) {
       if (!selfkey && PRIVATE(this)->selnode) {
         selfkey = std::allocate_shared<CacheKey>(SoFCAllocator<CacheKey>());
@@ -1469,7 +1468,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
         }
         vcachemap[material].emplace_back(vcache,
                                          entry.matrix,
-                                         identity,
+                                         entry.identity,
                                          entry.resetmatrix,
                                          selfkey);
         PRIVATE(this)->facecount += vcache->getNumFaceParts();
@@ -1486,7 +1485,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
         }
         vcachemap[material].emplace_back(vcache,
                                          entry.matrix,
-                                         identity,
+                                         entry.identity,
                                          entry.resetmatrix,
                                          selfkey);
       }
@@ -1502,7 +1501,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
         }
         vcachemap[material].emplace_back(vcache,
                                          entry.matrix,
-                                         identity,
+                                         entry.identity,
                                          entry.resetmatrix,
                                          selfkey);
       }
@@ -1511,6 +1510,7 @@ SoFCRenderCache::getVertexCaches(bool canmerge, int depth)
     auto it = vcachemap.end();
     const auto & childvcaches = entry.cache->getVertexCaches(canmerge, depth+1); 
     for (const auto & child : childvcaches) {
+      bool identity = entry.identity;
       Material material = PRIVATE(this)->mergeMaterial(
             entry.matrix, identity, entry.material, child.first);
 
