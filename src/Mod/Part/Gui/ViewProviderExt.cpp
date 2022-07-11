@@ -97,7 +97,6 @@
 # include <QApplication>
 # include <QAction>
 # include <QMenu>
-# include <QMouseEvent>
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -127,7 +126,6 @@
 #include <Gui/ViewProviderLink.h>
 #include <Gui/TaskElementColors.h>
 #include <Gui/ViewParams.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Inventor/SoFCShapeInfo.h>
 #include <Gui/InventorBase.h>
 #include "PartParams.h"
@@ -1655,161 +1653,14 @@ void ViewProviderPartExt::updateData(const App::Property* prop)
             }
         }
     }
-    else if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
-        if (prop == feat->getShapeContentSuppressedProperty())
-            signalChangeIcon();
-    }
     Gui::ViewProviderGeometryObject::updateData(prop);
-}
-
-template<class F>
-static inline void foreachFeature(Part::Feature *mainFeature, F func)
-{
-    for (const auto &selT : Gui::Selection().getSelectionT()) {
-        if (auto obj = selT.getObject()) {
-            if (obj->getTypeId() == Part::Feature::getClassTypeId()) {
-                if (obj == mainFeature)
-                    mainFeature = nullptr;
-                func(static_cast<Part::Feature*>(obj));
-            }
-        }
-    }
-    if (mainFeature)
-        func(mainFeature);
 }
 
 void ViewProviderPartExt::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
-    if (!getObject())
-        return;
-    if (getObject()->getTypeId() == Part::Feature::getClassTypeId()) {
-        // Expose 'Expand shape content' menu action only if it is a Part::Feature
-        // and not any of its derived type
-        auto feat = static_cast<Part::Feature*>(getObject());
-        auto propContents = feat->getShapeContentsProperty();
-        auto shapeType = feat->Shape.getShape().shapeType(/*silent*/true);
-        if (propContents || (shapeType != TopAbs_SHAPE && shapeType != TopAbs_VERTEX)) {
-            static const char *title = QT_TR_NOOP("Expand shape contents");
-            menu->addAction(QObject::tr(title), [feat](){
-                try {
-                    App::AutoTransaction guard(title);
-                    foreachFeature(feat, [](Part::Feature *f) {
-                        f->getShapeContentsProperty(true);
-                        f->expandShapeContents();
-                    });
-                    Gui::Command::updateActive();
-                } catch (Base::Exception &e) {
-                    e.ReportException();
-                }
-            });
-        }
-        if (propContents && propContents->getSize()>0) {
-            static const char *title = QT_TR_NOOP("Collapse shape contents");
-            menu->addAction(QObject::tr(title), [feat](){
-                try {
-                    App::AutoTransaction guard(title);
-                    foreachFeature(feat, [](Part::Feature *f) {
-                        f->collapseShapeContents(true);
-                    });
-                    Gui::Command::updateActive();
-                } catch (Base::Exception &e) {
-                    e.ReportException();
-                }
-            });
-        }
-        if (auto prop = feat->get_ShapeContentOwnerProperty()) {
-            if (prop->getValue()) {
-                static const char *title = QT_TR_NOOP("Toggle shape suppress");
-                menu->addAction(QObject::tr(title), [feat](){
-                    try {
-                        App::AutoTransaction guard(title);
-                        foreachFeature(feat, [](Part::Feature *f) {
-                            if (f->get_ShapeContentOwnerProperty()) {
-                                auto prop = f->getShapeContentSuppressedProperty(true);
-                                prop->setValue(!prop->getValue());
-                            }
-                        });
-                        Gui::Command::updateActive();
-                    } catch (Base::Exception &e) {
-                        e.ReportException();
-                    }
-                });
-            }
-        }
-    }
-    if (auto propPlacement = Base::freecad_dynamic_cast<App::PropertyPlacement>(
-                getObject()->getPropertyByName("Placement")))
-    {
-        if (getObject()->getExtensionByType<Part::AttachExtension>(true)
-                || (!propPlacement->testStatus(App::Property::Hidden)
-                    && !propPlacement->testStatus(App::Property::ReadOnly))) {
-            if (auto cmd = Gui::Application::Instance->commandManager().getCommandByName("Part_EditAttachment"))
-            {
-                cmd->initAction();
-                if (auto action = cmd->getAction()) {
-                    if (auto act = action->action())
-                        menu->addAction(act);
-                }
-            }
-        }
-    }
     Gui::ViewProviderGeometryObject::setupContextMenu(menu, receiver, member);
     QAction* act = menu->addAction(QObject::tr("Set colors..."), receiver, member);
     act->setData(QVariant((int)ViewProvider::Color));
-}
-
-static QByteArray _SuppressedTag("Part::Suppressed");
-
-void ViewProviderPartExt::getExtraIcons(std::vector<std::pair<QByteArray, QPixmap> > &icons) const
-{
-    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
-        if (auto prop = feat->getShapeContentSuppressedProperty()) {
-            if (prop->getValue())
-                icons.emplace_back(_SuppressedTag, Gui::BitmapFactory().pixmap("Part_Suppressed.svg"));
-        }
-    }
-    inherited::getExtraIcons(icons);
-}
-
-QString ViewProviderPartExt::getToolTip(const QByteArray &iconTag) const
-{
-    if (iconTag == _SuppressedTag)
-        return QObject::tr("Shape content suppressed. Alt + Click this icon to enable");
-    return inherited::getToolTip(iconTag);
-}
-
-bool ViewProviderPartExt::iconMouseEvent(QMouseEvent *ev, const QByteArray &iconTag)
-{
-    if (ev->type() == QEvent::MouseButtonPress) {
-        if (iconTag == _SuppressedTag) {
-            if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
-                if (auto prop = feat->getShapeContentSuppressedProperty()) {
-                    try {
-                        static const char *title = QT_TR_NOOP("Toggle shape suppress");
-                        App::AutoTransaction guard(title);
-                        prop->setValue(!prop->getValue());
-                        Gui::Command::updateActive();
-                    } catch (Base::Exception &e) {
-                        e.ReportException();
-                    }
-                }
-            }
-            return true;
-        }
-    }
-    return inherited::iconMouseEvent(ev, iconTag);
-}
-
-std::vector<App::DocumentObject*> ViewProviderPartExt::claimChildren(void) const
-{
-    auto res = inherited::claimChildren();
-    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
-        if (auto prop = feat->getShapeContentsProperty()) {
-            for (auto obj : prop->getValues())
-                res.push_back(obj);
-        }
-    }
-    return res;
 }
 
 void ViewProviderPartExt::setEditViewer(Gui::View3DInventorViewer *viewer, int ModNum) {

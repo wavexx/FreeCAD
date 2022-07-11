@@ -1322,40 +1322,94 @@ import PartParams
 PartParams.define_properties()
 ]]]*/
 
-// Auto generated code (Tools/params_utils.py:942)
+// Auto generated code (Tools/params_utils.py:957)
 App::PropertyLinkList *Part::Feature::getShapeContentsProperty(bool force)
 {
+    auto obj = this;
     if (auto prop = Base::freecad_dynamic_cast<App::PropertyLinkList>(
-            this->getPropertyByName("ShapeContents")))
-        return prop;
+            obj->getPropertyByName("ShapeContents")))
+    {
+        if (prop->getContainer() == obj)
+            return prop;
+    }
     if (!force)
         return nullptr;
-    return static_cast<App::PropertyLinkList*>(
-            this->addDynamicProperty("App::PropertyLinkList", "ShapeContents"));
+    return static_cast<App::PropertyLinkList*>(obj->addDynamicProperty(
+            "App::PropertyLinkList", "ShapeContents", "ShapeContent",
+    "Stores the expanded sub shape content objects",
+    App::Prop_None));
 }
 
-// Auto generated code (Tools/params_utils.py:942)
+// Auto generated code (Tools/params_utils.py:957)
 App::PropertyBool *Part::Feature::getShapeContentSuppressedProperty(bool force)
 {
+    auto obj = this;
     if (auto prop = Base::freecad_dynamic_cast<App::PropertyBool>(
-            this->getPropertyByName("ShapeContentSuppressed")))
-        return prop;
+            obj->getPropertyByName("ShapeContentSuppressed")))
+    {
+        if (prop->getContainer() == obj)
+            return prop;
+    }
     if (!force)
         return nullptr;
-    return static_cast<App::PropertyBool*>(
-            this->addDynamicProperty("App::PropertyBool", "ShapeContentSuppressed"));
+    return static_cast<App::PropertyBool*>(obj->addDynamicProperty(
+            "App::PropertyBool", "ShapeContentSuppressed", "ShapeContent",
+    "Suppress this sub shape content",
+    App::Prop_None));
 }
 
-// Auto generated code (Tools/params_utils.py:942)
-App::PropertyLinkHidden *Part::Feature::get_ShapeContentOwnerProperty(bool force)
+// Auto generated code (Tools/params_utils.py:957)
+App::PropertyLinkHidden *Part::Feature::getShapeContentReplacementProperty(bool force)
 {
+    auto obj = this;
     if (auto prop = Base::freecad_dynamic_cast<App::PropertyLinkHidden>(
-            this->getPropertyByName("_ShapeContentOwner")))
-        return prop;
+            obj->getPropertyByName("ShapeContentReplacement")))
+    {
+        if (prop->getContainer() == obj)
+            return prop;
+    }
     if (!force)
         return nullptr;
-    return static_cast<App::PropertyLinkHidden*>(
-            this->addDynamicProperty("App::PropertyLinkHidden", "_ShapeContentOwner"));
+    return static_cast<App::PropertyLinkHidden*>(obj->addDynamicProperty(
+            "App::PropertyLinkHidden", "ShapeContentReplacement", "ShapeContent",
+    "Refers to a shape replacement",
+    App::Prop_None));
+}
+
+// Auto generated code (Tools/params_utils.py:957)
+App::PropertyBool *Part::Feature::getShapeContentReplacementSuppressedProperty(bool force)
+{
+    auto obj = this;
+    if (auto prop = Base::freecad_dynamic_cast<App::PropertyBool>(
+            obj->getPropertyByName("ShapeContentReplacementSuppressed")))
+    {
+        if (prop->getContainer() == obj)
+            return prop;
+    }
+    if (!force)
+        return nullptr;
+    return static_cast<App::PropertyBool*>(obj->addDynamicProperty(
+            "App::PropertyBool", "ShapeContentReplacementSuppressed", "ShapeContent",
+    "Suppress shape content replacement",
+    App::Prop_None));
+}
+
+// Auto generated code (Tools/params_utils.py:957)
+App::PropertyLinkHidden *Part::Feature::get_ShapeContentOwnerProperty(bool force)
+{
+    auto obj = this;
+    if (auto prop = Base::freecad_dynamic_cast<App::PropertyLinkHidden>(
+            obj->getPropertyByName("_ShapeContentOwner")))
+    {
+        if (prop->getContainer() == obj)
+            return prop;
+    }
+    if (!force)
+        return nullptr;
+    return static_cast<App::PropertyLinkHidden*>(obj->addDynamicProperty(
+            "App::PropertyLinkHidden", "_ShapeContentOwner", "ShapeContent",
+    "Refers to the shape owner",
+    App::Prop_Hidden));
 }
 //[[[end]]]
 
@@ -1369,15 +1423,33 @@ void Feature::expandShapeContents()
         return;
     std::vector<App::DocumentObject*> objs = prop->getValues();
     std::size_t i = 0;
-    for (const auto &s : this->Shape.getShape().located(TopLoc_Location()).getSubTopoShapes(TopAbs_SHAPE)) {
+    int skip = 0;
+    auto shape = this->Shape.getShape();
+    for (const auto &s : shape.located(TopLoc_Location()).getSubTopoShapes(TopAbs_SHAPE)) {
+        if (skip) {
+            --skip;
+            continue;
+        }
         bool expandChild = false;
         Feature *feature = nullptr;
         for (;; ++i) {
             if (i < objs.size()) {
                 if (auto feat = static_cast<Part::Feature*>(objs[i])) {
                     if (auto p = feat->getShapeContentSuppressedProperty()) {
-                        if (p->getValue()) {
-                            feat->Shape.setStatus(App::Property::Transient, false);
+                        if (p->getValue())
+                            break;
+                    }
+                    if (auto p = feat->getShapeContentReplacementProperty()) {
+                        auto suppressed = feat->getShapeContentReplacementSuppressedProperty();
+                        if (p->getValue() && (!suppressed || !suppressed->getValue())) {
+                            auto replacement = getTopoShape(p->getValue());
+                            if (shape.shapeType(true) != TopAbs_COMPOUND
+                                    && replacement.shapeType(true) == TopAbs_COMPOUND)
+                            {
+                                skip = replacement.countSubShapes(s.shapeType(true));
+                                if (skip)
+                                    --skip;
+                            }
                             break;
                         }
                     }
@@ -1462,105 +1534,146 @@ void Feature::mergeShapeContents()
     auto prop = getShapeContentsProperty();
     if (!prop)
         return;
+    TopoShape shape = Shape.getShape().located(TopLoc_Location());
+    auto shapeType = shape.shapeType(true);
+    auto subShapes = shape.getSubTopoShapes();
     std::vector<TopoShape> shapes;
     for (auto obj : prop->getValues()) {
         if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(obj)) {
             if (auto prop = feat->getShapeContentSuppressedProperty()) {
-                if (prop->getValue())
+                if (prop->getValue()) {
+                    feat->Shape.setStatus(App::Property::Transient, false);
                     continue;
+                }
+            }
+            else if (auto prop = feat->getShapeContentReplacementProperty()) {
+                auto suppressed = feat->getShapeContentReplacementSuppressedProperty();
+                if (prop->getValue() && (!suppressed || !suppressed->getValue())) {
+                    auto replacement = getTopoShape(prop->getValue());
+                    if (shape.shapeType(true) != TopAbs_COMPOUND
+                            && replacement.shapeType(true) == TopAbs_COMPOUND
+                            && subShapes.size())
+                    {
+                        auto replaces = replacement.getSubTopoShapes(subShapes[0].shapeType(true));
+                        shapes.insert(shapes.end(), replaces.begin(), replaces.end());
+                    }
+                    else
+                        shapes.push_back(replacement);
+                    feat->Shape.setStatus(App::Property::Transient, false);
+                    continue;
+                }
             }
         }
         shapes.push_back(getTopoShape(obj));
     }
 
-    TopoShape shape = Shape.getShape().located(TopLoc_Location());
-    auto subShapes = shape.getSubTopoShapes();
-    std::vector<int> removed, added;
-    int i = -1;
-    auto isSameShape = [](const TopoShape &a, const TopoShape &b) {
-        if (!a.getShape().IsPartner(b.getShape()))
-            return false;
-        auto pla1 = a.getPlacement();
-        auto pla2 = b.getPlacement();
-        if (!pla1.getPosition().IsEqual(pla2.getPosition(), Precision::Confusion()))
-            return false;
-        return pla1.getRotation().isSame(pla1.getRotation(), 1e-12);
-    };
-    for (auto &subShape : subShapes) {
-        ++i;
-        bool found = false;
-        for (const auto &s : shapes) {
-            if (isSameShape(s, subShape)) {
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            removed.push_back(i);
-    }
-    i = -1;
-    for (const auto &s : shapes) {
-        ++i;
-        bool found = false;
+    bool changed = false;
+
+    if (shapeType != TopAbs_WIRE && (shapeType != TopAbs_FACE || !shape.isPlanarFace())) {
+        std::vector<int> removed, added;
+        int i = -1;
+        auto isSameShape = [](const TopoShape &a, const TopoShape &b) {
+            if (!a.getShape().IsPartner(b.getShape()))
+                return false;
+            auto pla1 = a.getPlacement();
+            auto pla2 = b.getPlacement();
+            if (!pla1.getPosition().IsEqual(pla2.getPosition(), Precision::Confusion()))
+                return false;
+            return pla1.getRotation().isSame(pla1.getRotation(), 1e-12);
+        };
         for (auto &subShape : subShapes) {
-            if (isSameShape(s, subShape)) {
-                found = true;
-                break;
+            ++i;
+            bool found = false;
+            for (const auto &s : shapes) {
+                if (isSameShape(s, subShape)) {
+                    found = true;
+                    break;
+                }
             }
+            if (!found)
+                removed.push_back(i);
         }
-        if (!found)
-            added.push_back(i);
-    }
-    if (added.empty() && removed.empty())
-        return;
-    if (added.size() == removed.size()) {
-        shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
-        auto subShapes = shape.getSubTopoShapes();
-        std::vector<std::pair<TopoShape, TopoShape>> replacements;
-        std::size_t i = 0;
-        for (; i<added.size(); ++i) {
-            if (added[i] != removed[i])
-                break;
-            replacements.emplace_back(subShapes[removed[i]], shapes[added[i]]);
+        i = -1;
+        for (const auto &s : shapes) {
+            ++i;
+            bool found = false;
+            for (auto &subShape : subShapes) {
+                if (isSameShape(s, subShape)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                added.push_back(i);
         }
-        shape = shape.replacEShape(replacements);
+        if (added.empty() && removed.empty())
+            return;
+
+        if (added.size() == removed.size()) {
+            shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
+            auto subShapes = shape.getSubTopoShapes();
+            std::vector<std::pair<TopoShape, TopoShape>> replacements;
+            std::size_t i = 0;
+            for (; i<added.size(); ++i) {
+                if (added[i] != removed[i])
+                    break;
+                replacements.emplace_back(subShapes[removed[i]], shapes[added[i]]);
+            }
+            shape = shape.replacEShape(replacements);
+            changed = true;
+        }
+        else if (added.empty()) {
+            shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
+            auto subShapes = shape.getSubTopoShapes();
+            std::vector<TopoShape> removedShape;
+            for (int i : removed)
+                removedShape.push_back(subShapes[i]);
+            shape = shape.removEShape(removedShape);
+            changed = true;
+        }
     }
-    else if (added.empty()) {
-        shape.setShape(BRepBuilderAPI_Copy(shape.getShape()), false);
-        auto subShapes = shape.getSubTopoShapes();
-        std::vector<TopoShape> removedShape;
-        for (int i : removed)
-            removedShape.push_back(subShapes[i]);
-        shape = shape.removEShape(removedShape);
-    }
-    else {
-        switch (shape.shapeType(true)) {
-        case TopAbs_VERTEX:
+
+    switch (shapeType) {
+    case TopAbs_VERTEX:
+        if (!changed)
             throw Base::CADKernelError("Reshaping vertex is not supported");
-        case TopAbs_FACE:
+        break;
+    case TopAbs_FACE:
+        if (!changed) {
             if (shape.isPlanarFace())
                 shape.makEFace(shapes);
             else
                 throw Base::CADKernelError("Reshaping non-planar face is not supported");
-            break;
-        case TopAbs_WIRE:
-            shape.makEWires(shapes);
-            break;
-        case TopAbs_EDGE:
-            throw Base::CADKernelError("Reshaping edge is not supported");
-        case TopAbs_SOLID:
-            shape.makESolid(shapes);
-            break;
-        case TopAbs_SHELL:
-            shape.makECompound(shapes).makEShell(false);
-            break;
-        case TopAbs_COMPSOLID:
-            shape.makEShape(TOPOP_COMPSOLID, shapes);
-            break;
-        default:
-            shape.makECompound(shapes);
-            break;
         }
+        break;
+    case TopAbs_WIRE:
+        if (!changed)
+            shape.makEWires(shapes);
+        break;
+    case TopAbs_EDGE:
+        if (!changed)
+            throw Base::CADKernelError("Reshaping edge is not supported");
+        break;
+    case TopAbs_SOLID:
+        if (changed)
+            shape = shape.makESolid();
+        else
+            shape.makESolid(shapes);
+        break;
+    case TopAbs_SHELL:
+        if (changed)
+            shape.makECompound(shape.getSubTopoShapes(TopAbs_FACE)).makEShell(false);
+        else
+            shape.makECompound(shapes).makEShell(false);
+        break;
+    case TopAbs_COMPSOLID:
+        if (!changed)
+            shape.makEShape(TOPOP_COMPSOLID, shapes);
+        break;
+    default:
+        if (!changed)
+            shape.makECompound(shapes);
+        break;
     }
     shape.setPlacement(Placement.getValue());
     this->Shape.setValue(shape);

@@ -170,9 +170,11 @@ public:
     PartParams.declare_properties()
     ]]]*/
 
-    // Auto generated code (Tools/params_utils.py:957)
+    // Auto generated code (Tools/params_utils.py:979)
     App::PropertyLinkList *getShapeContentsProperty(bool force=false);
     App::PropertyBool *getShapeContentSuppressedProperty(bool force=false);
+    App::PropertyLinkHidden *getShapeContentReplacementProperty(bool force=false);
+    App::PropertyBool *getShapeContentReplacementSuppressedProperty(bool force=false);
     App::PropertyLinkHidden *get_ShapeContentOwnerProperty(bool force=false);
     //[[[end]]]
 
@@ -268,4 +270,3 @@ bool checkIntersection(const TopoDS_Shape& first, const TopoDS_Shape& second,
 
 
 #endif // PART_FEATURE_H
-

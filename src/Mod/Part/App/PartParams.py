@@ -62,16 +62,28 @@ def declare():
 def define():
     params_utils.define(sys.modules[__name__])
 
+PropertyGroup = 'ShapeContent'
 Properties = [
     Property('ShapeContents',
              'App::PropertyLinkList',
-             'Stores the expanded sub shape content objects'),
+             'Stores the expanded sub shape content objects',
+             PropertyGroup),
     Property('ShapeContentSuppressed',
              'App::PropertyBool',
-             'Suppress this sub shape content'),
+             'Suppress this sub shape content',
+             PropertyGroup),
+    Property('ShapeContentReplacement',
+             'App::PropertyLinkHidden',
+             'Refers to a shape replacement',
+             PropertyGroup),
+    Property('ShapeContentReplacementSuppressed',
+             'App::PropertyBool',
+             'Suppress shape content replacement',
+             PropertyGroup),
     Property('_ShapeContentOwner',
              'App::PropertyLinkHidden',
              'Refers to the shape owner',
+             PropertyGroup,
              prop_flags='App::Prop_Hidden'),
 ]
 
