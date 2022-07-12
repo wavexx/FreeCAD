@@ -8376,10 +8376,11 @@ DocumentObjectItem *DocumentItem::findItem(
 
     // The sub object is not found. This could happen for geo group, since its
     // children may be in more than one hierarchy down.
-    if (obj->getLinkedObject()->hasExtension(
-                App::GeoFeatureGroupExtension::getExtensionClassTypeId()))
-    {
-        auto inlist = subObj->getInListEx(true);
+    if (auto groupExp = obj->getLinkedObject()->getExtensionByType<App::GeoFeatureGroupExtension>(true)) {
+        auto linked = obj->getLinkedObject();
+        auto inlist = subObj->getInListEx(true, [linked,groupExp](App::DocumentObject *obj) {
+            return obj == linked || !groupExp->Group.find(obj->getNameInDocument());
+        });
         auto res = findItemInList(inlist, item, subObj, nextsub, sync, select);
         if (res)
             return res;
