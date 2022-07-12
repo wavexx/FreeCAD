@@ -38,6 +38,7 @@
 
 #include <unordered_map>
 #include <bitset>
+#include <functional>
 #include <boost_signals2.hpp>
 
 namespace App
@@ -270,13 +271,18 @@ public:
      * @param recursive [in]: whether to obtain recursive in list
      * @param inList [in, out]: optional pointer to a vector holding the output
      * objects, with the furthest linking object ordered last.
+     * @param filter : optional callback function to filter out object
      */
     void getInListEx(std::set<App::DocumentObject*> &inSet,
-            bool recursive, std::vector<App::DocumentObject*> *inList=0) const;
+            bool recursive,
+            std::vector<App::DocumentObject*> *inList=nullptr,
+            std::function<bool(App::DocumentObject*)> filter = {}) const;
     /** Return a set of all objects linking to this object, including possible external parent objects
      * @param recursive [in]: whether to obtain recursive in list
+     * @param filter : optional callback function to filter out object
      */
-    std::set<App::DocumentObject*> getInListEx(bool recursive) const;
+    std::set<App::DocumentObject*> getInListEx(bool recursive,
+            std::function<bool(App::DocumentObject*)> filter = {}) const;
 
     /// get group if object is part of a group, otherwise 0 is returned
     DocumentObjectGroup* getGroup() const;
