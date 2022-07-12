@@ -403,7 +403,7 @@ TopoShape ProfileBased::getProfileShape() const {
     auto shape = getTopoShape(Profile.getValue());
     if(!shape.isNull() && Profile.getSubValues().size()) {
         std::vector<TopoShape> shapes;
-        for(auto &sub : Profile.getSubValues(true))
+        for(auto &sub : Profile.getSubValues())
             shapes.push_back(shape.getSubTopoShape(sub.c_str()));
         shape = TopoShape(shape.Tag).makECompound(shapes);
     }
@@ -433,7 +433,7 @@ std::vector<TopoDS_Wire> ProfileBased::getProfileWiresOld() const {
 
     // this is a workaround for an obscure OCC bug which leads to empty tessellations
     // for some faces. Making an explicit copy of the linked shape seems to fix it.
-    // The error almost happens when re-computing the shape but sometimes also for the
+    // The error mostly happens when re-computing the shape but sometimes also for the
     // first time
     BRepBuilderAPI_Copy copy(shape);
     shape = copy.Shape();
@@ -453,7 +453,7 @@ std::vector<TopoDS_Wire> ProfileBased::getProfileWiresOld() const {
 std::vector<TopoShape> ProfileBased::getProfileWires() const {
     // shape copy is a workaround for an obscure OCC bug which leads to empty
     // tessellations for some faces. Making an explicit copy of the linked
-    // shape seems to fix it.  The error almost happens when re-computing the
+    // shape seems to fix it.  The error mostly happens when re-computing the
     // shape but sometimes also for the first time
     auto shape = getProfileShape().makECopy();
 

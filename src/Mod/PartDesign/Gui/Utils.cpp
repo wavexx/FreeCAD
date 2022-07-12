@@ -1453,7 +1453,7 @@ App::SubObjectT importExternalObject(const App::SubObjectT &feature,
 App::SubObjectT importExternalElement(App::SubObjectT feature, bool report) {
     initMonitor();
     auto element = feature.getOldElementName();
-    if (element.size() && !boost::starts_with(element, "Face") && !boost::starts_with(element, "Wire"))  {
+    if (boost::starts_with(element, "Edge"))  {
         auto sobj = feature.getSubObject();
         if (sobj && sobj->isDerivedFrom(Part::Part2DObject::getClassTypeId()))
             feature.setSubName(feature.getSubNameNoElement());

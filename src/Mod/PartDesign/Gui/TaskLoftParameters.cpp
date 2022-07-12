@@ -54,6 +54,21 @@
 #include "ReferenceSelection.h"
 #include "Utils.h"
 
+namespace {
+struct SubInfo
+{
+    App::SubObjectT objT;
+    std::vector<std::string> subs;
+    SubInfo(){}
+    SubInfo(const App::SubObjectT &objT,
+            const std::vector<std::string> &subs)
+        :objT(objT)
+        ,subs(subs)
+    {}
+};
+} //anonymous namespace
+Q_DECLARE_METATYPE(SubInfo)
+
 using namespace PartDesignGui;
 using namespace Gui;
 
@@ -89,7 +104,8 @@ public:
             this->notAllowedReason = QT_TR_NOOP("Selecting this will cause circular dependency.");
             return false;
         }
-        if (loft->Sections.find(pObj->getNameInDocument())) {
+        const auto &sections = loft->Sections.getValues();
+        if (std::find(sections.begin(), sections.end(), pObj) != sections.end()) {
             this->notAllowedReason = QT_TR_NOOP("Section object cannot be used as profile.");
             return false;
         }
@@ -136,19 +152,6 @@ public:
             this->notAllowedReason = QT_TR_NOOP("Profile object cannot be used as section.");
             return false;
         }
-        if (loft->Profile.getValue()) {
-            if (!wireCount) {
-                wireCount = Part::Feature::getTopoShape(
-                        loft->Profile.getValue()).countSubShapes(TopAbs_WIRE);
-            }
-            if (wireCount>0 && Part::Feature::getTopoShape(
-                                    pObj).countSubShapes(TopAbs_WIRE) != wireCount)
-            {
-                this->notAllowedReason = QT_TR_NOOP("Section object must have the same number of wires.");
-                return false;
-            }
-        } else
-            wireCount = 0;
         return true;
     }
 
@@ -156,7 +159,6 @@ private:
     App::DocumentObjectT objT;
     std::set<App::DocumentObject*> inList;
     TaskLoftParameters *master;
-    unsigned wireCount = 0;
 };
 
 
@@ -242,16 +244,40 @@ void TaskLoftParameters::updateUI()
     toggleShowOnTop(vp, lastSections, "Sections", true);
 }
 
-void TaskLoftParameters::addItem(App::DocumentObject *obj, bool select)
+void TaskLoftParameters::addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select)
 {
-    QString label = QString::fromUtf8(obj->Label.getValue());
-    QListWidgetItem* item = new QListWidgetItem();
-    auto vp = Gui::Application::Instance->getViewProvider(obj);
-    if (vp)
-        item->setIcon(vp->getIcon());
+    App::SubObjectT objT(obj);
+    QString label = QString::fromUtf8(objT.getObjectFullName(objT.getDocumentName().c_str()).c_str());
+    if (subs.size() && !subs[0].empty()) {
+        bool first = true;
+        for (const auto &sub : subs) {
+            if (first) {
+                first = false;
+                label += QStringLiteral("(");
+            }
+            else
+                label += QStringLiteral(", ");
+            label += QString::fromUtf8(sub.c_str());
+        }
+        label += QStringLiteral(")");
+    }
+
+    QListWidgetItem *item = nullptr;
+    for (int i=0; i<ui->listWidgetReferences->count(); ++i) {
+        auto listItem = ui->listWidgetReferences->item(i);
+        if (qvariant_cast<SubInfo>(listItem->data(Qt::UserRole)).objT == objT) {
+            item = listItem;
+            break;
+        }
+    }
+    if (!item) {
+        item = new QListWidgetItem(ui->listWidgetReferences);
+        auto vp = Gui::Application::Instance->getViewProvider(obj);
+        if (vp)
+            item->setIcon(vp->getIcon());
+    }
+    item->setData(Qt::UserRole, QVariant::fromValue(SubInfo(objT, subs)));
     item->setText(label);
-    item->setData(Qt::UserRole, QVariant::fromValue(App::SubObjectT(obj)));
-    ui->listWidgetReferences->addItem(item);
     if (select) {
         QSignalBlocker blocker(ui->listWidgetReferences);
         item->setSelected(true);
@@ -276,8 +302,8 @@ void TaskLoftParameters::refresh()
         ui->profileBaseEdit->setText(label);
     }
 
-    for (auto obj : loft->Sections.getValues())
-        addItem(obj);
+    for (const auto &v : loft->Sections.getSubListValues())
+        addItem(v.first, v.second);
 
     // get options
     ui->checkBoxRuled->setChecked(loft->Ruled.getValue());
@@ -329,15 +355,50 @@ void TaskLoftParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
     }
     case refAdd: {
         App::SubObjectT ref(msg.pOriginalMsg ? msg.pOriginalMsg->Object : msg.Object);
-        ref = PartDesignGui::importExternalElement(ref);
-        auto refObj = ref.getSubObject();
+        ref = PartDesignGui::importExternalObject(ref);
+        auto refObj = ref.getObject();
         if (refObj) {
-            auto sections = loft->Sections.getValues();
-            sections.push_back(refObj);
-            addItem(refObj, true);
+            bool touched = false;
+            const std::vector<std::string> *psubs = nullptr;
+            auto sections = loft->Sections.getSubListValues();
+            for (auto &v : sections) {
+                if (v.first != refObj)
+                    continue;
+                if (ref.getSubName().empty()) {
+                    v.second.clear();
+                    v.second.emplace_back();
+                    psubs = &v.second;
+                    touched = true;
+                    break;
+                }
+                for (auto it=v.second.begin(); it!=v.second.end();) {
+                    if (it->empty())
+                        it = v.second.erase(it);
+                    else if (*it == ref.getSubName()) {
+                        psubs = &v.second;
+                        touched = true;
+                        break;
+                    } else
+                        ++it;
+                }
+                if (!touched) {
+                    v.second.push_back(ref.getSubName());
+                    psubs = &v.second;
+                    touched = true;
+                }
+                break;
+            }
+            if (!touched) {
+                std::vector<std::string> subs;
+                if (!ref.getSubName().empty())
+                    subs.push_back(ref.getSubName());
+                sections.emplace_back(refObj, std::move(subs));
+                psubs = &sections.back().second;
+            }
+            addItem(refObj, *psubs, true);
             try {
                 setupTransaction();
-                loft->Sections.setValues(sections);
+                loft->Sections.setSubListValues(sections);
                 recomputeFeature();
             } catch (Base::Exception &e) {
                 e.ReportException();
@@ -356,23 +417,23 @@ void TaskLoftParameters::onDeleteSection()
         return;
 
     PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
-    std::vector<App::DocumentObject*> refs = loft->Sections.getValues();
 
     // Delete the selected profile
-    for(auto item : ui->listWidgetReferences->selectedItems()) {
-        auto objT = qvariant_cast<App::SubObjectT>(item->data(Qt::UserRole));
-        refs.erase(std::remove(refs.begin(), refs.end(), objT.getSubObject()), refs.end());
+    for(auto item : ui->listWidgetReferences->selectedItems())
         delete item;
-    }
 
-    if (refs.size() != loft->Sections.getValues().size()) {
-        try {
-            setupTransaction();
-            loft->Sections.setValues(refs);
-            recomputeFeature();
-        } catch (Base::Exception &e) {
-            e.ReportException();
-        }
+    std::vector<App::PropertyLinkSubList::SubSet> subset;
+    for (int i=0; i<ui->listWidgetReferences->count(); ++i) {
+        auto data = qvariant_cast<SubInfo>(ui->listWidgetReferences->item(i)->data(Qt::UserRole));
+        if (auto obj = data.objT.getObject())
+            subset.emplace_back(obj, data.subs);
+    }
+    try {
+        setupTransaction();
+        loft->Sections.setSubListValues(subset);
+        recomputeFeature();
+    } catch (Base::Exception &e) {
+        e.ReportException();
     }
 }
 
@@ -386,19 +447,17 @@ void TaskLoftParameters::indexesMoved()
         return;
 
     PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
-    std::vector<App::DocumentObject*> originals = loft->Sections.getValues();
-
-    QByteArray name;
+    std::vector<App::PropertyLinkSubList::SubSet> subset;
     int rows = model->rowCount();
     for (int i = 0; i < rows; i++) {
         QModelIndex index = model->index(i, 0);
-        name = index.data(Qt::UserRole).toByteArray().constData();
-        originals[i] = loft->getDocument()->getObject(name.constData());
+        auto data = qvariant_cast<SubInfo>(index.data(Qt::UserRole));
+        if (auto obj = data.objT.getObject())
+            subset.emplace_back(obj, data.subs);
     }
-
     try {
         setupTransaction();
-        loft->Sections.setValues(originals);
+        loft->Sections.setSubListValues(subset);
         recomputeFeature();
     } catch (Base::Exception &e) {
         e.ReportException();

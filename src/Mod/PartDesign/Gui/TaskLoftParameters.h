@@ -78,7 +78,7 @@ protected:
 private:
     void onSelectionChanged(const Gui::SelectionChanges& msg);
     void clearButtons();
-    void addItem(App::DocumentObject *obj, bool select=false);
+    void addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select=false);
 
 private:
     QWidget* proxy;
