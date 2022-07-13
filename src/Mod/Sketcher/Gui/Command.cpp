@@ -773,14 +773,18 @@ public:
         addCommand(new CmdSketcherViewSketchBottom);
     }
 
-    virtual Gui::Action * createAction(void) override
+    virtual bool isActive(void) override
     {
-        auto action = GroupCommand::createAction();
-        if (action && ViewProviderSketch::viewBottomOnEdit()) {
-            action->setProperty("defaultAction", QVariant((int)1));
-            setup(action);
+        bool res = Gui::GroupCommand::isActive();
+        if (getAction() && res) {
+            auto action = getAction();
+            int idx = ViewProviderSketch::viewBottomOnEdit() ? 1 : 0;
+            if (action->property("defaultAction").toInt() != idx) {
+                action->setProperty("defaultAction", QVariant(idx));
+                setup(action);
+            }
         }
-        return action;
+        return res;
     }
 
     virtual const char* className() const override {return "CmdSketcherViewSketch";}
@@ -1035,7 +1039,14 @@ CmdSketcherViewSection::CmdSketcherViewSection()
 void CmdSketcherViewSection::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    doCommand(Doc,"ActiveSketch.ViewObject.TempoVis.sketchClipPlane(ActiveSketch)");
+    if (Gui::Document *doc = getActiveGuiDocument()) {
+        if (auto vp = Base::freecad_dynamic_cast<SketcherGui::ViewProviderSketch>(doc->getInEdit()))
+            Gui::cmdGuiObject(vp->getObject(), std::ostringstream()
+                    << "TempoVis.sketchClipPlane("
+                    << vp->getObject()->getFullName(/*python*/true)
+                    << ", reverse=" << (vp->viewBottomOnEdit() ? "True" : "False")
+                    << ")");
+    }
 }
 
 bool CmdSketcherViewSection::isActive(void)
