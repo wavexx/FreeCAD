@@ -674,6 +674,7 @@ public:
     QModelIndex reorderingIndex;
     QTreeWidgetItem *tooltipItem = nullptr;
     DocumentObjectItem *firstSyncItem = nullptr;
+    DocumentObjectItem *nextEditingItem = nullptr;
 };
 
 //--------------------------------------------------------------------------
@@ -3218,7 +3219,13 @@ void TreeWidget::onStartEditing()
             bool ok = doc->setEdit(objitem->object(), edit);
             if (!ok) doc->abortCommand();
 #else
-            editingItem = objitem;
+
+            // Not all editing action in object context menu will result in a
+            // persistent editing task panel (which will trigger signalInEdit,
+            // and in trun change item background). So we use nextEditingItem
+            // to temperary hold the next potential editing item to not reset
+            // the current editin item prematrually.
+            pimpl->nextEditingItem = objitem;
             App::DocumentObject *topParent = 0;
             std::ostringstream ss;
             objitem->getSubName(ss,topParent);
@@ -3231,8 +3238,8 @@ void TreeWidget::onStartEditing()
                 FC_ERR("Cannot find editing object");
                 return;
             }
-            if(!doc->setEdit(vp, edit, ss.str().c_str()))
-                editingItem = 0;
+            doc->setEdit(vp, edit, ss.str().c_str());
+            pimpl->nextEditingItem = nullptr;
 #endif
         }
     }
@@ -7035,7 +7042,9 @@ void DocumentItem::slotInEdit(const Gui::ViewProviderDocumentObject& v)
     if (!docitem)
         return;
 
-    if(!getTree()->editingItem) {
+    if(getTree()->pimpl->nextEditingItem)
+        getTree()->editingItem = getTree()->pimpl->nextEditingItem;
+    else {
         ViewProviderDocumentObject *parentVp=0;
         std::string subname;
         auto vp = doc->getInEdit(&parentVp,&subname);
@@ -7134,7 +7143,7 @@ void DocumentItem::slotResetEdit(const Gui::ViewProviderDocumentObject& v)
         }else if(item->object() == &v)
             item->setHighlight(true, item->highlightMode);
     END_FOREACH_ITEM
-    tree->editingItem = 0;
+    tree->editingItem = nullptr;
 }
 
 void DocumentItem::slotNewObject(const Gui::ViewProviderDocumentObject& obj) {
