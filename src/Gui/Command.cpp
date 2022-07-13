@@ -1770,15 +1770,11 @@ Action * PythonGroupCommand::createAction(void)
         Py::Sequence ret(call.apply(args));
         for (auto it = ret.begin(); it != ret.end(); ++it) {
             Py::String str(*it);
-            QAction* cmd = pcAction->addAction(QString());
-            cmd->setProperty("CommandName", QByteArray(static_cast<std::string>(str).c_str()));
-
-            PythonCommand* pycmd = dynamic_cast<PythonCommand*>(rcCmdMgr.getCommandByName(cmd->property("CommandName").toByteArray()));
-            if (pycmd && pycmd->isCheckable()) {
-                cmd->setCheckable(true);
-                cmd->blockSignals(true);
-                cmd->setChecked(pycmd->isChecked());
-                cmd->blockSignals(false);
+            QByteArray cmdName = static_cast<std::string>(str).c_str();
+            if (auto cmd = rcCmdMgr.getCommandByName(cmdName.constData())) {
+                cmd->initAction();
+                cmd->getAction()->action()->setProperty("CommandName", cmdName);
+                pcAction->addAction(cmd->getAction()->action());
             }
         }
 
@@ -1884,20 +1880,7 @@ void PythonGroupCommand::languageChange()
     QList<QAction*> a = pcAction->actions();
     for (QList<QAction*>::iterator it = a.begin(); it != a.end(); ++it) {
         Gui::Command* cmd = rcCmdMgr.getCommandByName((*it)->property("CommandName").toByteArray());
-        if (cmd) {
-            // Python command use getName as context
-            const char *context = dynamic_cast<PythonCommand*>(cmd) ? cmd->getName() : cmd->className();
-            const char *tooltip = cmd->getToolTipText();
-            const char *statustip = cmd->getStatusTip();
-            if (!statustip || '\0' == *statustip) {
-                statustip = tooltip;
-            }
-
-            (*it)->setIcon(Gui::BitmapFactory().iconFromTheme(cmd->getPixmap()));
-            (*it)->setText(QApplication::translate(context, cmd->getMenuText()));
-            (*it)->setToolTip(QApplication::translate(context, tooltip));
-            (*it)->setStatusTip(QApplication::translate(context, statustip));
-        }
+        cmd->languageChange();
     }
 }
 
