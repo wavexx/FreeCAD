@@ -62,12 +62,21 @@ static bool getOptions(PyObject *pyOption, QFileDialog::Options &options)
 PyObject* FileDialogPy::getOpenFileName(PyObject *args, PyObject *kwd)
 {
     PyObject *pyParent = Py_None, *pyOptions = Py_None;
-    char *caption = "", *dir = "", *filter = "", *selectedFilter = ""; 
+    char *caption = nullptr, *dir = nullptr, *filter = nullptr, *selectedFilter = nullptr;
     static char *kwlist[] = {"parent","caption","dir","filter","selectedFilter","options",nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-                args, kwd, "|OssssO", kwlist,
+                args, kwd, "|OzzzzO", kwlist,
                 &pyParent, &caption, &dir, &filter, &selectedFilter, &pyOptions))
         return nullptr;
+
+    if (!caption)
+        caption = "";
+    if (!dir)
+        dir = "";
+    if (!filter)
+        filter = "";
+    if (!selectedFilter)
+        selectedFilter = "";
 
     PythonWrapper wrap;
     if (!wrap.loadCoreModule() ||
@@ -106,12 +115,21 @@ PyObject* FileDialogPy::getOpenFileName(PyObject *args, PyObject *kwd)
 PyObject* FileDialogPy::getOpenFileNames(PyObject *args, PyObject *kwd)
 {
     PyObject *pyParent = Py_None, *pyOptions = Py_None;
-    char *caption = "", *dir = "", *filter = "", *selectedFilter = ""; 
+    char *caption = nullptr, *dir = nullptr, *filter = nullptr, *selectedFilter = nullptr;
     static char *kwlist[] = {"parent","caption","dir","filter","selectedFilter","options",nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-                args, kwd, "|OssssO", kwlist,
+                args, kwd, "|OzzzzO", kwlist,
                 &pyParent, &caption, &dir, &filter, &selectedFilter, &pyOptions))
         return nullptr;
+
+    if (!caption)
+        caption = "";
+    if (!dir)
+        dir = "";
+    if (!filter)
+        filter = "";
+    if (!selectedFilter)
+        selectedFilter = "";
 
     PythonWrapper wrap;
     if (!wrap.loadCoreModule() ||
@@ -152,12 +170,21 @@ PyObject* FileDialogPy::getOpenFileNames(PyObject *args, PyObject *kwd)
 PyObject* FileDialogPy::getSaveFileName(PyObject *args, PyObject *kwd)
 {
     PyObject *pyParent = Py_None, *pyOptions = Py_None;
-    char *caption = "", *dir = "", *filter = "", *selectedFilter = ""; 
+    char *caption = nullptr, *dir = nullptr, *filter = nullptr, *selectedFilter = nullptr;
     static char *kwlist[] = {"parent","caption","dir","filter","selectedFilter","options",nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-                args, kwd, "|OssssO", kwlist,
+                args, kwd, "|OzzzzO", kwlist,
                 &pyParent, &caption, &dir, &filter, &selectedFilter, &pyOptions))
         return nullptr;
+
+    if (!caption)
+        caption = "";
+    if (!dir)
+        dir = "";
+    if (!filter)
+        filter = "";
+    if (!selectedFilter)
+        selectedFilter = "";
 
     PythonWrapper wrap;
     if (!wrap.loadCoreModule() ||
@@ -196,12 +223,17 @@ PyObject* FileDialogPy::getSaveFileName(PyObject *args, PyObject *kwd)
 PyObject* FileDialogPy::getExistingDirectory(PyObject *args, PyObject *kwd)
 {
     PyObject *pyParent = Py_None, *pyOptions = Py_None;
-    char *caption = "", *dir = ""; 
+    char *caption = nullptr, *dir = nullptr;
     static char *kwlist[] = {"parent","caption","dir","options",nullptr};
     if (!PyArg_ParseTupleAndKeywords(
-                args, kwd, "|OssO", kwlist,
+                args, kwd, "|OzzO", kwlist,
                 &pyParent, &caption, &dir, &pyOptions))
         return nullptr;
+
+    if (!caption)
+        caption = "";
+    if (!dir)
+        dir = "";
 
     PythonWrapper wrap;
     if (!wrap.loadCoreModule() ||
