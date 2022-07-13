@@ -1198,16 +1198,6 @@ struct TipIconEntry {
 QCache<QString, TipIconEntry> _TipIconCache(1024);
 int _TipIconSize;
 
-class TipLabelEventFilter : public QObject
-{
-public:
-    TipLabelEventFilter(QObject *parent)
-        :QObject(parent)
-    {
-    }
-
-};
-
 void hideQtToolTips()
 {
     // QToolTips actually uses multiple instances of a private class QTipLabel.
