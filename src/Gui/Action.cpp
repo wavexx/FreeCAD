@@ -346,17 +346,15 @@ QString Action::createToolTip(QString _tooltip,
     if (pcCmd && pcCmd->getName()) {
         auto pCmd = pcCmd;
         cmdName = QString::fromUtf8(pcCmd->getName());
-        if (auto groupcmd = dynamic_cast<const GroupCommand*>(pcCmd)) {
-            if (auto act = pcCmd->getAction()) {
-                int idx = act->property("defaultAction").toInt();
-                auto cmd = groupcmd->getCommand(idx);
-                if (cmd && cmd->getName()) {
-                    cmdName = QStringLiteral("%1 (%2:%3)")
-                        .arg(QString::fromUtf8(cmd->getName()))
-                        .arg(cmdName)
-                        .arg(idx);
-                    pCmd = cmd;
-                }
+        int idx = 0;
+        if (auto action = pCmd->getChildAction(-1, &idx)) {
+            auto cmd = action->command();
+            if (cmd && cmd->getName()) {
+                cmdName = QStringLiteral("%1 (%2:%3)")
+                    .arg(QString::fromUtf8(cmd->getName()))
+                    .arg(cmdName)
+                    .arg(idx);
+                pCmd = cmd;
             }
         }
         if (iconPath.isEmpty() && ViewParams::getToolTipIconSize() > 0) {

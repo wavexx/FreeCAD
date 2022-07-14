@@ -35,6 +35,8 @@
 #include <Base/Type.h>
 #include <Gui/Application.h>
 
+class QAction;
+
 /** @defgroup CommandMacros Helper macros for running commands through Python interpreter */
 //@{
 
@@ -327,7 +329,7 @@ protected:
      */
     //@{
     /// Methods which gets called when activated, needs to be reimplemented!
-    virtual void activated(int iMsg)=0;
+    virtual void activated(int iMsg);
     /// Creates the used Action
     virtual Action * createAction(void);
     /// Called before invoking
@@ -344,7 +346,7 @@ public:
     /// CommandManager is a friend
     friend class CommandManager;
     /// Override this method if your Cmd is not always active
-    virtual bool isActive(void){return true;}
+    virtual bool isActive(void);
     /// Get somtile called to check the state of the command
     void testActive(void);
     /// Enables or disables the command
@@ -614,6 +616,17 @@ public:
         NoUpdateActions = 128, /**< Do not update actions status */
     };
 
+    /** Obtain a child action of this command
+     * @param index: child action index. if less zero, then return the default child action
+     * @param pindex: optional output index of the found action
+     * @return Return the child action if found.
+     */
+    Action *getChildAction(int index = -1, int *pindex=nullptr) const;
+
+protected:
+    /// Common setup of action using command data
+    void setup(Action *);
+
 private:
     void _invoke(int, bool disablelog);
 
@@ -665,18 +678,8 @@ public:
     Command *getCommand(int idx) const;
     std::vector<Command*> getCommands() const;
 
-    virtual void refreshIcon();
-
-    virtual void updateAction(int mode);
-
 protected:
-    virtual void activated(int iMsg);
     virtual Gui::Action * createAction(void);
-    virtual void languageChange();
-    virtual void onInvoke(int iMsg);
-    virtual bool isActive(void);
-
-    void setup(Action *);
 
 protected:
     std::vector<std::pair<Command*,size_t> > cmds;
@@ -693,7 +696,6 @@ protected:
     virtual void activated(int iMsg);
     virtual bool isActive(void);
     virtual Gui::Action * createAction(void);
-    virtual void refreshIcon();
 
     /// Called to determine if this command/option is checked
     virtual bool getOption() const = 0;
@@ -716,7 +718,6 @@ class PythonCommand: public Command
 public:
     PythonCommand(const char* name, PyObject * pcPyCommand, const char* pActivationString);
     virtual ~PythonCommand();
-    virtual void refreshIcon();
 
 protected:
     /** @name Methods reimplemented for Command Framework */
@@ -768,15 +769,10 @@ class PythonGroupCommand: public Command
 public:
     PythonGroupCommand(const char* name, PyObject * pcPyCommand);
     virtual ~PythonGroupCommand();
-    virtual void refreshIcon();
 
 protected:
     /** @name Methods reimplemented for Command Framework */
     //@{
-    /// Method which gets called when activated
-    virtual void activated(int iMsg);
-    /// if the command is not always active
-    virtual bool isActive(void);
     /// Get the help URL
     const char* getHelpUrl(void) const;
     /// Creates the used Action
@@ -787,7 +783,6 @@ public:
     /** @name Methods to get the properties of the command */
     //@{
     /// Reassigns QAction stuff after the language has changed.
-    void languageChange();
     const char* className() const
     { return "PythonGroupCommand"; }
     const char* getWhatsThis  () const;
