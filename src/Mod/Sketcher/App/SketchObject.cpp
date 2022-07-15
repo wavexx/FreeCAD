@@ -9100,11 +9100,8 @@ void SketchObject::updateGeometryRefs() {
 
         legacyMap[key + Data::ComplexGeoData::oldElementName(sub.c_str())] = i;
 
-        if (!obj->getTypeId().isDerivedFrom(Part::Datum::getClassTypeId()) &&
-                obj->getTypeId().isDerivedFrom(Part::Feature::getClassTypeId()))
-        {
+        if (!obj->getTypeId().isDerivedFrom(Part::Datum::getClassTypeId()))
             key += Data::ComplexGeoData::newElementName(sub.c_str());
-        }
         if(originalRefs.size() && originalRefs[i]!=key)
             refMap[originalRefs[i]] = key;
     }
