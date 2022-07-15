@@ -1092,9 +1092,7 @@ public:
         if(!sReason)
             return;
         if(strcmp(sReason, "StyleSheet")==0
-                || strcmp(sReason, "OverlayActiveStyleSheet")==0
-                || strcmp(sReason, "OverlayOnStyleSheet")==0
-                || strcmp(sReason, "OverlayOffStyleSheet")==0)
+                || strcmp(sReason, "OverlayActiveStyleSheet")==0)
         {
             OverlayManager::instance()->refresh(nullptr, true);
         }
@@ -1112,61 +1110,6 @@ public:
         }
 
         QString name;
-
-        onStyleSheet.clear();
-        if(ViewParams::getDockOverlayExtraState()) {
-            name = QString::fromUtf8(handle->GetASCII("OverlayOnStyleSheet").c_str());
-            if(name.isEmpty() && !prefix.isEmpty())
-                name = prefix + QStringLiteral("-on.qss");
-            else if (!QFile::exists(name))
-                name = QStringLiteral("overlay:%1").arg(name);
-            if(QFile::exists(name)) {
-                QFile f(name);
-                if(f.open(QFile::ReadOnly)) {
-                    QTextStream str(&f);
-                    onStyleSheet = str.readAll();
-                }
-            }
-            if(onStyleSheet.isEmpty()) {
-                static QString _default = QStringLiteral(
-                    "* { background-color: transparent;"
-                        "border: 1px solid palette(dark);"
-                        "alternate-background-color: rgba(255,255,255,100)}"
-                    "QTreeView, QListView { background: rgba(255,255,255,50) }"
-                    "QToolTip { background-color: palette(base) }"
-                    // Both background and border are necessary to make this work.
-                    // And this spare us to have to call QTabWidget::setDocumentMode(true).
-                    "QTabWidget:pane { background-color: rgba(255,255,255,50); border: transparent }"
-                );
-                onStyleSheet = _default;
-            }
-        }
-
-        name = QString::fromUtf8(handle->GetASCII("OverlayOffStyleSheet").c_str());
-        if(name.isEmpty() && !prefix.isEmpty())
-            name = prefix + QStringLiteral("-off.qss");
-        else if (!QFile::exists(name))
-            name = QStringLiteral("overlay:%1").arg(name);
-        offStyleSheet.clear();
-        if(QFile::exists(name)) {
-            QFile f(name);
-            if(f.open(QFile::ReadOnly)) {
-                QTextStream str(&f);
-                offStyleSheet = str.readAll();
-            }
-        }
-        if(offStyleSheet.isEmpty()) {
-            static QString _default = QStringLiteral(
-                "Gui--OverlayToolButton { background: transparent; padding: 0px; border: none }"
-                "Gui--OverlayToolButton:hover { background: palette(light); border: 1px solid palette(dark) }"
-                "Gui--OverlayToolButton:focus { background: palette(dark); border: 1px solid palette(dark) }"
-                "Gui--OverlayToolButton:pressed { background: palette(dark); border: 1px inset palette(dark) }"
-                "Gui--OverlayToolButton:checked { background: palette(dark); border: 1px inset palette(dark) }"
-                "Gui--OverlayToolButton:checked:hover { background: palette(light); border: 1px inset palette(dark) }"
-            );
-            offStyleSheet = _default;
-        }
-
         name = QString::fromUtf8(handle->GetASCII("OverlayActiveStyleSheet").c_str());
         if(name.isEmpty() && !prefix.isEmpty())
             name = prefix + QStringLiteral(".qss");
@@ -1248,18 +1191,9 @@ public:
             );
             activeStyleSheet = _default;
         }
-
-        if(onStyleSheet.isEmpty()) {
-            onStyleSheet = activeStyleSheet;
-            hideTab = false;
-        } else {
-            hideTab = (onStyleSheet.indexOf(QStringLiteral("QTabBar")) < 0);
-        }
     }
 
     ParameterGrp::handle handle;
-    QString onStyleSheet;
-    QString offStyleSheet;
     QString activeStyleSheet;
     bool hideTab = false;
 };
@@ -1271,12 +1205,7 @@ void OverlayTabWidget::_setOverlayMode(QWidget *widget, int enable)
 
 #if QT_VERSION>QT_VERSION_CHECK(5,12,2) && QT_VERSION < QT_VERSION_CHECK(5,12,6)
     // Work around Qt bug https://bugreports.qt.io/browse/QTBUG-77006
-    if(enable < 0)
-        widget->setStyleSheet(OverlayStyleSheet::instance()->activeStyleSheet);
-    else if(enable)
-        widget->setStyleSheet(OverlayStyleSheet::instance()->onStyleSheet);
-    else
-        widget->setStyleSheet(OverlayStyleSheet::instance()->offStyleSheet);
+    widget->setStyleSheet(OverlayStyleSheet::instance()->activeStyleSheet);
 #endif
 
     if (qobject_cast<QScrollBar*>(widget)) {
@@ -1494,23 +1423,15 @@ void OverlayTabWidget::setOverlayMode(bool enable)
     }
 
     QString stylesheet;
-    int mode;
-
+    stylesheet = OverlayStyleSheet::instance()->activeStyleSheet;
     currentTransparent = isTransparent();
 
+    int mode;
     if(!enable && isTransparent()) {
-        stylesheet = OverlayStyleSheet::instance()->activeStyleSheet;
         mode = -1;
     } else if (enable && !isTransparent() && (autoMode == EditShow || autoMode == AutoHide)) {
-        // stylesheet = OverlayStyleSheet::instance()->offStyleSheet;
-        stylesheet = OverlayStyleSheet::instance()->activeStyleSheet;
         mode = 0;
     } else {
-        if(enable)
-            stylesheet = OverlayStyleSheet::instance()->onStyleSheet;
-        else
-            // stylesheet = OverlayStyleSheet::instance()->offStyleSheet;
-            stylesheet = OverlayStyleSheet::instance()->activeStyleSheet;
         mode = enable?1:0;
     }
 

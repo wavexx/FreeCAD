@@ -211,7 +211,6 @@ Params = [
         "WARNING! This is an experimental option. Please use with caution."),
     ParamInt('CornerNaviCube', 1, on_change=True),
     ParamBool('DockOverlayAutoView', True, on_change=True, title="Auto hide in non 3D view"),
-    ParamBool('DockOverlayExtraState', False, on_change=True),
     ParamInt('DockOverlayDelay', 200, "Overlay dock (re),layout delay.", title="Layout delay (ms)", proxy=ParamSpinBox(0, 5000, 100)),
     ParamInt('DockOverlayRevealDelay', 2000),
     ParamInt('DockOverlaySplitterHandleTimeout', 0, title="Splitter auto hide delay (ms)", proxy=ParamSpinBox(0, 99999, 100),

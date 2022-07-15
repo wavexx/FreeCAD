@@ -4502,20 +4502,6 @@ VIEW_CMD_DEF(DockOverlayAutoView, DockOverlayAutoView)
 }
 
 //===========================================================================
-// Std_DockOverlayExtraState
-//===========================================================================
-
-VIEW_CMD_DEF(DockOverlayExtraState, DockOverlayExtraState)
-{
-    sGroup        = "Standard-View";
-    sMenuText     = QT_TR_NOOP("More hiding in overlay");
-    sToolTipText  = QT_TR_NOOP("Hide more widgets when in overlay mode");
-    sWhatsThis    = "Std_DockOverlayExtraState";
-    sStatusTip    = sToolTipText;
-    eType         = 0;
-}
-
-//===========================================================================
 // Std_DockOverlayActivateOnHover
 //===========================================================================
 
@@ -4630,7 +4616,6 @@ public:
         addCommand(new StdCmdDockOverlayDecrease());
         addCommand();
         addCommand(new StdCmdDockOverlayAutoView());
-        addCommand(new StdCmdDockOverlayExtraState());
         addCommand(new StdCmdDockOverlayActivateOnHover());
         addCommand(new StdCmdDockOverlayAutoMouseThrough());
         addCommand(new StdCmdDockOverlayCheckNaviCube());
