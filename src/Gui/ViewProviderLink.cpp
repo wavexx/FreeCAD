@@ -3794,7 +3794,7 @@ void ViewProviderLink::applyColors() {
 
 bool ViewProviderLink::applyColorsTo(ViewProviderDocumentObject &vp, bool prevOverride) {
     auto obj = vp.getObject();
-    if (!obj || !obj->getDocument() || obj->getDocument()->testStatus(App::Document::Restoring))
+    if (!obj || obj->isRestoring() || vp.isRestoring())
         return prevOverride;
     auto node = vp.getModeSwitch();
     if(!obj || !node)
