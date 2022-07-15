@@ -1740,11 +1740,17 @@ void SelectionSingleton::rmvSelection(const char* pDocName, const char* pObjectN
         ++ItNext;
         if(It->DocName!=temp.DocName || It->FeatName!=temp.FeatName)
             continue;
-        // if no subname is specified, remove all subobjects of the matching object
-        if(temp.SubName.size()) {
-            // otherwise, match subojects with common prefix, separated by '.'
-            if(!boost::starts_with(It->SubName,temp.SubName) ||
-               (It->SubName.length()!=temp.SubName.length() && It->SubName[temp.SubName.length()-1]!='.'))
+
+        // If no sub-element (e.g. Face, Edge) is specified, remove all
+        // sub-element selection of the matching sub-object.
+
+        if(!temp.elementName.second.empty()) {
+            if (!boost::equals(It->SubName, temp.SubName))
+                continue;
+        } else if (!boost::starts_with(It->SubName,temp.SubName))
+            continue;
+        else if (auto element = Data::ComplexGeoData::findElementName(It->SubName.c_str())) {
+            if (element - It->SubName.c_str() != (int)temp.SubName.size())
                 continue;
         }
 
