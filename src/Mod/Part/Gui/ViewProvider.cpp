@@ -142,15 +142,19 @@ bool ViewProviderPart::canReorderObject(App::DocumentObject *obj, App::DocumentO
 
 bool ViewProviderPart::canDropObjects() const
 {
-    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject()))
-        return feat->get_ShapeContentOwnerProperty() != nullptr;
+    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
+        if (feat->get_ShapeContentOwnerProperty())
+            return true;
+    }
     return inherited::canDropObjects();
 }
 
 bool ViewProviderPart::canDropObject(App::DocumentObject *obj) const
 {
-    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject()))
-        return feat->get_ShapeContentOwnerProperty() != nullptr;
+    if (auto feat = Base::freecad_dynamic_cast<Part::Feature>(getObject())) {
+        if (feat->get_ShapeContentOwnerProperty())
+            return true;
+    }
     return inherited::canDropObject(obj);
 }
 
