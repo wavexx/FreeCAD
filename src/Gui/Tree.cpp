@@ -54,6 +54,7 @@
 #include <App/DocumentObserver.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectGroup.h>
+#include <App/DocumentParams.h>
 #include <App/AutoTransaction.h>
 #include <App/GeoFeatureGroupExtension.h>
 #include <App/Link.h>
@@ -675,6 +676,8 @@ public:
     QTreeWidgetItem *tooltipItem = nullptr;
     DocumentObjectItem *firstSyncItem = nullptr;
     DocumentObjectItem *nextEditingItem = nullptr;
+
+    QAction *reloadAllDocAction = nullptr;
 };
 
 //--------------------------------------------------------------------------
@@ -2550,6 +2553,14 @@ TreeWidget::TreeWidget(const char *name, QWidget* parent)
     connect(this->reloadDocAction, SIGNAL(triggered()),
             this, SLOT(onReloadDoc()));
 
+    pimpl->reloadAllDocAction = new QAction(this);
+    connect(pimpl->reloadAllDocAction, &QAction::triggered, this, [this]() {
+        bool save = App::DocumentParams::getNoPartialLoading();
+        App::DocumentParams::setNoPartialLoading(true);
+        onReloadDoc();
+        App::DocumentParams::setNoPartialLoading(save);
+    });
+
     this->skipRecomputeAction = new QAction(this);
     this->skipRecomputeAction->setCheckable(true);
     connect(this->skipRecomputeAction, SIGNAL(toggled(bool)),
@@ -2991,12 +3002,16 @@ void TreeWidget::_setupDocumentMenu(DocumentItem *docitem, QMenu &menu)
     menu.addAction(this->searchObjectsAction);
     menu.addAction(this->closeDocAction);
     Application::Instance->commandManager().addTo("Std_CloseLinkedView", &menu);
-    if(doc->testStatus(App::Document::PartialDoc))
+    if(doc->testStatus(App::Document::PartialDoc)) {
         menu.addAction(this->reloadDocAction);
-    else {
-        for(auto d : doc->getDependentDocuments()) {
+        if (!App::DocumentParams::getNoPartialLoading())
+            menu.addAction(pimpl->reloadAllDocAction);
+    } else {
+        for(auto d : doc->getDependentDocuments(false)) {
             if(d->testStatus(App::Document::PartialDoc)) {
                 menu.addAction(this->reloadDocAction);
+                if (!App::DocumentParams::getNoPartialLoading())
+                    menu.addAction(pimpl->reloadAllDocAction);
                 break;
             }
         }
@@ -6040,38 +6055,41 @@ void TreeWidget::setupText()
     this->rootItem->setText(0, tr("Application"));
 
     this->showHiddenAction->setText(tr("Show hidden items"));
-    this->showHiddenAction->setStatusTip(tr("Show hidden tree view items"));
+    this->showHiddenAction->setToolTip(tr("Show hidden tree view items"));
 
     this->showTempDocAction->setText(tr("Show temporary document"));
-    this->showTempDocAction->setStatusTip(tr("Show hidden temporary document items"));
+    this->showTempDocAction->setToolTip(tr("Show hidden temporary document items"));
 
     this->hideInTreeAction->setText(tr("Hide item"));
-    this->hideInTreeAction->setStatusTip(tr("Hide the item in tree"));
+    this->hideInTreeAction->setToolTip(tr("Hide the item in tree"));
 
     this->relabelObjectAction->setText(tr("Rename"));
-    this->relabelObjectAction->setStatusTip(tr("Rename object"));
+    this->relabelObjectAction->setToolTip(tr("Rename object"));
 
     this->finishEditingAction->setText(tr("Finish editing"));
-    this->finishEditingAction->setStatusTip(tr("Finish editing object"));
+    this->finishEditingAction->setToolTip(tr("Finish editing object"));
     
     this->closeDocAction->setText(tr("Close document"));
-    this->closeDocAction->setStatusTip(tr("Close the document"));
+    this->closeDocAction->setToolTip(tr("Close the document"));
 
     this->reloadDocAction->setText(tr("Reload document"));
-    this->reloadDocAction->setStatusTip(tr("Reload a partially loaded document"));
+    this->reloadDocAction->setToolTip(tr("Reload a partially loaded document"));
+
+    pimpl->reloadAllDocAction->setText(tr("Reload all documents"));
+    pimpl->reloadAllDocAction->setToolTip(tr("Reload all linked documents recursively"));
 
     this->skipRecomputeAction->setText(tr("Skip recomputes"));
-    this->skipRecomputeAction->setStatusTip(tr("Enable or disable recomputations of document"));
+    this->skipRecomputeAction->setToolTip(tr("Enable or disable recomputations of document"));
 
     this->allowPartialRecomputeAction->setText(tr("Allow partial recomputes"));
-    this->allowPartialRecomputeAction->setStatusTip(
+    this->allowPartialRecomputeAction->setToolTip(
             tr("Enable or disable recomputating editing object when 'skip recomputation' is enabled"));
 
     this->markRecomputeAction->setText(tr("Mark to recompute"));
-    this->markRecomputeAction->setStatusTip(tr("Mark this object to be recomputed"));
+    this->markRecomputeAction->setToolTip(tr("Mark this object to be recomputed"));
 
     this->recomputeObjectAction->setText(tr("Recompute object"));
-    this->recomputeObjectAction->setStatusTip(tr("Recompute the selected object"));
+    this->recomputeObjectAction->setToolTip(tr("Recompute the selected object"));
 }
 
 void TreeWidget::onShowHidden()
