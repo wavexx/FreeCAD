@@ -2006,6 +2006,7 @@ bool Cell::setEditMode(EditMode mode, bool silent) {
     }
     editMode = mode;
     applyAutoAlias();
+    setDirty();
     signaler.tryInvoke();
     return true;
 }
