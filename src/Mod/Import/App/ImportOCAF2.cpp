@@ -58,6 +58,7 @@
 #include <App/Application.h>
 #include <App/Document.h>
 #include <App/DocumentObjectPy.h>
+#include <App/DocumentObserver.h>
 #include <App/Part.h>
 #include <App/Link.h>
 #include <App/GroupExtension.h>
@@ -444,6 +445,9 @@ App::Document *ImportOCAF2::getDocument(App::Document *doc, TDF_Label label) {
         return doc;
 
     auto newDoc = App::GetApplication().newDocument(name.c_str(),name.c_str(),false);
+    myNewDocuments.push_back(newDoc);
+    newDoc->setUndoMode(0);
+
     std::ostringstream ss;
     Base::FileInfo fi(doc->FileName.getValue());
     std::string path = fi.dirPath();
@@ -586,6 +590,8 @@ App::DocumentObject* ImportOCAF2::loadShapes()
     myShapes.clear();
     myNames.clear();
     myCollapsedObjects.clear();
+    myNewDocuments.clear();
+    myDocumentStack.clear();
 
     std::vector<App::DocumentObject*> objs;
     aShapeTool->GetFreeShapes (labels);
@@ -638,6 +644,8 @@ App::DocumentObject* ImportOCAF2::loadShapes()
         ret->recomputeFeature(true);
     }
     sequencer = 0;
+    for (auto doc : myNewDocuments)
+        doc->setUndoMode(1);
     return ret;
 }
 
@@ -725,33 +733,92 @@ App::DocumentObject *ImportOCAF2::loadShape(App::Document *doc,
     if(baseOnly)
         return it->second.obj;
 
+    if (doc != it->second.obj->getDocument()) {
+        // Check if we need to move the object to this document to avoid
+        // dependency loop
+        auto &info = it->second;
+        auto objDoc = info.obj->getDocument();
+        for (auto &v : myDocumentStack) {
+            if (v.doc != objDoc)
+                continue;
+            // v.children is the pending children objects in upper hierarchy
+            // that is yet to be grouped under a new group object in that
+            // hierarchy. It is possible that the lower hierarchy here refers to
+            // one of the children in upper hierarchy. To avoid dependency loop,
+            // we need to move that child object to this hierarchy, and convert
+            // the higher hierarchy child into an App::Link.
+            auto res = doc->copyObject({info.obj}, true);
+            if (!res.empty()) {
+                auto copyObj = res[0];
+                auto it = std::find(v.children.begin(), v.children.end(), info.obj);
+                if (it != v.children.end()) {
+                    auto link = static_cast<App::Link*>(info.obj->getDocument()->addObject("App::Link","Link"));
+                    link->setLink(-1,copyObj);
+                    if (info.propPlacement)
+                        link->Placement.setValue(info.propPlacement->getValue());
+                    *it = link;
+                }
+                std::set<App::DocumentObject*> objSet;
+                std::vector<App::Property*> props;
+                std::map<App::DocumentObject*, std::vector<App::DocumentObjectT>> newLinks;
+                for (auto inObj : info.obj->getInList()) {
+                    if (inObj->getDocument()==doc || !objSet.insert(inObj).second)
+                        continue;
+                    props.clear();
+                    inObj->getPropertyList(props);
+                    std::vector<App::DocumentObjectT> propsFound;
+                    for (auto prop : props) {
+                        if (prop->getContainer() != inObj)
+                            continue;
+                        if (auto propLink = Base::freecad_dynamic_cast<App::PropertyLinkBase>(prop)) {
+                            for (auto link : propLink->linkedObjects()) {
+                                if (link == info.obj)
+                                    propsFound.emplace_back(prop);
+                            }
+                        }
+                    }
+                    if (propsFound.size()) {
+                        auto link = static_cast<App::Link*>(doc->addObject("App::Link","Link"));
+                        link->setLink(-1,copyObj);
+                        if (info.propPlacement)
+                            link->Placement.setValue(info.propPlacement->getValue());
+                        newLinks[link] = std::move(propsFound);
+                    }
+                }
+                for (const auto &v : newLinks) {
+                    for (const auto &propT : v.second) {
+                        if (auto propLink = Base::freecad_dynamic_cast<App::PropertyLinkBase>(propT.getProperty())) {
+                            std::unique_ptr<App::Property> copy(
+                                    propLink->CopyOnLinkReplace(propT.getObject(), info.obj, v.first));
+                            if (copy)
+                                propLink->Paste(*copy);
+                        }
+                    }
+                }
+                info.obj->getDocument()->removeObject(info.obj->getNameInDocument());
+                info.obj = copyObj;
+                info.propPlacement = Base::freecad_dynamic_cast<App::PropertyPlacement>(
+                        copyObj->getPropertyByName("Placement"));
+            }
+        }
+    }
+
     auto info = it->second;
     getColor(shape,info,true);
 
     if(info.free && doc==info.obj->getDocument()) {
         it->second.free = false;
-
-        // It is probably not a good idea to create compound solely because of
-        // name difference
-        //
-        // auto name = getLabelName(label);
-        // if(info.faceColor!=it->second.faceColor ||
-        //    info.edgeColor!=it->second.edgeColor ||
-        //    (name.size() && info.baseName.size() && name!=info.baseName))
-        if (info.faceColor!=it->second.faceColor ||
-            info.edgeColor!=it->second.edgeColor)
-        {
-            auto compound = static_cast<Part::Compound2*>(doc->addObject("Part::Compound2","Compound"));
-            compound->Links.setValue(info.obj);
-            // compound->Visibility.setValue(false);
-            info.propPlacement = &compound->Placement;
-            if(info.faceColor!=it->second.faceColor)
-                applyFaceColors(compound,{info.faceColor});
-            if(info.edgeColor!=it->second.edgeColor)
-                applyEdgeColors(compound,{info.edgeColor});
-            info.obj = compound;
-            setObjectName(info, label, true);
+        if(info.faceColor!=it->second.faceColor) {
+            info.faceColor = it->second.faceColor;
+            if (auto feature = Base::freecad_dynamic_cast<Part::Feature>(info.obj))
+                applyFaceColors(feature,{info.faceColor});
         }
+        if(info.edgeColor!=it->second.edgeColor) {
+            info.edgeColor = it->second.edgeColor;
+            if (auto feature = Base::freecad_dynamic_cast<Part::Feature>(info.obj))
+                applyEdgeColors(feature,{info.edgeColor});
+        }
+        setObjectName(info, label, true);
         setPlacement(info.propPlacement,shape);
         myNames.emplace(label,info.obj->getNameInDocument());
         return info.obj;
@@ -792,6 +859,12 @@ bool ImportOCAF2::createAssembly(App::Document *_doc,
     if(newDoc)
         doc = getDocument(_doc,label);
 
+    bool pushed = false;
+    if (myDocumentStack.empty() || myDocumentStack.back().doc != doc) {
+        pushed = true;
+        myDocumentStack.emplace_back(doc, children);
+    }
+
     for(TopoDS_Iterator it(shape,0,0);it.More();it.Next()) {
         TopoDS_Shape childShape = it.Value();
         if(childShape.IsNull())
@@ -831,8 +904,16 @@ bool ImportOCAF2::createAssembly(App::Document *_doc,
     assert(visibilities.size() == children.size());
 
     if(children.empty()) {
-        if(doc!=_doc)
+        if(doc!=_doc) {
+            for (;;) {
+                auto it = std::find(myNewDocuments.begin(), myNewDocuments.end(), doc);
+                if (it == myNewDocuments.end())
+                    break;
+                myNewDocuments.erase(it);
+            }
             App::GetApplication().closeDocument(doc->getName());
+        } else if (pushed)
+            myNewDocuments.pop_back();
         return false;
     }
 
@@ -883,14 +964,13 @@ bool ImportOCAF2::createAssembly(App::Document *_doc,
         }
     }
 
-    if(children.empty())
-        return false;
-
-    if(!createGroup(doc,info,shape,children,visibilities,shuoColors.empty()))
-        return false;
-    if(shuoColors.size())
+    bool res = createGroup(doc,info,shape,children,visibilities,shuoColors.empty());
+    if (res && shuoColors.size())
         applyElementColors(info.obj,shuoColors);
-    return true;
+
+    if (pushed)
+        myDocumentStack.pop_back();
+    return res;
 }
 
 // ----------------------------------------------------------------------------

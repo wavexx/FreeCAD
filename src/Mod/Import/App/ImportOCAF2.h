@@ -162,6 +162,16 @@ private:
     std::unordered_map<TDF_Label, std::string, LabelHasher> myNames;
     std::unordered_map<App::DocumentObject*, App::PropertyPlacement*> myCollapsedObjects;
 
+    struct DocumentInfo {
+        App::Document *doc;
+        std::vector<App::DocumentObject*> &children;
+        DocumentInfo(App::Document *d, std::vector<App::DocumentObject*> &objs)
+            :doc(d), children(objs)
+        {}
+    };
+    std::vector<DocumentInfo> myDocumentStack;
+    std::vector<App::Document*> myNewDocuments;
+
     App::Color defaultFaceColor;
     App::Color defaultEdgeColor;
 
