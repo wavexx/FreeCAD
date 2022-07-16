@@ -1402,6 +1402,27 @@ void OverlayTabWidget::updateSplitterHandles()
     }
 }
 
+bool OverlayTabWidget::onEscape()
+{
+    if (getState() == OverlayTabWidget::State_Hint) {
+        setState(OverlayTabWidget::State_HintHidden);
+        return true;
+    }
+    if (!isVisible())
+        return false;
+    if (titleBar->isVisible() && titleBar->underMouse()) {
+        titleBar->hide();
+        return true;
+    }
+    for (int i=0, c=splitter->count(); i<c; ++i) {
+        auto handle = qobject_cast<OverlaySplitterHandle*>(splitter->handle(i));
+        if (handle->isVisible() && handle->underMouse()) {
+            handle->showTitle(false);
+            return true;
+        }
+    }
+}
+
 void OverlayTabWidget::setOverlayMode(bool enable)
 {
     overlayed = enable;
@@ -4175,10 +4196,8 @@ bool OverlayManager::eventFilter(QObject *o, QEvent *ev)
                 accepted = true;
             } else {
                 for (OverlayTabWidget *tabWidget : _Overlays) {
-                    if (tabWidget->getState() == OverlayTabWidget::State_Hint) {
-                        tabWidget->setState(OverlayTabWidget::State_HintHidden);
+                    if (tabWidget->onEscape())
                         accepted = true;
-                    }
                 }
             }
         }

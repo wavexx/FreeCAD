@@ -161,6 +161,7 @@ public:
     void addWidget(QDockWidget *widget, const QString &title);
     void removeWidget(QDockWidget *widget, QDockWidget *last=nullptr);
     void setCurrent(QDockWidget *widget);
+    bool onEscape();
 
     void setTransparent(bool enable);
     bool isTransparent() const;
