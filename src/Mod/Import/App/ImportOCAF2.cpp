@@ -186,7 +186,6 @@ ImportOCAF2::ImportOCAF2(Handle(TDocStd_Document) h, App::Document* d, const std
     importHidden = hGrp->GetBool("ImportHiddenObject",true);
     reduceObjects = hGrp->GetBool("ReduceObjects",true);
     showProgress = hGrp->GetBool("ShowProgress",true);
-    expandCompound = hGrp->GetBool("ExpandCompoundShape",false);
 
     if(d->isSaved()) {
         Base::FileInfo fi(d->FileName.getValue());
@@ -327,108 +326,6 @@ static void mergeColor(bool &hasColors, App::Color &color, std::vector<App::Colo
     colors.clear();
 }
 
-Part::Feature *ImportOCAF2::expandShape(App::Document *doc,
-        TDF_Label label, const TopoDS_Shape &shape, ColorInfo &colors) 
-{
-    if(shape.IsNull() || !TopExp_Explorer(shape,TopAbs_VERTEX).More())
-        return 0;
-
-    // When saved as compound, STEP file does not support instance sharing,
-    // meaning that even if the source compound may contain child shapes of
-    // shared instances, or multiple hierarchies, those information are lost
-    // when saved to STEP, everything become flat and duplicated. So the code
-    // below is not necessary.
-#if 0
-    auto baseShape = shape.Located(TopLoc_Location());
-    auto it = myShapes.find(baseShape);
-    if(it!=myShapes.end()) {
-        auto link = static_cast<App::Link*>(doc->addObject("App::Link","Link"));
-        link->Visibility.setValue(false);
-        link->setLink(-1,it->second.obj);
-        setPlacement(&link->Placement,shape);
-        return link;
-    }
-#endif
-    std::vector<App::DocumentObject*> objs;
-
-    if(shape.ShapeType() == TopAbs_COMPOUND) {
-        for(TopoDS_Iterator it(shape);it.More();it.Next()) {
-            TDF_Label childLabel;
-            // if(!label.IsNull())
-            //     aShapeTool->FindSubShape(label,it.Value(),childLabel);
-            auto child = expandShape(doc,childLabel,it.Value(),colors);
-            if(child) {
-                objs.push_back(child);
-                Info &info = myShapes[it.Value().Located(TopLoc_Location())];
-                info.free = false;
-                info.obj = child;
-
-                std::vector<App::Color> faceColors;
-                Part::TopoShape s(it.Value());
-
-                if(colors.faceColors.size()) {
-                    // child Shape is not ready yet, since we haven't recompute
-                    // the compound feature.
-                    //
-                    // const auto &s = child->Shape.getShape();
-                    bool hasColors = false;
-                    faceColors.assign(s.countSubShapes(TopAbs_FACE),colors.faceColor);
-                    int i=0;
-                    for(TopExp_Explorer exp(it.Value(),TopAbs_FACE);exp.More();exp.Next()) {
-                        App::Color &color = faceColors[i++];
-                        int idx = colors.tshape.findShape(exp.Current())-1;
-                        if(idx>=0 && idx<(int)colors.faceColors.size()) {
-                            color = colors.faceColors[idx];
-                            hasColors = true;
-                        }
-                    }
-                    mergeColor(hasColors,colors.faceColor,colors.faceColors);
-                }
-
-                std::vector<App::Color> edgeColors;
-                if(colors.edgeColors.size()) {
-                    // const auto &s = child->Shape.getShape();
-                    bool hasColors = false;
-                    edgeColors.assign(s.countSubShapes(TopAbs_EDGE),colors.edgeColor);
-                    int i=0;
-                    for(TopExp_Explorer exp(it.Value(),TopAbs_EDGE);exp.More();exp.Next()) {
-                        App::Color &color = edgeColors[i++];
-                        int idx = colors.tshape.findShape(exp.Current())-1;
-                        if(idx>=0 && idx<(int)colors.edgeColors.size()) {
-                            color = colors.edgeColors[idx];
-                            hasColors = true;
-                        }
-                    }
-                    mergeColor(hasColors,colors.edgeColor,colors.edgeColors);
-                }
-
-                info.faceColor = colors.faceColor;
-                info.edgeColor = colors.edgeColor;
-                info.hasFaceColor = colors.hasFaceColor;
-                info.hasEdgeColor = colors.hasEdgeColor;
-
-                applyFaceColors(child,{info.faceColor});
-                applyEdgeColors(child,{info.edgeColor});
-                if(faceColors.size())
-                    applyFaceColors(child,faceColors);
-                if(edgeColors.size())
-                    applyEdgeColors(child,edgeColors);
-            }
-        }
-        if(objs.empty())
-            return 0;
-        auto compound = static_cast<Part::Compound2*>(doc->addObject("Part::Compound2","Compound"));
-        compound->Links.setValues(objs);
-        // compound->Visibility.setValue(false);
-        setPlacement(&compound->Placement,shape);
-        return compound;
-    }
-    Info info;
-    info.obj = 0;
-    createObject(doc,label,shape,info,false);
-    return static_cast<Part::Feature*>(info.obj);
-}
-
 bool ImportOCAF2::createObject(App::Document *doc, TDF_Label label, 
         const TopoDS_Shape &shape, Info &info, bool newDoc)
 {
@@ -522,26 +419,16 @@ bool ImportOCAF2::createObject(App::Document *doc, TDF_Label label,
     colors.hasFaceColor = info.hasFaceColor;
     colors.hasEdgeColor = info.hasEdgeColor;
 
-    if(expandCompound && !merge &&
-       (tshape.countSubShapes(TopAbs_SOLID)>1 || 
-        (!tshape.countSubShapes(TopAbs_SOLID) && tshape.countSubShapes(TopAbs_SHELL)>1)))
-    {
-        feature = expandShape(doc,label,shape,colors);
-        if(!feature)
-            return false;
-        applyFaceColors(feature,{});
-    } else {
-        feature = static_cast<Part::Feature*>(doc->addObject("Part::Feature",tshape.shapeName().c_str()));
-        feature->Shape.setValue(shape);
-        // feature->Visibility.setValue(false);
+    feature = static_cast<Part::Feature*>(doc->addObject("Part::Feature",tshape.shapeName().c_str()));
+    feature->Shape.setValue(shape);
+    // feature->Visibility.setValue(false);
 
-        applyFaceColors(feature,{info.faceColor});
-        applyEdgeColors(feature,{info.edgeColor});
-        if(colors.faceColors.size())
-            applyFaceColors(feature,colors.faceColors);
-        if(colors.edgeColors.size())
-            applyEdgeColors(feature,colors.edgeColors);
-    }
+    applyFaceColors(feature,{info.faceColor});
+    applyEdgeColors(feature,{info.edgeColor});
+    if(colors.faceColors.size())
+        applyFaceColors(feature,colors.faceColors);
+    if(colors.edgeColors.size())
+        applyEdgeColors(feature,colors.edgeColors);
 
     info.propPlacement = &feature->Placement;
     info.obj = feature;

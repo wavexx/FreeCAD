@@ -80,7 +80,6 @@ public:
     void setImportHiddenObject(bool enable) {importHidden=enable;}
     void setReduceObjects(bool enable) {reduceObjects=enable;}
     void setShowProgress(bool enable) {showProgress=enable;}
-    void setExpandCompound(bool enable) {expandCompound=enable;}
 
     enum ImportMode {
         SingleDoc = 0,
@@ -121,8 +120,6 @@ private:
     void getSHUOColors(TDF_Label label, std::map<std::string,App::Color> &colors, bool appendFirst);
     void setObjectName(Info &info, TDF_Label label, bool checkExistingName=false);
     std::string getLabelName(TDF_Label label);
-    Part::Feature *expandShape(App::Document *doc, TDF_Label label, 
-            const TopoDS_Shape &shape, ColorInfo &colorInfo);
 
     virtual void applyEdgeColors(Part::Feature*, const std::vector<App::Color>&) {}
     virtual void applyFaceColors(Part::Feature*, const std::vector<App::Color>&) {}
@@ -157,7 +154,6 @@ private:
     bool importHidden;
     bool reduceObjects;
     bool showProgress;
-    bool expandCompound;
 
     int mode;
     std::string filePath;
