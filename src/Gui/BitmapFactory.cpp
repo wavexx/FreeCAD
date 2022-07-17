@@ -82,6 +82,21 @@ static const char *not_found[]={
 "........................",
 "........................"};
 
+static inline void adjustIconName(std::string &_name, const char *&name)
+{
+    // Remove redundant ending '.svg' if this is not an absolute path for better
+    // icon key search in DlgIconBrowser
+    if (boost::iends_with(name, ".svg")
+            && !strchr(name, '/')
+            && !strchr(name, '\\')
+            && !strchr(name, ':'))
+    {
+        _name = name;
+        _name.resize(_name.size()-4);
+        name = _name.c_str();
+    }
+}
+
 namespace Gui {
 
 static std::vector<const char *> _BitmapContext;
@@ -123,6 +138,7 @@ public:
                 context.insert(ctx);
         }
     };
+
     // NOTE! xpmCache must not be a std::unordered_map, because pathMap stores a
     // pointer to XpmInfo inside xpmCache. unordered_map may reallocate when
     // increase buket size.
@@ -237,6 +253,9 @@ void BitmapFactoryInst::addPixmapToCache(const char* name,
                                          bool styled,
                                          const char *ctx)
 {
+    std::string _name;
+    adjustIconName(_name, name);
+
     auto &info = d->xpmCache[name];
     info.checkContext(ctx);
     if (styled) {
@@ -257,6 +276,9 @@ void BitmapFactoryInst::addPixmapToCache(const char* name,
 
 const char *BitmapFactoryInst::getIconPath(const char *name) const
 {
+    std::string _name;
+    adjustIconName(_name, name);
+
     auto it = d->xpmCache.find(name);
     if (it == d->xpmCache.end())
         return "";
@@ -269,6 +291,9 @@ bool BitmapFactoryInst::findPixmapInCache(const char* name,
                                           QPixmap *original,
                                           std::string *path) const
 {
+    std::string _name;
+    adjustIconName(_name, name);
+
     const BitmapFactoryInstP::XpmInfo *entry = nullptr;
     auto it = d->xpmCache.find(name);
     if (it != d->xpmCache.end())
@@ -313,6 +338,9 @@ void BitmapFactoryInst::onStyleChange()
 
 void BitmapFactoryInst::addContext(const char *name, const char *ctx)
 {
+    std::string _name;
+    adjustIconName(_name, name);
+
     auto it = d->xpmCache.find(name);
     if (ctx && it != d->xpmCache.end())
         it->second.context.insert(ctx);
@@ -320,6 +348,9 @@ void BitmapFactoryInst::addContext(const char *name, const char *ctx)
 
 const std::set<std::string> &BitmapFactoryInst::getContext(const char *name) const
 {
+    std::string _name;
+    adjustIconName(_name, name);
+
     auto it = d->xpmCache.find(name);
     if (it != d->xpmCache.end())
         return it->second.context;
@@ -330,10 +361,14 @@ const std::set<std::string> &BitmapFactoryInst::getContext(const char *name) con
 
 QIcon BitmapFactoryInst::iconFromTheme(const char* name, bool silent, const QIcon& fallback)
 {
-    if (!name)
+    if (!name || *name == '\0')
         return QIcon();
 
     QString iconName = QString::fromUtf8(name);
+
+    std::string _name;
+    adjustIconName(_name, name);
+
     auto it = d->xpmCache.find(name);
     if (it != d->xpmCache.end()) {
         it->second.checkContext();
@@ -382,18 +417,9 @@ QPixmap BitmapFactoryInst::pixmap(const char* name,
     if (!name || *name == '\0')
         return QPixmap();
 
-    // Remove redundant ending '.svg' if this is not an absolute path for better
-    // icon key search in DlgIconBrowser
     std::string _name;
-    if (boost::iends_with(name, ".svg")
-            && !strchr(name, '/')
-            && !strchr(name, '\\')
-            && !strchr(name, ':'))
-    {
-        _name = name;
-        _name.resize(_name.size()-4);
-        name = _name.c_str();
-    }
+    adjustIconName(_name, name);
+
     QPixmap icon;
     if (findPixmapInCache(name, icon, original, iconpath))
         return icon;
