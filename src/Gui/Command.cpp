@@ -292,7 +292,7 @@ void Command::addToGroup(ActionGroup* group, bool checkable)
 void Command::addToGroup(ActionGroup* group)
 {
     initAction();
-    group->addAction(_pcAction->findChild<QAction*>());
+    group->addAction(_pcAction->action());
 }
 
 Application *Command::getGuiApplication(void)
@@ -1069,9 +1069,9 @@ Action * Command::createAction(void)
 {
     Action *pcAction;
     pcAction = new Action(this,getMainWindow());
+    if (auto pixmap = getPixmap())
+        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(pixmap));
     applyCommandData(this->className(), pcAction);
-    if (sPixmap)
-        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(sPixmap));
     return pcAction;
 }
 
@@ -1116,9 +1116,9 @@ void Command::setup(Action *pcAction) {
         }
         return;
     }
+    if (auto pixmap = getPixmap())
+        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(pixmap));
     applyCommandData(this->className(), pcAction);
-    if (sPixmap)
-        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(sPixmap));
 }
 
 void Command::updateAction(int mode)
@@ -1139,9 +1139,25 @@ void Command::updateAction(int mode)
 // GroupCommand
 //===========================================================================
 
-GroupCommand::GroupCommand(const char *name)
+GroupCommand::GroupCommand(const char *name,
+                           int defaultAction,
+                           const char *paramPath,
+                           const char *paramEntry)
     :Command(name)
-{}
+{
+    _defaultAction = defaultAction;
+    if (paramPath && *paramPath != '\0' && paramEntry && *paramEntry != '\0') {
+        _hEntry = paramEntry;
+        _hParam = App::GetApplication().GetParameterGroupByPath(paramPath);
+        _hParam->Attach(this);
+    }
+}
+
+GroupCommand::~GroupCommand()
+{
+    if (_hParam)
+        _hParam->Detach(this);
+}
 
 int GroupCommand::addCommand(Command *cmd, bool reg) {
     cmds.emplace_back(cmd,cmds.size());
@@ -1154,6 +1170,8 @@ Command *GroupCommand::addCommand(const char *name) {
     auto cmd = Application::Instance->commandManager().getCommandByName(name);
     if(cmd)
         addCommand(cmd,false);
+    else
+        FC_ERR("Command not found " << name);
     return cmd;
 }
 
@@ -1182,7 +1200,9 @@ Action * GroupCommand::createAction(void) {
     pcAction->setCheckable(true);
     pcAction->setWhatsThis(QString::fromUtf8(sWhatsThis));
 
-    int idx = -1;
+    int idx = _defaultAction;
+    if (_hParam)
+        _hParam->GetInt(_hEntry.c_str(), _defaultAction);
 
     int i=-1;
     for(auto &v : cmds) {
@@ -1196,11 +1216,30 @@ Action * GroupCommand::createAction(void) {
         }
     }
 
-    pcAction->setProperty("defaultAction", QVariant(idx));
-    setup(pcAction);
-    if(idx >= 0)
+    if (idx >= 0 && idx < (int)cmds.size()) {
+        pcAction->setProperty("defaultAction", idx);
         pcAction->setChecked(cmds[idx].first->getAction()->isChecked(),true);
+    }
+    setup(pcAction);
     return pcAction;
+}
+
+void GroupCommand::OnChange(Base::Subject<const char*> &, const char* sReason)
+{
+    if (_hParam && _pcAction && boost::equals(sReason, _hEntry)) {
+        int idx = _hParam->GetInt(sReason, _defaultAction);
+        if (_pcAction->property("defaultAction").toInt() != idx) {
+            _pcAction->setProperty("defaultAction", idx);
+            setup(_pcAction);
+        }
+    }
+}
+
+void GroupCommand::activated(int iMsg)
+{
+    Command::activated(iMsg);
+    if (_hParam)
+        _hParam->SetInt(_hEntry.c_str(), iMsg);
 }
 
 //===========================================================================
@@ -1543,9 +1582,11 @@ Action * PythonCommand::createAction(void)
     Action *pcAction;
 
     pcAction = new Action(this, qtAction, getMainWindow());
+    if (boost::equals(getName(), "Part_JoinConnect"))
+        FC_LOG("found");
+    if (auto pixmap = getPixmap())
+        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(pixmap));
     applyCommandData(this->getName(), pcAction);
-    if (strcmp(getResource("Pixmap"),"") != 0)
-        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(getResource("Pixmap")));
 
     try {
         if (isCheckable()) {

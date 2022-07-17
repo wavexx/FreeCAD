@@ -658,10 +658,18 @@ private:
  * To use this class, simply add children command in the constructor of your
  * derived class by calling addCommand();
  */
-class GuiExport GroupCommand : public Command {
+class GuiExport GroupCommand : public Command,
+                               public ParameterGrp::ObserverType
+{
 public:
     /// Constructor
-    GroupCommand(const char *name);
+    GroupCommand(const char *name,
+                 int defaultAction=-1,
+                 const char *paramPath=nullptr,
+                 const char *paramEntry=nullptr);
+    ~GroupCommand();
+
+    void OnChange(Base::Subject<const char*> &, const char* sReason);
 
     /** Add child command
      * @param cmd: child command. Pass null pointer to add a separator.
@@ -680,9 +688,13 @@ public:
 
 protected:
     virtual Gui::Action * createAction(void);
+    virtual void activated(int iMsg);
 
 protected:
     std::vector<std::pair<Command*,size_t> > cmds;
+    ParameterGrp::handle _hParam;
+    std::string _hEntry;
+    int _defaultAction = 0;
 };
 
 /** Abstract class to help implement a checkable command
@@ -998,6 +1010,48 @@ public:\
 protected: \
     virtual void activated(int iMsg);\
 };
+
+/** The Group Command Macro
+ *  This macro makes it easier to define a new command that group other commands
+ *  The parameters are the class name.
+ */
+#define DEF_STD_CMD_GROUP(X) class X : public Gui::GroupCommand \
+{\
+public:\
+    X();\
+    virtual const char* className() const\
+    { return #X; }\
+};
+
+/** The Group Command Macro with createAction()
+ *  This macro makes it easier to define a new command that group other commands
+ *  The parameters are the class name.
+ */
+#define DEF_STD_CMD_GC(X) class X : public Gui::GroupCommand \
+{\
+    typedef Gui::GroupCommand inherited;\
+public:\
+    X();\
+    virtual const char* className() const\
+    { return #X; }\
+    virtual Gui::Action * createAction(void);\
+};
+
+/** The Group Command Macro with createAction() and activated()
+ *  This macro makes it easier to define a new command that group other commands
+ *  The parameters are the class name.
+ */
+#define DEF_STD_CMD_GAC(X) class X : public Gui::GroupCommand \
+{\
+    typedef Gui::GroupCommand inherited;\
+public:\
+    X();\
+    virtual const char* className() const\
+    { return #X; }\
+    virtual Gui::Action * createAction(void);\
+    virtual void activated(int iMsg);\
+};
+
 
 /** The Command Macro Standard + isActive()
  *  This macro makes it easier to define a new command.
