@@ -3452,7 +3452,7 @@ PropertyXLink::PropertyXLink(bool _allowPartial, PropertyLinkBase *parent)
     setAllowPartial(_allowPartial);
     setAllowExternal(true);
     setSyncSubObject(true);
-    setReturnNewElement(true);
+    // setReturnNewElement(true);
     if(parent)
         setContainer(parent->getContainer());
 }
@@ -4366,8 +4366,8 @@ TYPESYSTEM_SOURCE(App::PropertyXLinkSubList , App::PropertyLinkBase)
 PropertyXLinkSubList::PropertyXLinkSubList()
 {
     _pcScope = LinkScope::Global;
-    setReturnNewElement(true);
     setSyncSubObject(true);
+    // setReturnNewElement(true);
 }
 
 PropertyXLinkSubList::~PropertyXLinkSubList()
