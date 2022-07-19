@@ -72,5 +72,6 @@
 #define TOPOP_HALF_SPACE "HSP"
 #define TOPOP_BSPLANE_FACE "BSF"
 #define TOPOP_SPLIT "SPT"
+#define TOPOP_EVOLVE "EVO"
 
 #endif

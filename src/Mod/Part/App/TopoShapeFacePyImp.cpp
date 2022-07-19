@@ -431,6 +431,11 @@ PyObject* TopoShapeFacePy::makeOffset(PyObject *args)
     return new TopoShapePy(new TopoShape(mkOffset.Shape()));
 }
 
+PyObject* TopoShapeFacePy::makeEvolved(PyObject *args, PyObject *kwds)
+{
+    return TopoShapePy::makeEvolved(args, kwds);
+}
+
 PyObject* TopoShapeFacePy::valueAt(PyObject *args)
 {
     double u,v;

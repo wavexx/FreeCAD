@@ -647,6 +647,14 @@ public:
     TopoShape &makEPipeShell(const std::vector<TopoShape> &shapes, const Standard_Boolean make_solid,
             const Standard_Boolean isFrenet, int transition=0, const char *op=0);
 
+    TopoShape &makEEvolve(const TopoShape &spine, const TopoShape &profile, int join=0,
+            bool axeProf=true, bool solid=false, bool profOnSpine=false, double tol=0.0, const char *op=nullptr);
+    TopoShape makEEvolve(const TopoShape &profile, int join=0,
+            bool axeProf=true, bool solid=false, bool profOnSpine=false, double tol=0.0, const char *op=nullptr)
+    {
+        return TopoShape(0,Hasher).makEEvolve(*this, profile, join, axeProf, solid, profOnSpine, tol, op);
+    }
+
     TopoShape &makELoft(const std::vector<TopoShape> &shapes,
             Standard_Boolean isSolid, Standard_Boolean isRuled, Standard_Boolean isClosed=Standard_False,
             Standard_Integer maxDegree=5, const char *op=0);

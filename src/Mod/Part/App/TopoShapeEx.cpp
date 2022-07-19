@@ -169,15 +169,16 @@
 # include <BRepLProp_SLProps.hxx>
 # include <BRepGProp_Face.hxx>
 #endif
-# include <ShapeAnalysis_FreeBoundsProperties.hxx>
-# include <ShapeAnalysis_FreeBoundData.hxx>
-# include <ShapeAnalysis_FreeBounds.hxx>
-# include <BRepOffsetAPI_MakeFilling.hxx>
-# include <TopTools_DataMapIteratorOfDataMapOfShapeListOfShape.hxx>
-# include <GeomFill_FillingStyle.hxx>
-# include <GeomFill_BSplineCurves.hxx>
-# include <GeomFill_BezierCurves.hxx>
-# include <BRepFill_Generator.hxx>
+#include <ShapeAnalysis_FreeBoundsProperties.hxx>
+#include <ShapeAnalysis_FreeBoundData.hxx>
+#include <ShapeAnalysis_FreeBounds.hxx>
+#include <BRepOffsetAPI_MakeFilling.hxx>
+#include <TopTools_DataMapIteratorOfDataMapOfShapeListOfShape.hxx>
+#include <GeomFill_FillingStyle.hxx>
+#include <GeomFill_BSplineCurves.hxx>
+#include <GeomFill_BezierCurves.hxx>
+#include <BRepFill_Generator.hxx>
+#include <BRepOffsetAPI_MakeEvolved.hxx>
 
 #if OCC_VERSION_HEX >= 0x070500
 #   include <OSD_Parallel.hxx>
@@ -1522,6 +1523,64 @@ TopoShape &TopoShape::makEPipeShell( const std::vector<TopoShape> &shapes,
     if (make_solid)	mkPipeShell.MakeSolid();
 
     return makEShape(mkPipeShell,shapes,op);
+}
+
+TopoShape &TopoShape::makEEvolve(const TopoShape &spine,
+                                 const TopoShape &profile,
+                                 int join,
+                                 bool axeProf,
+                                 bool solid,
+                                 bool profOnSpine,
+                                 double tol,
+                                 const char *op)
+{
+    if (!op)
+        op = TOPOP_EVOLVE;
+    if (tol == 0.0)
+        tol = 1e-6;
+
+    GeomAbs_JoinType joinType;
+    switch (join) {
+    case GeomAbs_Tangent:
+        joinType = GeomAbs_Tangent;
+        break;
+    case GeomAbs_Intersection:
+        joinType = GeomAbs_Intersection;
+        break;
+    default:
+        joinType = GeomAbs_Arc;
+        break;
+    }
+
+    TopoDS_Shape spineShape;
+    if (spine.countSubShapes(TopAbs_FACE) > 0)
+        spineShape = spine.getSubShape(TopAbs_FACE, 1);
+    else if (spine.countSubShapes(TopAbs_WIRE) > 0)
+        spineShape = spine.getSubShape(TopAbs_WIRE, 1);
+    else if (spine.countSubShapes(TopAbs_EDGE) > 0)
+        spineShape = BRepBuilderAPI_MakeWire(TopoDS::Edge(spine.getSubShape(TopAbs_EDGE, 1))).Wire();
+    if (spineShape.IsNull() || !BRepBuilderAPI_FindPlane(spineShape).Found())
+        FC_THROWM(Base::CADKernelError, "Expect the the spine to be a planar wire or face");
+
+    TopoDS_Shape profileShape;
+    if (profile.countSubShapes(TopAbs_FACE) > 0 || profile.countSubShapes(TopAbs_WIRE) > 0)
+        profileShape = profile.getSubShape(TopAbs_WIRE, 1);
+    else if (profile.countSubShapes(TopAbs_EDGE) > 0)
+        profileShape = BRepBuilderAPI_MakeWire(TopoDS::Edge(profile.getSubShape(TopAbs_EDGE, 1))).Wire();
+    if (profileShape.IsNull() || !BRepBuilderAPI_FindPlane(profileShape).Found()) {
+        if (profileShape.IsNull()
+                || profile.countSubShapes(TopAbs_EDGE) > 1
+                || !profile.getSubTopoShape(TopAbs_EDGE, 1).isLinearEdge())
+        {
+            FC_THROWM(Base::CADKernelError, "Expect the the profile to be a planar wire or face or a line");
+        }
+    }
+    BRepOffsetAPI_MakeEvolved maker(spineShape, TopoDS::Wire(profileShape), joinType,
+            axeProf ? Standard_True : Standard_False,
+            solid ? Standard_True : Standard_False,
+            profOnSpine ? Standard_True : Standard_False,
+            tol);
+    return makEShape(maker, {spine, profile}, op);
 }
 
 TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,

@@ -69,6 +69,7 @@
 # include <ShapeFix_ShapeTolerance.hxx>
 # include <Standard_Version.hxx>
 #endif
+#include <BRepOffsetAPI_MakeEvolved.hxx>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -2136,6 +2137,39 @@ PyObject* TopoShapePy::makeShapeFromMesh(PyObject *args)
         if (PyObject_IsTrue(sewShape))
             getTopoShapePtr()->sewShape(tolerance);
         Py_Return;
+    } PY_CATCH_OCC
+}
+
+/*
+import PartEnums
+v = App.Vector
+profile = Part.makePolygon([v(0.,0.,0.), v(-60.,-60.,-100.), v(-60.,-60.,-140.)])
+spine = Part.makePolygon([v(0.,0.,0.), v(100.,0.,0.), v(100.,100.,0.), v(0.,100.,0.), v(0.,0.,0.)])
+evolve = spine.makeEvolved(Profile=profile, Join=PartEnums.JoinType.Arc)
+*/
+PyObject* TopoShapePy::makeEvolved(PyObject *args, PyObject *kwds)
+{
+    PyObject* Profile;
+    PyObject* AxeProf = Py_True;
+    PyObject* Solid = Py_False;
+    PyObject* ProfOnSpine = Py_False;
+    int JoinType = int(GeomAbs_Arc);
+    double Tolerance = 0.0000001;
+
+    static char* kwds_evolve[] = {"Profile", "Join", "AxeProf", "Solid", "ProfOnSpine", "Tolerance", nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|iO!O!O!d", kwds_evolve,
+                                     &TopoShapePy::Type, &Profile, &JoinType,
+                                     &PyBool_Type, &AxeProf, &PyBool_Type, &Solid,
+                                     &PyBool_Type, &ProfOnSpine, &Tolerance))
+        return nullptr;
+
+    try {
+        return Py::new_reference_to(shape2pyshape(getTopoShapePtr()->makEEvolve(
+                        *static_cast<TopoShapePy*>(Profile)->getTopoShapePtr(), JoinType,
+                        PyObject_IsTrue(AxeProf) ? true : false,
+                        PyObject_IsTrue(Solid) ? true : false,
+                        PyObject_IsTrue(ProfOnSpine) ? true : false,
+                        Tolerance)));
     } PY_CATCH_OCC
 }
 

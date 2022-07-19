@@ -323,6 +323,11 @@ PyObject* TopoShapeWirePy::makePipeShell(PyObject *args)
     return 0;
 }
 
+PyObject* TopoShapeWirePy::makeEvolved(PyObject *args, PyObject *kwds)
+{
+    return TopoShapePy::makeEvolved(args, kwds);
+}
+
 PyObject* TopoShapeWirePy::makeHomogenousWires(PyObject *args)
 {
     PyObject* wire;
