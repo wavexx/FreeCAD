@@ -243,6 +243,10 @@ PyObject* TopoShapeWirePy::fixWire(PyObject *args)
 
 PyObject* TopoShapeWirePy::makeOffset(PyObject *args)
 {
+#ifndef FC_NO_ELEMENT_MAP
+    Py::Dict dict;
+    return TopoShapePy::makeOffset2D(args, dict.ptr());
+#else
     double dist;
     if (!PyArg_ParseTuple(args, "d",&dist))
         return 0;
@@ -255,10 +259,6 @@ PyObject* TopoShapeWirePy::makeOffset(PyObject *args)
 
     BRepOffsetAPI_MakeOffset mkOffset(w);
     mkOffset.Perform(dist);
-#ifdef FC_NO_ELEMENT_MAP
-    return Py::new_reference_to(shape2pyshape(getTopoShapePtr()->makEShape(mkOffset)));
-#else
-    return new TopoShapePy(new TopoShape(mkOffset.Shape()));
 #endif
 }
 

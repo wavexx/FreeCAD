@@ -1485,7 +1485,13 @@ static std::vector<TopoShape> prepareProfiles(const std::vector<TopoShape> &shap
 }
 
 TopoShape &TopoShape::makEPipeShell( const std::vector<TopoShape> &shapes,
-        const Standard_Boolean make_solid, const Standard_Boolean isFrenet, int transition, const char *op)
+                                     const Standard_Boolean make_solid,
+                                     const Standard_Boolean isFrenet,
+                                     int transition,
+                                     const char *op,
+                                     double tol3d,
+                                     double tolBound,
+                                     double tolAngular)
 {
     if(!op) op = TOPOP_PIPE_SHELL;
     _Shape.Nullify();
@@ -1511,6 +1517,15 @@ TopoShape &TopoShape::makEPipeShell( const std::vector<TopoShape> &shapes,
     }
     mkPipeShell.SetMode(isFrenet);
     mkPipeShell.SetTransitionMode(transMode);
+    if (tol3d != 0.0 || tolBound != 0.0 || tolAngular != 0.0) {
+        if (tol3d == 0.0)
+            tol3d = 1e-4;
+        if (tolBound == 0.0)
+            tolBound = 1e-4;
+        if (tolAngular == 0.0)
+            tolAngular = 1e-2;
+        mkPipeShell.SetTolerance(tol3d, tolBound, tolAngular);
+    }
 
     for(auto &sh : prepareProfiles(shapes,1))
         mkPipeShell.Add(sh.getShape());

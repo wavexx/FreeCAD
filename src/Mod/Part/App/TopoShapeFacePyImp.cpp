@@ -415,6 +415,10 @@ PyObject* TopoShapeFacePy::addWire(PyObject *args)
 
 PyObject* TopoShapeFacePy::makeOffset(PyObject *args)
 {
+#ifndef FC_NO_ELEMENT_MAP
+    Py::Dict dict;
+    return TopoShapePy::makeOffset2D(args, dict.ptr());
+#else
     double dist;
     if (!PyArg_ParseTuple(args, "d",&dist))
         return 0;
@@ -429,6 +433,7 @@ PyObject* TopoShapeFacePy::makeOffset(PyObject *args)
     mkOffset.Perform(dist);
 
     return new TopoShapePy(new TopoShape(mkOffset.Shape()));
+#endif
 }
 
 PyObject* TopoShapeFacePy::makeEvolved(PyObject *args, PyObject *kwds)

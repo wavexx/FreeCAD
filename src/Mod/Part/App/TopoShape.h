@@ -645,7 +645,8 @@ public:
     }
 
     TopoShape &makEPipeShell(const std::vector<TopoShape> &shapes, const Standard_Boolean make_solid,
-            const Standard_Boolean isFrenet, int transition=0, const char *op=0);
+                             const Standard_Boolean isFrenet, int transition=0, const char *op=nullptr,
+                             double tol3d=0.0, double tolBound=0.0, double tolAngluar=0.0);
 
     TopoShape &makEEvolve(const TopoShape &spine, const TopoShape &profile, int join=0,
             bool axeProf=true, bool solid=false, bool profOnSpine=false, double tol=0.0, const char *op=nullptr);

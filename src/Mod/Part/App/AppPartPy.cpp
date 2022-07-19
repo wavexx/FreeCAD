@@ -288,7 +288,7 @@ public:
             "makeFilledFace(shapes : Part.Shape | Sequence[Part.Shape],\n"
             "               surface = None : Part.Face,\n"
             "               supports = None : Sequence[Sequence[Part.Shape, Part.Face],\n"
-            "               orders = None : Sequence[Sequence[Part.Shape, Int|String],\n"
+            "               orders = None : Sequence[Sequence[Part.Shape, PartEnums.Shape],\n"
             "               degree = 3 : UnsignedInt,\n"
             "               ptsOnCurve = 15 : UnsignedInt,\n"
             "               numIter = 2 : UnsignedInt,\n"
@@ -307,19 +307,7 @@ public:
             "   shapes: input shape or list of shapes\n"
             "   surface: optional initial surface to begin the construction of the surface for the filled face.\n"
             "   supports: optional list of tuple mapping an input edge to a support face.\n"
-            "   orders: optional list of tuple mapping an input edge to a integer order. The order can also be\n"
-            "           give in string with the following values and mean:\n"
-            "           C0: only geometric continuity.\n"
-            "           G1: for each point on the curve, the tangent vectors 'on the right' and 'on the left'\n"
-            "               are collinear with the same orientation.\n"
-            "           C1: continuity of the first derivative. The 'C1' curve is also 'G1' but, in addition,\n"
-            "               the tangent vectors 'on the right' and 'on the left' are equal.\n"
-            "           G2: for each point on the curve, the normalized normal vectors 'on the right' and 'on \n"
-            "               the left' are equal.\n"
-            "           C2: continuity of the second derivative.\n"
-            "           C3: continuity of the third derivative.\n"
-            "           CN: continuity of the N-th derivative, whatever is the value given for N (infinite order\n"
-            "                of continuity). Also provides information about the continuity of a surface.\n"
+            "   orders: optional list of tuple mapping an input edge to a given continuity of type PartEnums.Shape.\n"
             "   degree: the energy minimizing criterion degree.\n"
             "   ptsOnCurve: the number of points on the curve.\n"
             "   numIter: the number of iterations.\n"
@@ -1052,7 +1040,7 @@ private:
         const char *op = nullptr;
         static char* kwd_list[] = {"shapes", "surface", "supports", 
             "orders","degree","ptsOnCurve","numIter","anisotropy",
-            "tol2d", "tol3d", "tolG1", "tolG2", "maxDegree", "maxSegments", "op", 0};
+            "tol2d", "tol3d", "tolG1", "tolG2", "maxDegree", "maxSegments", "op", nullptr};
         if(!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O|O!OOIIIOddddIIs", kwd_list,
                                         &obj, &pySurface, &orders, &params.degree, &params.ptsoncurve,
                                         &params.numiter, &anisotropy, &params.tol2d, &params.tol3d,
@@ -1068,31 +1056,12 @@ private:
                     throw Py::TypeError(err);
                 params.supports[s] = static_cast<TopoShapePy*>(value)->getTopoShapePtr()->getShape();
             });
-        parseSequence(orders, "Expects 'orders' to be a sequence of tuple(shape, int|string)",
+        parseSequence(orders, "Expects 'orders' to be a sequence of tuple(shape, PartEnums.Shape)",
             [&](const TopoDS_Shape &s, PyObject *value, const char *err) {
-                if (PyLong_Check(value)) {
-                    params.orders[s] = Py::Int(value);
-                    return;
-                }
-                if (!PyUnicode_Check(value))
-                    throw Py::TypeError(err);
-                static std::vector<std::pair<std::string, int>> table = {
-                    {"C0", GeomAbs_C0},
-                    {"G1", GeomAbs_G1},
-                    {"C1", GeomAbs_C1},
-                    {"G2", GeomAbs_G2},
-                    {"C2", GeomAbs_C2},
-                    {"C3", GeomAbs_C3},
-                    {"CN", GeomAbs_CN}
-                };
-                std::string v = (std::string)Py::String(value);
-                for (const auto &entry : table) {
-                    if (boost::iequals(v,entry.first)) {
-                        params.orders[s] = entry.second;
-                        return;
-                    }
-                }
-                throw Py::ValueError("Invalid order");
+                if (!PyLong_Check(value))
+                    throw Py::ValueError(err);
+                params.orders[s] = Py::Int(value);
+                return;
             });
         auto shapes = getPyShapes(obj);
         if (shapes.empty())
@@ -1887,7 +1856,7 @@ private:
     Py::Object makeSweepSurface(const Py::Tuple& args)
     {
         PyObject *path, *profile;
-        double tolerance=0.001;
+        double tolerance=0.0;
         int fillMode = 0;
 
         // Path + profile
@@ -1897,12 +1866,21 @@ private:
             throw Py::Exception();
 
         try {
+#ifndef FC_NO_ELEMENT_MAP
+            TopoShape mShape = *static_cast<TopoShapePy*>(path)->getTopoShapePtr();
+            return shape2pyshape(TopoShape(0, mShape.Hasher).makEPipeShell(
+                        {mShape, *static_cast<TopoShapePy*>(profile)->getTopoShapePtr()},
+                        Standard_False, Standard_False, 0, nullptr, tolerance));
+#else
+            if (tolerance == 0.0)
+                tolerance=0.001;
             const TopoDS_Shape& path_shape = static_cast<TopoShapePy*>(path)->getTopoShapePtr()->getShape();
             const TopoDS_Shape& prof_shape = static_cast<TopoShapePy*>(profile)->getTopoShapePtr()->getShape();
 
             TopoShape myShape(path_shape);
             TopoDS_Shape face = myShape.makeSweep(prof_shape, tolerance, fillMode);
             return Py::asObject(new TopoShapeFacePy(new TopoShape(face)));
+#endif
         }
         catch (Standard_Failure& e) {
             throw Py::Exception(PartExceptionOCCError, e.GetMessageString());
