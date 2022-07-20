@@ -4781,9 +4781,13 @@ void TreeWidget::dropEvent(QDropEvent *event)
     for(auto ti : sels) {
         if (ti->type() != TreeWidget::ObjectType)
             continue;
+        // Can't think of any reason why we have to ignore child if parent is
+        // selected
+#if 0
         // ignore child elements if the parent is selected
         if(sels.contains(ti->parent()))
             continue;
+#endif
         if (ti == targetItem)
             continue;
         auto item = static_cast<DocumentObjectItem*>(ti);
