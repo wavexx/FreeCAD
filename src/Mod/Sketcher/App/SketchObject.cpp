@@ -6702,7 +6702,9 @@ void SketchObject::delExternalPrivate(const std::set<long> &ids, bool removeRef)
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
 
     std::set<std::string> refs;
-    std::set<int> geoIds;
+    // Must sort in reverse order so as to delete geo from back to front to
+    // avoid index change
+    std::set<int, std::greater<int>> geoIds;
 
     for(auto id : ids) {
         auto it = externalGeoMap.find(id);
