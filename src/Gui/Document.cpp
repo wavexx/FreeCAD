@@ -417,9 +417,11 @@ bool Document::setEdit(Gui::ViewProvider* p, int ModNum, const char *subname)
         // selection in order to obtain the correct transformation matrix below
         App::DocumentObject *parentObj = 0;
         auto ctxobj = Gui::Selection().getContext().getSubObject();
+        bool found = false;
         if (ctxobj && (ctxobj == obj || ctxobj->getLinkedObject(true) == obj)) {
             parentObj = Gui::Selection().getContext().getObject();
             _subname = Gui::Selection().getContext().getSubName();
+            found = true;
         } else {
             auto sels = Gui::Selection().getCompleteSelection(false);
             for(auto &sel : sels) {
@@ -439,7 +441,12 @@ bool Document::setEdit(Gui::ViewProvider* p, int ModNum, const char *subname)
                     break;
                 }
                 _subname = sel.SubName;
+                found = true;
             }
+        }
+        if (!found) {
+            parentObj = obj;
+            Gui::Selection().checkTopParent(parentObj, _subname);
         }
         if(parentObj) {
             FC_LOG("deduced editing reference " << parentObj->getFullName() << '.' << _subname);
