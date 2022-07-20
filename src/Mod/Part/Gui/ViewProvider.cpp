@@ -186,7 +186,7 @@ bool ViewProviderPart::canDragObject(App::DocumentObject *obj) const
         if (auto prop = feat->getShapeContentReplacementProperty())
             return obj && prop->getValue() == obj;
     }
-    return inherited::canDropObject(obj);
+    return inherited::canDragObject(obj);
 }
 
 void ViewProviderPart::dragObject(App::DocumentObject *obj)
@@ -199,7 +199,7 @@ void ViewProviderPart::dragObject(App::DocumentObject *obj)
             }
         }
     }
-    return inherited::dropObject(obj);
+    return inherited::dragObject(obj);
 }
 
 void ViewProviderPart::updateData(const App::Property *prop)
