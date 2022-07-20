@@ -115,6 +115,8 @@ public:
 
     virtual int extensionIsElementVisible(const char *element) const override;
 
+    virtual std::vector<DocumentObject*> addObject(DocumentObject* obj) override;
+
     virtual std::vector< DocumentObject* > addObjects(std::vector< DocumentObject* > obj) override;
     virtual std::vector< DocumentObject* > removeObjects(std::vector< DocumentObject* > obj) override;
     

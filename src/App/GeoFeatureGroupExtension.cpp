@@ -139,6 +139,12 @@ Base::Placement GeoFeatureGroupExtension::recursiveGroupPlacement(GeoFeatureGrou
 }
 
 std::vector<DocumentObject*>
+GeoFeatureGroupExtension::addObject(DocumentObject* obj)
+{
+    return addObjects({obj});
+}
+
+std::vector<DocumentObject*>
 GeoFeatureGroupExtension::addObjects(std::vector<App::DocumentObject*> objects)
 {
     const auto & grp = Group.getValues();
