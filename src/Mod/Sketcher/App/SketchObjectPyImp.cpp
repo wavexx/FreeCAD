@@ -519,20 +519,37 @@ PyObject* SketchObjectPy::addExternal(PyObject *args)
 {
     const char *ObjectName;
     const char *SubName;
-    PyObject *defining = Py_False;
+    bool defining = false;
+    bool intersection = false;
+    PyObject *mode = Py_False;
     PyObject *pyobj;
     App::SubObjectT ref;
 
-    if (PyArg_ParseTuple(args, "O|O", &pyobj, &defining)) {
+    if (PyArg_ParseTuple(args, "O|O", &pyobj, &mode)) {
         ref.setPyObject(pyobj);
         ObjectName = ref.getObjectName().c_str();
         SubName = ref.getSubName().c_str();
     } else {
         PyErr_Clear();
-        if (!PyArg_ParseTuple(args, "ss|O!:Give an object and subelement name", 
-                    &ObjectName,&SubName,&PyBool_Type,&defining))
+        if (!PyArg_ParseTuple(args, "ss|O:Give an object and subelement name", 
+                    &ObjectName,&SubName,&PyBool_Type,&mode))
             return 0;
     }
+
+    if (PyUnicode_Check(mode)) {
+        std::string strMode = static_cast<std::string>(Py::String(mode));
+        if (strMode.size()) {
+            if (strMode == "defining")
+                defining = true;
+            else if (strMode == "intersection")
+                intersection = true;
+            else {
+                PyErr_Format(PyExc_ValueError, "Unknown external mode '%s'", strMode.c_str());
+                return nullptr;
+            }
+        }
+    } else
+        defining = PyObject_IsTrue(mode);
 
     // get the target object for the external link
     Sketcher::SketchObject* skObj = this->getSketchObjectPtr();
@@ -552,7 +569,7 @@ PyObject* SketchObjectPy::addExternal(PyObject *args)
     }
 
     // add the external
-    if (skObj->addExternal(Obj,SubName,PyObject_IsTrue(defining)) < 0) {
+    if (skObj->addExternal(Obj,SubName,defining,intersection) < 0) {
         std::stringstream str;
         str << "Not able to add external shape element";
         PyErr_SetString(PyExc_ValueError, str.str().c_str());

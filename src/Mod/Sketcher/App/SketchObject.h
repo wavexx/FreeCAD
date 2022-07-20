@@ -42,6 +42,7 @@
 #include "Sketch.h"
 
 #include "SketchGeometryExtension.h"
+#include "ExternalGeometryExtension.h"
 
 namespace Sketcher
 {
@@ -81,6 +82,8 @@ public:
     Part    ::PropertyGeometryList   ExternalGeo;
     App     ::PropertyBool           FullyConstrained;
     App     ::PropertyPrecision      ArcFitTolerance;
+    App     ::PropertyInteger        ExternalBSplineMaxDegree;
+    App     ::PropertyPrecision      ExternalBSplineTolerance;
     /** @name methods override Feature */
     //@{
     short mustExecute() const override;
@@ -169,7 +172,8 @@ public:
     /// Carbon copy another sketch geometry and constraints
     int carbonCopy(App::DocumentObject * pObj, bool construction = true);
     /// add an external geometry reference
-    int addExternal(App::DocumentObject *Obj, const char* SubName, bool defining=false);
+    int addExternal(App::DocumentObject *Obj, const char* SubName,
+                    bool defining=false, bool intersection=false);
     /** delete external
      *  ExtGeoId >= 0 with 0 corresponding to the first user defined
      *  external geometry
@@ -211,7 +215,7 @@ public:
     /// returns a list of projected external geometries
     const std::vector<Part::Geometry *> &getExternalGeometry(void) const { return ExternalGeo.getValues(); }
     /// rebuilds external geometry (projection onto the sketch plane)
-    void rebuildExternalGeometry(bool defining=false);
+    void rebuildExternalGeometry(bool defining=false, bool intersection=false);
     /// returns the number of external Geometry entities
     int getExternalGeometryCount(void) const { return ExternalGeo.getSize(); }
     /// auto fix external geometry references
@@ -282,6 +286,7 @@ public:
     int setConstruction(int GeoId, bool on);
 
     int toggleFreeze(const std::vector<int> &);
+    int toggleIntersection(const std::vector<int> &);
 
     /*!
      \brief Create a sketch fillet from the point at the intersection of two lines
@@ -603,6 +608,8 @@ public: // geometry extension functionalities for single element sketch object u
     int getGeometryId(int GeoId, long &id) const;
 
 protected:
+
+    int toggleExternalGeometryFlag(const std::vector<int> &, ExternalGeometryExtension::Flag flag);
 
     void buildShape();
     /// get called by the container when a property has changed

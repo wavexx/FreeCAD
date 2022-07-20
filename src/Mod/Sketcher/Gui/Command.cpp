@@ -200,6 +200,18 @@ void CmdSketcherNewSketch::activated(int iMsg)
         //Gui::SelectionObject &sel_support = objects[0];
         App::PropertyLinkSubList support;
         Gui::Selection().getAsPropertyLinkSubList(support);
+
+        App::DocumentObject* activeContainer = nullptr;
+        App::DocumentObject* activeGroup = nullptr;
+        for (auto obj : support.getValues()) {
+            if ((activeContainer = App::GeoFeatureGroupExtension::getGroupOfObject(obj)))
+                break;
+            if (!activeGroup)
+                activeGroup = App::GroupExtension::getGroupOfObject(obj);
+        }
+        if (!activeContainer)
+            activeContainer = activeGroup;
+
         std::string supportString = support.getPyReprString();
 
         // create Sketch on Face
@@ -207,6 +219,9 @@ void CmdSketcherNewSketch::activated(int iMsg)
 
         openCommand(QT_TRANSLATE_NOOP("Command", "Create a new sketch on a face"));
         doCommand(Doc,"App.activeDocument().addObject('Sketcher::SketchObject', '%s')", FeatName.c_str());
+        if (activeContainer)
+            Gui::cmdAppObject(activeContainer, std::ostringstream()
+                    << "addObject(App.activeDocument()." << FeatName << ")"); 
         if (mapmode < Attacher::mmDummy_NumberOfModes)
             doCommand(Gui,"App.activeDocument().%s.MapMode = \"%s\"",FeatName.c_str(),AttachEngine::getModeName(mapmode).c_str());
         else
@@ -214,16 +229,6 @@ void CmdSketcherNewSketch::activated(int iMsg)
         doCommand(Gui,"App.activeDocument().%s.Support = %s", FeatName.c_str(), supportString.c_str());
         doCommand(Gui,"App.activeDocument().recompute()");  // recompute the sketch placement based on its support
         doCommand(Gui,"Gui.activeDocument().setEdit('%s')", FeatName.c_str());
-
-        Part::Feature *part = static_cast<Part::Feature*>(support.getValue());  // if multi-part support, this will return 0
-        if (part){
-            App::DocumentObjectGroup* grp = part->getGroup();
-            if (grp) {
-                doCommand(Doc,
-                          "App.activeDocument().%s.addObject(App.activeDocument().%s)",
-                          grp->getNameInDocument(), FeatName.c_str());
-            }
-        }
     }
     else {
         // ask user for orientation

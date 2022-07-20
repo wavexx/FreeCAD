@@ -48,6 +48,7 @@
 # include <GeomAPI_ProjectPointOnSurf.hxx>
 # include <GeomAPI_ProjectPointOnCurve.hxx>
 # include <ProjLib_Plane.hxx>
+# include <BRepAlgoAPI_Section.hxx>
 # include <BRepOffsetAPI_NormalProjection.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
 # include <BRepBuilderAPI_MakeEdge.hxx>
@@ -55,6 +56,7 @@
 # include <GeomAPI_IntSS.hxx>
 # include <GeomLProp_CLProps.hxx>
 # include <BRepProj_Projection.hxx>
+# include <BRepTools_WireExplorer.hxx>
 # include <GeomConvert_BSplineCurveKnotSplitting.hxx>
 # include <TColStd_Array1OfInteger.hxx>
 # include <GC_MakeCircle.hxx>
@@ -148,8 +150,8 @@ SketchObject::SketchObject()
     ADD_PROPERTY_TYPE(FullyConstrained, (false),"Sketch",(App::PropertyType)(App::Prop_Output|App::Prop_ReadOnly |App::Prop_Hidden),"Sketch is fully constrained");
     ADD_PROPERTY_TYPE(ArcFitTolerance, (0.0),"Sketch",(App::PropertyType)(App::Prop_None),
             "Tolerance for fitting arcs of projected external geometry");
-
-
+    ADD_PROPERTY_TYPE(ExternalBSplineMaxDegree, (0), "Sketch", (App::Prop_None), "Maximum degree of imported external BSpline. Zero to disable simplification");
+    ADD_PROPERTY_TYPE(ExternalBSplineTolerance, (0.0), "Sketch", (App::Prop_None), "Tolerance for simplifying imported external BSpline");
     geoLastId = 0;
 
     ParameterGrp::handle hGrpp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
@@ -194,7 +196,11 @@ SketchObject::~SketchObject()
 
 void SketchObject::setupObject()
 {
-    ArcFitTolerance.setValue(Precision::Confusion()*10.0);
+    ParameterGrp::handle hGrpp = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Sketcher");
+    ArcFitTolerance.setValue(hGrpp->GetFloat("ArcFitTolerance", Precision::Confusion()*10.0));
+    ExternalBSplineMaxDegree.setValue(hGrpp->GetInt("ExternalBSplineMaxDegree", 4));
+    ExternalBSplineTolerance.setValue(hGrpp->GetFloat("ExternalBSplineTolerance", Precision::Confusion()*10.0));
     inherited::setupObject();
 }
 
@@ -1594,9 +1600,22 @@ int SketchObject::setConstruction(int GeoId, bool on)
     return 0;
 }
 
-int SketchObject::toggleFreeze(const std::vector<int> &geoIds) {
+int SketchObject::toggleFreeze(const std::vector<int> &geoIds)
+{
+    return toggleExternalGeometryFlag(geoIds, ExternalGeometryExtension::Frozen);
+}
+
+int SketchObject::toggleIntersection(const std::vector<int> &geoIds)
+{
+    return toggleExternalGeometryFlag(geoIds, ExternalGeometryExtension::Intersection);
+}
+
+int SketchObject::toggleExternalGeometryFlag(const std::vector<int> &geoIds,
+                                             ExternalGeometryExtension::Flag flag)
+{
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
 
+    bool update = false;
     bool touched = false;
     auto geos = ExternalGeo.getValues();
     std::set<int> idSet(geoIds.begin(),geoIds.end());
@@ -1609,7 +1628,7 @@ int SketchObject::toggleFreeze(const std::vector<int> &geoIds) {
         int idx = -geoId-1;
         auto &geo = geos[idx];
         auto egf = ExternalGeometryFacade::getFacade(geo);
-        bool frozen = !egf->testFlag(ExternalGeometryExtension::Frozen);
+        bool value = !egf->testFlag(flag);
         if(egf->getRef().size()) {
             for(auto gid : getRelatedGeometry(geoId)) {
                 if(gid == geoId)
@@ -1618,19 +1637,23 @@ int SketchObject::toggleFreeze(const std::vector<int> &geoIds) {
                 auto &g = geos[idx];
                 g = g->clone();
                 auto egf = ExternalGeometryFacade::getFacade(g);
-                egf->setFlag(ExternalGeometryExtension::Frozen,frozen);
+                egf->setFlag(flag, value);
                 idSet.erase(gid);
             }
         }
         geo = geo->clone();
         egf->setGeometry(geo);
-        egf->setFlag(ExternalGeometryExtension::Frozen,frozen);
+        egf->setFlag(flag, value);
+        if (value || flag != ExternalGeometryExtension::Frozen)
+            update = true;
         touched = true;
     }
 
     if(!touched)
         return -1;
     ExternalGeo.setValues(geos);
+    if (update)
+        rebuildExternalGeometry();
     return 0;
 }
 
@@ -6621,7 +6644,7 @@ int SketchObject::carbonCopy(App::DocumentObject * pObj, bool construction)
     return svals.size();
 }
 
-int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, bool defining)
+int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, bool defining, bool intersection)
 {
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
 
@@ -6639,7 +6662,7 @@ int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, boo
             if (idx >= 0) {
                 std::string element("Edge");
                 element += std::to_string(idx);
-                addExternal(Obj, element.c_str(), defining);
+                addExternal(Obj, element.c_str(), defining, intersection);
             }
         }
         if (ExternalGeometry.getSize() == size)
@@ -6670,7 +6693,7 @@ int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, boo
 
     // set the Link list.
     ExternalGeometry.setValues(Objects,SubElements);
-    rebuildExternalGeometry(defining);
+    rebuildExternalGeometry(defining, intersection);
     if(ExternalGeometry.getSize() == (int)Objects.size())
         return ExternalGeometry.getSize()-1;
     return -1;
@@ -7333,7 +7356,51 @@ bool SketchObject::evaluateSupport(void)
     return true;
 }
 
-void SketchObject::rebuildExternalGeometry(bool defining)
+static Part::Geometry *fitArcs(std::vector<std::unique_ptr<Part::Geometry> > &arcs,
+                               const gp_Pnt &P1,
+                               const gp_Pnt &P2,
+                               double tol)
+{
+    double radius = 0.0;
+    double m;
+    Base::Vector3d center;
+    for (auto &geo : arcs) {
+        if (auto arc = Base::freecad_dynamic_cast<Part::GeomArcOfCircle>(geo.get())) {
+            if (radius == 0.0) {
+                radius = arc->getRadius();
+                center = arc->getCenter();
+                double f = arc->getFirstParameter();
+                double l = arc->getLastParameter();
+                m = (l-f)*0.5 + f; // middle parameter
+            } else if (std::abs(radius - arc->getRadius()) > tol)
+                return nullptr;
+        } else
+            return nullptr;
+    }
+    if (radius == 0.0)
+        return nullptr;
+    if (P1.SquareDistance(P2) < Precision::Confusion()) {
+        Part::GeomCircle* circle = new Part::GeomCircle();
+        circle->setCenter(center);
+        circle->setRadius(radius);
+        return circle;
+    }
+    else if (arcs.size() == 1) {
+        auto res = arcs.front().release();
+        arcs.clear();
+        return res;
+    }
+    else {
+        GeomLProp_CLProps prop(Handle(Geom_Curve)::DownCast(arcs.front()->handle()),m,0,Precision::Confusion());
+        gp_Pnt midPoint = prop.Value();
+        GC_MakeArcOfCircle arc(P1, midPoint, P2);
+        auto geo = new Part::GeomArcOfCircle();
+        geo->setHandle(arc.Value());
+        return geo;
+    }
+}
+
+void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
 {
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
 
@@ -7411,6 +7478,7 @@ void SketchObject::rebuildExternalGeometry(bool defining)
         // Skip frozen geometries
         bool frozen = false;
         bool sync = false;
+        bool intersection = addIntersection && (i+1 == (int)Objects.size());
         for(auto id : externalGeoRefMap[key]) {
             auto it = externalGeoMap.find(id);
             if(it != externalGeoMap.end()) {
@@ -7419,6 +7487,8 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                     frozen = true;
                 if(egf->testFlag(ExternalGeometryExtension::Sync))
                     sync = true;
+                if (egf->testFlag(ExternalGeometryExtension::Intersection))
+                    intersection = true;
             }
         }
         if(frozen && !sync) {
@@ -7455,9 +7525,7 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                 continue;
             }
 
-            switch (refSubShape.ShapeType())
-            {
-            case TopAbs_FACE: {
+            auto importFace = [&](const TopoDS_Shape &refSubShape) {
                 gp_Pln plane;
                 if (Part::TopoShape(refSubShape).findPlane(plane)) {
                     // Check that the plane is perpendicular to the sketch plane
@@ -7479,16 +7547,14 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                     } else {
                         FC_WARN("Skip external reference plane that is not normal to sketch plane in "
                                 << getFullName() << ": " << key);
-                        continue;
                     }
                 } else {
                     FC_WARN("Skip non-planar external reference face in sketch "
                                 << getFullName() << ": " << key);
-                    continue;
                 }
-                break;
-            }
-            case TopAbs_EDGE: {
+            };
+
+            auto importEdge = [&](const TopoDS_Shape &refSubShape) {
                 const TopoDS_Edge& edge = TopoDS::Edge(refSubShape);
                 BRepAdaptor_Curve curve(edge);
                 Handle(Geom_Curve) origCurve = curve.Curve().Curve();
@@ -7728,7 +7794,7 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                     const TopoDS_Shape& projShape = mkProj.Projection();
                     if (projShape.IsNull()) {
                         FC_ERR("Invalid geometry in sketch " << getFullName() << ": " << key);
-                        continue;
+                        return;
                     }
                     TopExp_Explorer xp;
                     for (xp.Init(projShape, TopAbs_EDGE); xp.More(); xp.Next()) {
@@ -7784,59 +7850,15 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                                 geos.emplace_back(arc);
                             }
                         } else if (projCurve.GetType() == GeomAbs_BSplineCurve) {
-                            bool done = false;
                             if (ArcFitTolerance.getValue() >= Precision::Confusion()) {
                                 std::unique_ptr<Part::GeomBSplineCurve> bspline(new Part::GeomBSplineCurve(projCurve.BSpline()));
-                                auto arcs = bspline->toBiArcs(ArcFitTolerance.getValue());
-                                double radius = 0.0;
-                                double m;
-                                Base::Vector3d center;
-                                for (auto geo : arcs) {
-                                    if (auto arc = Base::freecad_dynamic_cast<Part::GeomArcOfCircle>(geo)) {
-                                        if (radius == 0.0) {
-                                            radius = arc->getRadius();
-                                            center = arc->getCenter();
-                                            double f = arc->getFirstParameter();
-                                            double l = arc->getLastParameter();
-                                            m = (l-f)*0.5 + f; // middle parameter
-                                        } else if (std::abs(radius - arc->getRadius()) > ArcFitTolerance.getValue()) {
-                                            radius = 0.0;
-                                            break;
-                                        }
-                                    }
-                                    else {
-                                        radius = 0.0;
-                                        break;
-                                    }
-                                }
-                                if (radius != 0.0) {
-                                    if (firstPoint.SquareDistance(lastPoint) < Precision::Confusion()) {
-                                        Part::GeomCircle* circle = new Part::GeomCircle();
-                                        circle->setCenter(center);
-                                        circle->setRadius(radius);
-                                        geos.emplace_back(circle);
-                                        done = true;
-                                    }
-                                    else if (arcs.size() == 1) {
-                                        geos.emplace_back(arcs.front());
-                                        arcs.clear();
-                                        done = true;
-                                    }
-                                    else {
-                                        GeomLProp_CLProps prop(Handle(Geom_Curve)::DownCast(arcs.front()->handle()),m,0,Precision::Confusion());
-                                        gp_Pnt midPoint = prop.Value();
-                                        GC_MakeArcOfCircle arc(P1, midPoint, P2);
-                                        auto geo = new Part::GeomArcOfCircle();
-                                        geo->setHandle(arc.Value());
-                                        geos.emplace_back(geo);
-                                        done = true;
-                                    }
-                                }
-                                for (auto geo : arcs)
-                                    delete geo;
-                                if (done) {
-                                    GeometryFacade::setConstruction(geos.back().get(), true);
-                                    continue;
+                                std::vector<std::unique_ptr<Part::Geometry>> arcs;
+                                for (auto arc : bspline->toBiArcs(ArcFitTolerance.getValue()))
+                                    arcs.emplace_back(arc);
+                                if (auto geo = fitArcs(arcs, P1, P2, ArcFitTolerance.getValue())) {
+                                    geos.emplace_back(geo);
+                                    GeometryFacade::setConstruction(geo, true);
+                                    return;
                                 }
                             }
 
@@ -7862,6 +7884,21 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                                 geos.emplace_back(circle);
                             } else {
                                 Part::GeomBSplineCurve* bspline = new Part::GeomBSplineCurve(projCurve.BSpline());
+                                if (int maxDegree = ExternalBSplineMaxDegree.getValue()) {
+                                    if (bspline->getDegree() > maxDegree) {
+                                        std::string err;
+                                        try {
+                                            if (!bspline->approximate(ExternalBSplineTolerance.getValue(), 20,
+                                                                    ExternalBSplineMaxDegree.getValue(), 0))
+                                                err = "not done";
+                                        } catch (Base::Exception &e) {
+                                            err = e.what();
+                                        }
+                                        if (err.size())
+                                            FC_WARN("Failed to simplify external imported bspline "
+                                                    << getFullName() << ": " << key << ", " << err);
+                                    }
+                                }
                                 GeometryFacade::setConstruction(bspline, true);
                                 geos.emplace_back(bspline);
                             }
@@ -7957,13 +7994,12 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                         else {
                             FC_ERR("Not supported projected geometry in sketch " << getFullName() << ": " << key);
                             geos.clear();
-                            break;
                         }
                     }
                 }
-                break;
-            }
-            case TopAbs_VERTEX: {
+            };
+            
+            auto importVertex = [&](const TopoDS_Shape &refSubShape) {
                 gp_Pnt P = BRep_Tool::Pnt(TopoDS::Vertex(refSubShape));
                 GeomAPI_ProjectPointOnSurf proj(P,gPlane);
                 P = proj.NearestPoint();
@@ -7973,12 +8009,61 @@ void SketchObject::rebuildExternalGeometry(bool defining)
                 Part::GeomPoint* point = new Part::GeomPoint(p);
                 GeometryFacade::setConstruction(point, true);
                 geos.emplace_back(point);
+            };
+
+
+            switch (refSubShape.ShapeType())
+            {
+            case TopAbs_FACE:
+                if (!intersection)
+                    importFace(refSubShape);
                 break;
-            }
+            case TopAbs_EDGE:
+                importEdge(refSubShape);
+                break;
+            case TopAbs_VERTEX:
+                importVertex(refSubShape);
+                break;
             default:
                 FC_ERR("Unknown type of geometry in " << getFullName() << ": " << key);
                 break;
             }
+
+            if (intersection && (refSubShape.ShapeType() == TopAbs_EDGE
+                                 || refSubShape.ShapeType() == TopAbs_FACE))
+            {
+                BRepAlgoAPI_Section maker(refSubShape, aProjFace);
+                maker.Approximation(Standard_True);
+                if (!maker.IsDone())
+                    FC_THROWM(Base::CADKernelError,"Failed to get intersection");
+                Part::TopoShape intersectionShape(maker.Shape());
+                auto edges = intersectionShape.getSubTopoShapes(TopAbs_EDGE);
+                for (const auto &s : edges)
+                    importEdge(s.getShape());
+                // Section of some face (e.g. sphere) produce more than one arcs
+                // from the same circle. So we try to fit the arcs with a single
+                // circle/arc.
+                if (refSubShape.ShapeType() == TopAbs_FACE && geos.size() > 1) {
+                    auto wires = Part::TopoShape().makEWires(edges);
+                    if (wires.countSubShapes(TopAbs_WIRE) == 1) {
+                        TopoDS_Vertex firstVertex, lastVertex;
+                        BRepTools_WireExplorer exp(TopoDS::Wire(wires.getSubShape(TopAbs_WIRE, 1)));
+                        firstVertex = exp.CurrentVertex();
+                        while (!exp.More())
+                            exp.Next();
+                        lastVertex = exp.CurrentVertex();
+                        gp_Pnt P1 = BRep_Tool::Pnt(firstVertex);
+                        gp_Pnt P2 = BRep_Tool::Pnt(lastVertex);
+                        if (auto geo = fitArcs(geos, P1, P2, ArcFitTolerance.getValue())) {
+                            geos.clear();
+                            geos.emplace_back(geo);
+                        }
+                    }
+                }
+                for (const auto &s : intersectionShape.getSubShapes(TopAbs_VERTEX, TopAbs_EDGE))
+                    importVertex(s);
+            }
+
         } catch (Base::Exception &e) {
             FC_ERR("Failed to project external geometry in "
                    << getFullName() << ": " << key << std::endl << e.what());
@@ -8003,10 +8088,15 @@ void SketchObject::rebuildExternalGeometry(bool defining)
             FC_WARN("Duplicated external reference in " << getFullName() << ": " << key);
             continue;
         }
-        if(defining && i+1==(int)Objects.size()) {
+        if (defining && i+1==(int)Objects.size()) {
             for(auto &geo : geos)
                 ExternalGeometryFacade::getFacade(geo.get())->setFlag(
                         ExternalGeometryExtension::Defining);
+        }
+        if (intersection) {
+            for(auto &geo : geos)
+                ExternalGeometryFacade::getFacade(geo.get())->setFlag(
+                        ExternalGeometryExtension::Intersection);
         }
         for(auto &geo : geos)
             ExternalGeometryFacade::getFacade(geo.get())->setRef(key);
