@@ -1421,6 +1421,7 @@ bool OverlayTabWidget::onEscape()
             return true;
         }
     }
+    return false;
 }
 
 void OverlayTabWidget::setOverlayMode(bool enable)
