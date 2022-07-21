@@ -250,15 +250,20 @@ PyObject* TopoShapeWirePy::makeOffset(PyObject *args)
     double dist;
     if (!PyArg_ParseTuple(args, "d",&dist))
         return 0;
-    const TopoDS_Wire& w = TopoDS::Wire(getTopoShapePtr()->getShape());
-    BRepBuilderAPI_FindPlane findPlane(w);
-    if (!findPlane.Found()) {
-        PyErr_SetString(PartExceptionOCCError, "No planar wire");
-        return 0;
-    }
 
-    BRepOffsetAPI_MakeOffset mkOffset(w);
-    mkOffset.Perform(dist);
+    try {
+        const TopoDS_Wire& w = TopoDS::Wire(getTopoShapePtr()->getShape());
+        BRepBuilderAPI_FindPlane findPlane(w);
+        if (!findPlane.Found()) {
+            PyErr_SetString(PartExceptionOCCError, "No planar wire");
+            return 0;
+        }
+
+        BRepOffsetAPI_MakeOffset mkOffset(w);
+        mkOffset.Perform(dist);
+
+        return new TopoShapePy(new TopoShape(mkOffset.Shape()));
+    } PY_CATCH_OCC
 #endif
 }
 
