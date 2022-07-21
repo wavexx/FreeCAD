@@ -6653,22 +6653,56 @@ int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, boo
     if (!isExternalAllowed(Obj->getDocument(), Obj))
        return -1;
 
-    std::vector<const char *> subs;
-    if (boost::starts_with(SubName, "Wire")) {
-        auto shape = Part::Feature::getTopoShape(Obj);
-        auto wire = shape.getSubTopoShape(SubName);
-        int size = ExternalGeometry.getSize();
-        for (const auto &edge : wire.getSubShapes(TopAbs_EDGE)) {
-            int idx = shape.findShape(edge);
-            if (idx >= 0) {
-                std::string element("Edge");
-                element += std::to_string(idx);
-                addExternal(Obj, element.c_str(), defining, intersection);
-            }
+    auto wholeShape = Part::Feature::getTopoShape(Obj);
+    auto shape = wholeShape.getSubTopoShape(SubName);
+    TopAbs_ShapeEnum shapeType = TopAbs_SHAPE;
+    if (shape.shapeType(/*silent*/true) != TopAbs_FACE) {
+        if (shape.hasSubShape(TopAbs_FACE))
+            shapeType = TopAbs_FACE;
+        else if (shape.shapeType(/*silent*/true) != TopAbs_EDGE
+                && shape.hasSubShape(TopAbs_EDGE))
+            shapeType = TopAbs_EDGE;
+    }
+
+    if (shapeType != TopAbs_SHAPE) {
+        std::string element = Part::TopoShape::shapeName(shapeType);
+        std::size_t elementNameSize = element.size();
+        int geometryCount = ExternalGeometry.getSize();
+
+        gp_Pln sketchPlane;
+        if (intersection) {
+            Base::Placement Plm = Placement.getValue();
+            Base::Vector3d Pos = Plm.getPosition();
+            Base::Rotation Rot = Plm.getRotation();
+            Base::Vector3d dN(0,0,1);
+            Rot.multVec(dN,dN);
+            Base::Vector3d dX(1,0,0);
+            Rot.multVec(dX,dX);
+            gp_Ax3 sketchAx3(gp_Pnt(Pos.x,Pos.y,Pos.z),
+                            gp_Dir(dN.x,dN.y,dN.z),
+                            gp_Dir(dX.x,dX.y,dX.z));
+            sketchPlane.SetPosition(sketchAx3);
         }
-        if (ExternalGeometry.getSize() == size)
+        for (const auto &subShape : shape.getSubShapes(shapeType)) {
+            int idx = wholeShape.findShape(subShape);
+            if (idx == 0)
+                continue;
+            if (intersection) {
+                try {
+                    BRepAlgoAPI_Section maker(subShape, sketchPlane);
+                    if (!maker.IsDone() || maker.Shape().IsNull())
+                        continue;
+                } catch (Standard_Failure &) {
+                    continue;
+                }
+            }
+            element += std::to_string(idx);
+            addExternal(Obj, element.c_str(), defining, intersection);
+            element.resize(elementNameSize);
+        }
+        if (ExternalGeometry.getSize() == geometryCount)
             return -1;
-        return size;
+        return geometryCount;
     }
 
     // get the actual lists of the externals
@@ -8038,7 +8072,7 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
             if (intersection && (refSubShape.ShapeType() == TopAbs_EDGE
                                  || refSubShape.ShapeType() == TopAbs_FACE))
             {
-                BRepAlgoAPI_Section maker(refSubShape, aProjFace);
+                BRepAlgoAPI_Section maker(refSubShape, sketchPlane);
                 maker.Approximation(Standard_True);
                 if (!maker.IsDone())
                     FC_THROWM(Base::CADKernelError,"Failed to get intersection");

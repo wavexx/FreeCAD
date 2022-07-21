@@ -6417,8 +6417,9 @@ namespace SketcherGui {
     class ExternalSelection : public SketcherSelectionFilterGate
     {
     public:
-        ExternalSelection(App::DocumentObject* obj)
+        ExternalSelection(App::DocumentObject* obj, bool intersection)
             : SketcherSelectionFilterGate(obj)
+            , intersection(intersection)
         {
         }
 
@@ -6478,10 +6479,12 @@ namespace SketcherGui {
             //}
 
             std::string element(sSubName);
-            if (boost::starts_with(element, "Edge") ||
+            if (intersection ||
+                boost::starts_with(element, "Edge") ||
                 boost::starts_with(element, "Vertex") ||
                 boost::starts_with(element, "Face") ||
-                boost::starts_with(element, "Wire")) {
+                boost::starts_with(element, "Wire"))
+            {
                 return true;
             }
             if (pObj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
@@ -6489,6 +6492,9 @@ namespace SketcherGui {
                 return true;
             return  false;
         }
+
+    private:
+        bool intersection = false;
     };
 }
 
@@ -6629,7 +6635,7 @@ public:
 
         Gui::Selection().clearSelection();
         Gui::Selection().rmvSelectionGate();
-        Gui::Selection().addSelectionGate(new ExternalSelection(sketchgui->getObject()));
+        Gui::Selection().addSelectionGate(new ExternalSelection(sketchgui->getObject(), intersection));
         setCrosshairColor();
         if(defining)
             cursor_external[2] = cursor_defining_color;
@@ -6683,7 +6689,8 @@ public:
                 throw Base::ValueError("Sketcher: External geometry: Invalid object in selection");
 
             std::string subName = msg.Object.getOldElementName();
-            if (obj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
+            if (intersection ||
+                obj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
                 obj->getTypeId().isDerivedFrom(Part::Datum::getClassTypeId()) ||
                 boost::starts_with(subName, "Edge") ||
                 boost::starts_with(subName, "Vertex") ||
