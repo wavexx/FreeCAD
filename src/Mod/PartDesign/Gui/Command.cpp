@@ -2652,6 +2652,7 @@ void CmdPartDesignBoolean::activated(int iMsg)
         break;
     }
 
+    std::set<App::SubObjectT> boundObjects;
     for(auto &v : binderLinks) {
         std::string FeatName = getUniqueObjectName("Reference",pcActiveBody);
         Gui::cmdAppObject(pcActiveBody, std::ostringstream()
@@ -2665,8 +2666,12 @@ void CmdPartDesignBoolean::activated(int iMsg)
         auto &subs = links[v.first.first];
         if(v.second.empty())
             v.second.push_back("");
-        for(auto &s : v.second)
+        for(auto &s : v.second) {
             subs.push_back(v.first.second + s);
+            App::SubObjectT sobjT(v.first.first, subs.back().c_str());
+            sobjT.setSubName(sobjT.getSubNameNoElement());
+            boundObjects.insert(sobjT);
+        }
         binder->setLinks(std::move(links));
         objs.push_back(binder);
     }
@@ -2678,6 +2683,13 @@ void CmdPartDesignBoolean::activated(int iMsg)
         updateDocument = true;
         std::string bodyString = PartDesignGui::buildLinkListPythonStr(objs);
         Gui::cmdAppObject(Feat, std::ostringstream() <<"addObjects("<<bodyString<<")");
+    }
+
+    for (auto sobjT : boundObjects) {
+        if (auto sobj = sobjT.getSubObject()) {
+            if (pcActiveBody->Group.find(sobj->getNameInDocument()))
+                sobj->Visibility.setValue(false);
+        }
     }
 
     finishFeature(this, Feat, nullptr, false, updateDocument);
