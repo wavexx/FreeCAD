@@ -1308,8 +1308,6 @@ bool TopoShape::checkElementMapVersion(const char * ver) const
 
 TopoShape &TopoShape::makECompound(const std::vector<TopoShape> &shapes, const char *op, bool force)
 {
-    _Shape.Nullify();
-
     if(!force && shapes.size()==1) {
         *this = shapes[0];
         return *this;
@@ -2659,12 +2657,17 @@ TopoShape &TopoShape::makEThickSolid(const TopoShape &shape,
     return makEShape(mkThick,shape,op);
 }
 
-TopoShape &TopoShape::makEWires(const std::vector<TopoShape> &shapes, const char *op, bool keepOrder, double tol) {
+TopoShape &TopoShape::makEWires(const std::vector<TopoShape> &shapes,
+                                const char *op,
+                                bool keepOrder,
+                                double tol,
+                                bool shared)
+{
     if(shapes.empty())
         HANDLE_NULL_SHAPE;
     if(shapes.size() == 1)
-        return makEWires(shapes[0],op);
-    return makEWires(TopoShape(Tag).makECompound(shapes),op,keepOrder,tol);
+        return makEWires(shapes[0],op,keepOrder,tol,shared);
+    return makEWires(TopoShape(Tag).makECompound(shapes),op,keepOrder,tol,shared);
 }
 
 struct EdgePoints {
@@ -2802,45 +2805,38 @@ TopoShape::sortEdges(std::list<TopoShape>& edges, bool keepOrder, double tol)
 }
 
 
-TopoShape &TopoShape::makEWires(const TopoShape &shape, const char *op, bool keepOrder, double tol)
+TopoShape &TopoShape::makEWires(const TopoShape &shape,
+                                const char *op,
+                                bool keepOrder,
+                                double tol,
+                                bool shared)
 {
-    _Shape.Nullify();
-
     if(!op) op = TOPOP_WIRE;
     if(tol<Precision::Confusion()) tol = Precision::Confusion();
 
-    // Can't use ShapeAnalysis_FreeBounds. It seems the output edges are
-    // modified some how, and it is not obvious how to map the resulting edges.
-#if 0
+    if (shared) {
+        // Can't use ShapeAnalysis_FreeBounds if not shared. It seems the output
+        // edges are modified some how, and it is not obvious how to map the
+        // resulting edges.
+        Handle(TopTools_HSequenceOfShape) hEdges = new TopTools_HSequenceOfShape();
+        Handle(TopTools_HSequenceOfShape) hWires = new TopTools_HSequenceOfShape();
+        for(TopExp_Explorer xp(shape.getShape(),TopAbs_EDGE);xp.More();xp.Next())
+            hEdges->Append(xp.Current());
+        if(!hEdges->Length())
+            HANDLE_NULL_SHAPE;
+        ShapeAnalysis_FreeBounds::ConnectEdgesToWires(hEdges, tol, Standard_True, hWires);
+        if(!hWires->Length())
+            HANDLE_NULL_SHAPE;
 
-    Handle(TopTools_HSequenceOfShape) hEdges = new TopTools_HSequenceOfShape();
-    Handle(TopTools_HSequenceOfShape) hWires = new TopTools_HSequenceOfShape();
-    for(TopExp_Explorer xp(shape.getShape(),TopAbs_EDGE);xp.More();xp.Next())
-        hEdges->Append(xp.Current());
-    if(!hEdges->Length())
-        HANDLE_NULL_SHAPE;
-    ShapeAnalysis_FreeBounds::ConnectEdgesToWires(hEdges, tol, Standard_False, hWires);
-    if(!hWires->Length())
-        HANDLE_NULL_SHAPE;
-
-    std::vector<TopoShape> wires;
-    for (int i=1; i<=hWires->Length(); i++) {
-        auto wire = hWires->Value(i);
-        if(fix) {
-            // Fix any topological issues of the wire
-            ShapeFix_Wire aFix;
-            aFix.SetPrecision(Precision::Confusion());
-            aFix.Load(TopoDS::Wire(wire));
-            aFix.FixReorder();
-            aFix.FixConnected();
-            aFix.FixClosed();
-            wire = aFix.Wire();
+        std::vector<TopoShape> wires;
+        for (int i=1; i<=hWires->Length(); i++) {
+            auto wire = hWires->Value(i);
+            wires.push_back(TopoShape(Tag,Hasher,wire));
         }
-        wires.push_back(TopoShape(Tag,Hasher,wire));
+        shape.mapSubElementsTo(wires,op);
+        return makECompound(wires,"",false);
     }
-    shape.mapSubElementsTo(wires);
-    return makECompound(wires,op,false);
-#else
+
     std::vector<TopoShape> wires;
     std::list<TopoShape> edge_list;
 
@@ -2909,7 +2905,6 @@ TopoShape &TopoShape::makEWires(const TopoShape &shape, const char *op, bool kee
         wires.back().setShape(aFix.Wire(),false);
     }
     return makECompound(wires,0,false);
-#endif
 }
 
 TopoShape &TopoShape::makEFace(const TopoShape &shape,

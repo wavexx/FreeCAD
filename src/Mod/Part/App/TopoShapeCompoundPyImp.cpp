@@ -137,6 +137,10 @@ PyObject* TopoShapeCompoundPy::connectEdgesToWires(PyObject *args)
         return 0;
 
     PY_TRY {
+#ifndef FC_NO_ELEMENT_MAP
+        return Py::new_reference_to(shape2pyshape(
+                    getTopoShapePtr()->makEWires("", tol, PyObject_IsTrue(shared))));
+#else
         const TopoDS_Shape& s = getTopoShapePtr()->getShape();
 
         Handle(TopTools_HSequenceOfShape) hEdges = new TopTools_HSequenceOfShape();
@@ -157,6 +161,7 @@ PyObject* TopoShapeCompoundPy::connectEdgesToWires(PyObject *args)
 
         getTopoShapePtr()->setShape(comp);
         return new TopoShapeCompoundPy(new TopoShape(comp));
+#endif
     } PY_CATCH_OCC
 }
 

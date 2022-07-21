@@ -370,14 +370,98 @@ public:
      */
     //@{
     
-    TopoShape &makECompound(const std::vector<TopoShape> &shapes, const char *op=0, bool force=true);
-
+    /** Given a set of edges, return a sorted list of connected edges
+     * 
+     * @param edges: (input/output) input list of shapes. Must be of type edge.
+     *               On return, the returned connected edges will be removed
+     *               from this list. You can repeated call this function to find
+     *               all wires.
+     * @param keepOrder: whether to respect the order of the input edges
+     * @param tol: tolerance for checking the distance of two vertex to decide
+     *             if two edges are connected
+     * @return Return a list of ordered connected edges.
+     */
     static std::deque<TopoShape> sortEdges(std::list<TopoShape> &edges, bool keepOrder=false, double tol=0.0);
 
-    TopoShape &makEWires(const std::vector<TopoShape> &shapes, const char *op=0, bool keepOrder=false, double tol=0.0);
-    TopoShape &makEWires(const TopoShape &shape, const char *op=0, bool keepOrder=false, double tol=0.0);
-    TopoShape makEWires(const char *op=0, bool keepOrder=false, double tol=0.0) const {
-        return TopoShape(0,Hasher).makEWires(*this,op,keepOrder,tol);
+    /** Make a compound shape
+     * 
+     * @param shapes: input shapes
+     * @param op: optional string to be encoded into topo naming for indicating
+     *            the operation
+     * @param force: if true and there is only one input shape, then return
+     *               that shape instead.  If false, then always return a
+     *               compound, even if there is no input shape. 
+     * @return This TopoShape is replaced with the new shape, and returned as a
+     *         self reference so that multiple operations can be carried out
+     *         for the same shape in the same line of code.
+     */
+    TopoShape &makECompound(const std::vector<TopoShape> &shapes, const char *op=0, bool force=true);
+
+    /** Make a compound of wires by connecting input edges 
+     *
+     * @param shapes: input shapes. Can be any type of shape. Edges will be
+     *                extracted for building wires.
+     * @param op: optional string to be encoded into topo naming for indicating
+     *            the operation
+     * @param keepOrder: whether to respect the order of the input edges
+     * @param tol: tolerance for checking the distance of two vertex to decide
+     *             if two edges are connected
+     * @param shared: if true, then only connect edges if they shared the same
+     *                vertex, or else use \c tol to check for connection.
+     *
+     * @return The function produces either a wire or a compound of wires. This
+     *         TopoShape is replaced with the new shape, and returned as a self
+     *         reference so that multiple operations can be carried out for the
+     *         same shape in the same line of code.
+     */
+    TopoShape &makEWires(const std::vector<TopoShape> &shapes,
+                         const char *op=0,
+                         bool keepOrder=false,
+                         double tol=0.0,
+                         bool shared=false);
+
+    /** Make a compound of wires by connecting input edges 
+     *
+     * @param shape: input shape. Can be any type of shape. Edges will be
+     *               extracted for building wires.
+     * @param op: optional string to be encoded into topo naming for indicating
+     *            the operation
+     * @param keepOrder: whether to respect the order of the input edges
+     * @param tol: tolerance for checking the distance of two vertex to decide
+     *             if two edges are connected
+     * @param shared: if true, then only connect edges if they shared the same
+     *                vertex, or else use \c tol to check for connection.
+     *
+     * @return The function produces either a wire or a compound of wires. This
+     *         TopoShape is replaced with the new shape, and returned as a self
+     *         reference so that multiple operations can be carried out for the
+     *         same shape in the same line of code.
+     */
+    TopoShape &makEWires(const TopoShape &shape,
+                         const char *op=0,
+                         bool keepOrder=false,
+                         double tol=0.0,
+                         bool shared=false);
+
+    /** Make a wire or compound of wires with the edges inside the this shape 
+     *
+     * @param op: optional string to be encoded into topo naming for indicating
+     *            the operation
+     * @param keepOrder: whether to respect the order of the input edges
+     * @param tol: tolerance for checking the distance of two vertex to decide
+     *             if two edges are connected
+     * @param shared: if true, then only connect edges if they shared the same
+     *                vertex, or else use \c tol to check for connection.
+     *
+     * @return The function returns a new shape of either a single wire or a
+     *         compound of wires. The shape itself is not modified.
+     */
+    TopoShape makEWires(const char *op=0,
+                        bool keepOrder=false,
+                        double tol=0.0,
+                        bool shared=false) const
+    {
+        return TopoShape(0,Hasher).makEWires(*this,op,keepOrder,tol,shared);
     }
 
     TopoShape &makEFace(const std::vector<TopoShape> &shapes,
