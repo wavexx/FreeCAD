@@ -190,7 +190,6 @@ public:
     bool PieMenuPopup;
     bool StickyTaskControl;
     bool ColorOnTop;
-    bool ColorRecompute;
     bool AutoSortWBList;
     long MaxCameraAnimatePeriod;
     bool TaskNoWheelFocus;
@@ -505,8 +504,6 @@ public:
         funcs["StickyTaskControl"] = &ViewParamsP::updateStickyTaskControl;
         ColorOnTop = handle->GetBool("ColorOnTop", true);
         funcs["ColorOnTop"] = &ViewParamsP::updateColorOnTop;
-        ColorRecompute = handle->GetBool("ColorRecompute", true);
-        funcs["ColorRecompute"] = &ViewParamsP::updateColorRecompute;
         AutoSortWBList = handle->GetBool("AutoSortWBList", false);
         funcs["AutoSortWBList"] = &ViewParamsP::updateAutoSortWBList;
         MaxCameraAnimatePeriod = handle->GetInt("MaxCameraAnimatePeriod", 3000);
@@ -1168,10 +1165,6 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateColorOnTop(ViewParamsP *self) {
         self->ColorOnTop = self->handle->GetBool("ColorOnTop", true);
-    }
-    // Auto generated code (Tools/params_utils.py:238)
-    static void updateColorRecompute(ViewParamsP *self) {
-        self->ColorRecompute = self->handle->GetBool("ColorRecompute", true);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateAutoSortWBList(ViewParamsP *self) {
@@ -5098,34 +5091,6 @@ void ViewParams::removeColorOnTop() {
 }
 
 // Auto generated code (Tools/params_utils.py:288)
-const char *ViewParams::docColorRecompute() {
-    return QT_TRANSLATE_NOOP("ViewParams",
-"Recompute affected object(s), after editing color.");
-}
-
-// Auto generated code (Tools/params_utils.py:294)
-const bool & ViewParams::getColorRecompute() {
-    return instance()->ColorRecompute;
-}
-
-// Auto generated code (Tools/params_utils.py:300)
-const bool & ViewParams::defaultColorRecompute() {
-    const static bool def = true;
-    return def;
-}
-
-// Auto generated code (Tools/params_utils.py:307)
-void ViewParams::setColorRecompute(const bool &v) {
-    instance()->handle->SetBool("ColorRecompute",v);
-    instance()->ColorRecompute = v;
-}
-
-// Auto generated code (Tools/params_utils.py:314)
-void ViewParams::removeColorRecompute() {
-    instance()->handle->RemoveBool("ColorRecompute");
-}
-
-// Auto generated code (Tools/params_utils.py:288)
 const char *ViewParams::docAutoSortWBList() {
     return QT_TRANSLATE_NOOP("ViewParams",
 "Sort workbench entries by their names in the combo box.");
@@ -6245,7 +6210,7 @@ void ViewParams::removeToolTipIconSize() {
     instance()->handle->RemoveInt("ToolTipIconSize");
 }
 
-// Auto generated code (Gui/ViewParams.py:480)
+// Auto generated code (Gui/ViewParams.py:479)
 const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("Linear"),
     QStringLiteral("InQuad"),
@@ -6290,7 +6255,7 @@ const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("OutInBounce"),
 };
 
-// Auto generated code (Gui/ViewParams.py:488)
+// Auto generated code (Gui/ViewParams.py:487)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -6303,7 +6268,7 @@ static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Shadow"),
 };
 
-// Auto generated code (Gui/ViewParams.py:497)
+// Auto generated code (Gui/ViewParams.py:496)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -6317,7 +6282,7 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:506)
+// Auto generated code (Gui/ViewParams.py:505)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -6325,7 +6290,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:515)
+// Auto generated code (Gui/ViewParams.py:514)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -6337,7 +6302,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:528)
+// Auto generated code (Gui/ViewParams.py:527)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)

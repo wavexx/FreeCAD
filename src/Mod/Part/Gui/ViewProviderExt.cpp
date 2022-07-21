@@ -112,6 +112,7 @@
 
 #include <App/Application.h>
 #include <App/Document.h>
+#include <App/DocumentObserver.h>
 #include <App/MappedElement.h>
 
 #include <Gui/Application.h>
@@ -335,6 +336,8 @@ ViewProviderPartExt::~ViewProviderPartExt()
 
 void ViewProviderPartExt::onChanged(const App::Property* prop)
 {
+    Gui::ColorUpdater colorUpdater;
+
     if (prop == &MappedColors ||
         prop == &MapFaceColor ||
         prop == &MapLineColor ||
@@ -342,9 +345,6 @@ void ViewProviderPartExt::onChanged(const App::Property* prop)
         prop == &MapTransparency || 
         prop == &ForceMapColors) 
     {
-        if (Gui::ViewParams::getColorRecompute() && getObject())
-            getObject()->touch(true);
-
         if(!prop->testStatus(App::Property::User3)) {
             if(prop == &MapFaceColor) {
                 if(!MapFaceColor.getValue()) {
@@ -365,11 +365,6 @@ void ViewProviderPartExt::onChanged(const App::Property* prop)
             updateColors();
         }
         return;
-    } else if (Gui::ViewParams::getColorRecompute() && getObject()) {
-        if (prop == &DiffuseColor
-                || prop == &LineColorArray
-                || prop == &PointColorArray)
-            getObject()->touch(true);
     }
     
     if (isRestoring()) {
@@ -463,12 +458,15 @@ void ViewProviderPartExt::onChanged(const App::Property* prop)
     }
     else if (prop == &PointColorArray) {
         setHighlightedPoints(PointColorArray.getValues());
+        Gui::ColorUpdater::addObject(getObject());
     }
     else if (prop == &LineColorArray) {
         setHighlightedEdges(LineColorArray.getValues());
+        Gui::ColorUpdater::addObject(getObject());
     }
     else if (prop == &DiffuseColor) {
         setHighlightedFaces(DiffuseColor.getValues());
+        Gui::ColorUpdater::addObject(getObject());
     }
     else if(prop == &ShapeColor) {
         if(!ShapeColor.testStatus(App::Property::User3)) {
@@ -862,9 +860,6 @@ std::vector<Base::Vector3d> ViewProviderPartExt::getSelectionShape(const char* /
 
 void ViewProviderPartExt::setHighlightedFaces(const std::vector<App::Color>& colors)
 {
-    if (getObject() && getObject()->testStatus(App::ObjectStatus::TouchOnColorChange))
-        getObject()->touch(true);
-
     Gui::SoUpdateVBOAction action;
     action.apply(this->faceset);
 
@@ -899,6 +894,7 @@ void ViewProviderPartExt::setHighlightedFaces(const std::vector<App::Color>& col
     pcShapeMaterial->diffuseColor.setValue(color.r, color.g, color.b);
     //pcShapeMaterial->transparency = colors[0].a; do not get transparency from DiffuseColor in this case
     pcShapeMaterial->transparency.setValue(ShapeMaterial.getValue().transparency);
+
 }
 
 void ViewProviderPartExt::setHighlightedFaces(const std::vector<App::Material>& colors)
@@ -1126,8 +1122,6 @@ void ViewProviderPartExt::unsetHighlightedFaces()
 
 void ViewProviderPartExt::setHighlightedEdges(const std::vector<App::Color>& colors)
 {
-    if (getObject() && getObject()->testStatus(App::ObjectStatus::TouchOnColorChange))
-        getObject()->touch(true);
     int size = static_cast<int>(colors.size());
     if (size > 1) {
         // Although indexed lineset is used the material binding must be PER_FACE!
@@ -1169,8 +1163,6 @@ void ViewProviderPartExt::unsetHighlightedEdges()
 
 void ViewProviderPartExt::setHighlightedPoints(const std::vector<App::Color>& colors)
 {
-    if (getObject() && getObject()->testStatus(App::ObjectStatus::TouchOnColorChange))
-        getObject()->touch(true);
     int size = static_cast<int>(colors.size());
     if (size > 1) {
         int numpoints = pcoords->point.getNum();
@@ -1492,6 +1484,15 @@ struct ColorInfo {
         }
     }
 };
+
+void ViewProviderPartExt::checkColorUpdate()
+{
+    if (MapFaceColor.getValue()
+            || MapLineColor.getValue()
+            || MapPointColor.getValue()
+            || MapTransparency.getValue())
+        updateColors();
+}
 
 void ViewProviderPartExt::updateColors(App::Document *sourceDoc, bool forceColorMap) 
 {

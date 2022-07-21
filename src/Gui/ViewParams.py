@@ -382,7 +382,6 @@ Params = [
     ParamBool('StickyTaskControl',  True,
         "Makes the task dialog buttons stay at top or bottom of task view."),
     ParamBool('ColorOnTop',  True, "Show object on top when editing its color."),
-    ParamBool('ColorRecompute',  True, "Recompute affected object(s), after editing color."),
     ParamBool('AutoSortWBList',  False, "Sort workbench entries by their names in the combo box."),
     ParamInt('MaxCameraAnimatePeriod',  3000, "Maximum camera move animation duration in milliseconds."),
     ParamBool('TaskNoWheelFocus',  True,

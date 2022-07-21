@@ -77,6 +77,59 @@ FC_LOG_LEVEL_INIT("Gui",true,true)
 
 using namespace Gui;
 
+///////////////////////////////////////////////////////////////////////////
+//
+static int _ColorUpdateCounter;
+static std::set<App::DocumentObjectT> _ColorChangedObjects;
+
+ColorUpdater::ColorUpdater()
+{
+    if (_ColorUpdateCounter >= 0)
+        ++_ColorUpdateCounter;
+}
+
+ColorUpdater::~ColorUpdater()
+{
+    if (_ColorUpdateCounter <= 0
+            || --_ColorUpdateCounter > 0
+            || _ColorChangedObjects.empty())
+        return;
+    // To prevent infinite recursive update
+    _ColorUpdateCounter = -1;
+    try {
+        std::set<App::DocumentObject*> inset;
+        for (const auto &objT : _ColorChangedObjects) {
+            if (auto obj = objT.getObject()) {
+                if (!obj->isRecomputing() && !obj->isTouched())
+                    obj->getInListEx(inset, true);
+            }
+        }
+        std::vector<App::DocumentObject*> objs(inset.begin(), inset.end());
+        for (auto obj : App::Document::getDependencyList(objs, App::Document::DepSort)) {
+            if (obj->isRecomputing() || obj->isTouched() || !inset.count(obj))
+                continue;
+            if (auto vp = Base::freecad_dynamic_cast<ViewProviderDocumentObject>(
+                        Gui::Application::Instance->getViewProvider(obj))) {
+                vp->checkColorUpdate();
+            }
+        }
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    } catch (...)
+    {}
+    _ColorChangedObjects.clear();
+    _ColorUpdateCounter = 0;
+}
+
+void ColorUpdater::addObject(App::DocumentObject *obj)
+{
+    if (_ColorUpdateCounter && obj && !obj->isRecomputing() && !obj->isTouched())
+        _ColorChangedObjects.emplace(obj);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
 PROPERTY_SOURCE(Gui::ViewProviderDocumentObject, Gui::ViewProvider)
 
 ViewProviderDocumentObject::ViewProviderDocumentObject()

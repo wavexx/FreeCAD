@@ -21,6 +21,7 @@
  ****************************************************************************/
 
 #include "PreCompiled.h"
+#include "ViewProviderDocumentObject.h"
 
 #ifndef _PreComp_
 # include <Inventor/nodes/SoSeparator.h>
@@ -2058,6 +2059,8 @@ QPixmap ViewProviderLink::getOverlayPixmap() const {
 }
 
 void ViewProviderLink::onChanged(const App::Property* prop) {
+    Gui::ColorUpdater colorUpdater;
+
     if(prop==&ChildViewProvider) {
         childVp = freecad_dynamic_cast<ViewProviderDocumentObject>(ChildViewProvider.getObject().get());
         if(childVp && getObject()) {
@@ -2098,8 +2101,10 @@ void ViewProviderLink::onChanged(const App::Property* prop) {
             prop == &MaterialList || prop == &OverrideMaterialList)
         {
             applyMaterial();
+            Gui::ColorUpdater::addObject(getObject());
         }else if(prop == &OverrideColorList) {
             applyColors();
+            Gui::ColorUpdater::addObject(getObject());
         }else if(prop==&DrawStyle || prop==&PointSize || prop==&LineWidth) {
             if(!DrawStyle.getValue())
                 linkView->setDrawStyle(0);
