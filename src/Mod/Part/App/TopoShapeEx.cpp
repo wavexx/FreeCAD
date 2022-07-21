@@ -1354,8 +1354,6 @@ bool TopoShape::_makETransform(const TopoShape &shape,
 }
 
 TopoShape &TopoShape::makETransform(const TopoShape &shape, const gp_Trsf &trsf, const char *op, bool copy) {
-    _Shape.Nullify();
-    
     if(!copy) {
         // OCCT checks the ScaleFactor against gp::Resolution() which is DBL_MIN!!!
         copy = trsf.ScaleFactor()*trsf.HVectorialPart().Determinant() < 0. ||
@@ -1427,8 +1425,6 @@ TopoShape &TopoShape::makEGTransform(const TopoShape &shape,
 
 TopoShape &TopoShape::makECopy(const TopoShape &shape, const char *op, bool copyGeom, bool copyMesh)
 {
-    _Shape.Nullify();
-
     if(shape.isNull())
         return *this;
 
@@ -1492,7 +1488,6 @@ TopoShape &TopoShape::makEPipeShell( const std::vector<TopoShape> &shapes,
                                      double tolAngular)
 {
     if(!op) op = TOPOP_PIPE_SHELL;
-    _Shape.Nullify();
 
     if(shapes.size()<2)
         FC_THROWM(Base::CADKernelError,"Not enough input shape");
@@ -1600,7 +1595,6 @@ TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
         int orientation, const char *op)
 {
     if(!op) op = TOPOP_RULED_SURFACE;
-    _Shape.Nullify();
 
     if(shapes.size()!=2)
         FC_THROWM(Base::CADKernelError,"Wrong number of input shape");
@@ -1816,7 +1810,6 @@ TopoShape &TopoShape::makELoft(const std::vector<TopoShape> &shapes,
                                const char *op)
 {
     if(!op) op = TOPOP_LOFT;
-    _Shape.Nullify();
 
     // http://opencascade.blogspot.com/2010/01/surface-modeling-part5.html
     BRepOffsetAPI_ThruSections aGenerator (isSolid,isRuled);
@@ -1867,7 +1860,6 @@ TopoShape &TopoShape::makELoft(const std::vector<TopoShape> &shapes,
 
 TopoShape &TopoShape::makEPrism(const TopoShape &base, const gp_Vec& vec, const char *op) {
     if(!op) op = TOPOP_EXTRUDE;
-    _Shape.Nullify();
     if(base.isNull())
         HANDLE_NULL_SHAPE;
     BRepPrimAPI_MakePrism mkPrism(base.getShape(), vec);
@@ -2110,7 +2102,6 @@ TopoShape &TopoShape::makERevolve(const TopoShape &_base, const gp_Ax1& axis,
         double d, const char *face_maker, const char *op)
 {
     if(!op) op = TOPOP_REVOLVE;
-    _Shape.Nullify();
 
     TopoShape base(_base);
     if(base.isNull())
@@ -2127,7 +2118,6 @@ TopoShape &TopoShape::makERevolve(const TopoShape &_base, const gp_Ax1& axis,
 
 TopoShape &TopoShape::makEMirror(const TopoShape &shape, const gp_Ax2 &ax2, const char *op) {
     if(!op) op = TOPOP_MIRROR;
-    _Shape.Nullify();
 
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
@@ -2184,7 +2174,6 @@ TopoShape &TopoShape::makEOffset(const TopoShape &shape,
         short offsetMode, short join, bool fill, const char *op)
 {
     if(!op) op = TOPOP_OFFSET;
-    _Shape.Nullify();
 
 #if OCC_VERSION_HEX < 0x070200
     BRepOffsetAPI_MakeOffsetShape mkOffset(shape.getShape(), offset, tol, BRepOffset_Mode(offsetMode),
@@ -2367,8 +2356,6 @@ TopoShape &TopoShape::makEOffset2D(const TopoShape &shape, double offset, short 
         bool fill, bool allowOpenResult, bool intersection, const char *op)
 {
     if(!op) op = TOPOP_OFFSET2D;
-    _Shape.Nullify();
-    resetElementMap();
 
     if(shape.isNull())
         FC_THROWM(Base::ValueError, "makeOffset2D: input shape is null!");
@@ -2620,8 +2607,6 @@ TopoShape &TopoShape::makEThickSolid(const TopoShape &shape,
         bool selfInter, short offsetMode, short join, const char *op)
 {
     if(!op) op = TOPOP_THICKEN;
-
-    _Shape.Nullify();
 
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
@@ -2927,8 +2912,6 @@ TopoShape &TopoShape::makEFace(const std::vector<TopoShape> &shapes,
                                const char *maker,
                                const gp_Pln *pln)
 {
-    _Shape.Nullify();
-
     if(!maker || !maker[0]) maker = "Part::FaceMakerBullseye";
     std::unique_ptr<FaceMaker> mkFace = FaceMaker::ConstructFromType(maker);
     mkFace->MyHasher = Hasher;
@@ -2992,10 +2975,10 @@ public:
 };
 
 TopoShape &TopoShape::makERefine(const TopoShape &shape, const char *op, bool no_fail) {
-    _Shape.Nullify();
     if(shape.isNull()) {
         if(!no_fail)
             HANDLE_NULL_SHAPE;
+        _Shape.Nullify();
         return *this;
     }
     if(!op) op = TOPOP_REFINE;
@@ -3138,7 +3121,6 @@ TopoShape &TopoShape::makEShellFromWires(const std::vector<TopoShape> &wires, bo
         }
         FC_THROWM(NullShapeException,"No input shapes");
     }
-    _Shape.Nullify();
     maker.Perform();
     this->makESHAPE(maker.Shell(), MapperFill(maker), wires, op);
     return *this;
@@ -3156,7 +3138,6 @@ TopoShape &TopoShape::makEShape(const char *maker,
         FC_THROWM(Base::CADKernelError,"no maker");
 
     if(!op) op = maker;
-    _Shape.Nullify();
 
     if(shapes.empty())
         HANDLE_NULL_SHAPE;
@@ -3593,8 +3574,6 @@ struct NameInfo {
 TopoShape &TopoShape::makESHAPE(const TopoDS_Shape &shape, const Mapper &mapper,
         const std::vector<TopoShape> &shapes, const char *op)
 {
-    _Shape.Nullify();
-
     setShape(shape);
     if(shape.IsNull())
         HANDLE_NULL_SHAPE;
@@ -4144,8 +4123,6 @@ const std::string &TopoShape::lowerPostfix() {
 TopoShape &TopoShape::makESlice(const TopoShape &shape,
         const Base::Vector3d& dir, double d, const char *op)
 {
-    _Shape.Nullify();
-
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
     TopoCrossSection cs(dir.x, dir.y, dir.z,shape,op);
@@ -4185,7 +4162,6 @@ TopoShape &TopoShape::makEFilledFace(const std::vector<TopoShape> &_shapes,
                                      const BRepFillingParams &params,
                                      const char *op)
 {
-    _Shape.Nullify();
     if(!op)
         op = TOPOP_FILLED_FACE;
     BRepOffsetAPI_MakeFilling maker(params.degree,
@@ -4366,7 +4342,6 @@ bool TopoShape::fixSolidOrientation()
 }
 
 TopoShape &TopoShape::makESolid(const TopoShape &shape, const char *op) {
-    _Shape.Nullify();
     if(!op) op = TOPOP_SOLID;
 
     if(shape.isNull())
@@ -4412,8 +4387,6 @@ TopoShape &TopoShape::makESolid(const TopoShape &shape, const char *op) {
 TopoShape &TopoShape::replacEShape(const TopoShape &shape,
         const std::vector<std::pair<TopoShape,TopoShape> > &s)
 {
-    _Shape.Nullify();
-
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
     BRepTools_ReShape reshape;
@@ -4433,8 +4406,6 @@ TopoShape &TopoShape::replacEShape(const TopoShape &shape,
 
 TopoShape &TopoShape::removEShape(const TopoShape &shape, const std::vector<TopoShape>& s)
 {
-    _Shape.Nullify();
-
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
     BRepTools_ReShape reshape;
@@ -4452,7 +4423,6 @@ TopoShape &TopoShape::makEFillet(const TopoShape &shape, const std::vector<TopoS
         double radius1, double radius2, const char *op)
 {
     if(!op) op = TOPOP_FILLET;
-    _Shape.Nullify();
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
 
@@ -4475,7 +4445,6 @@ TopoShape &TopoShape::makEChamfer(const TopoShape &shape, const std::vector<Topo
         double radius1, double radius2, const char *op, bool flipDirection, bool asAngle)
 {
     if(!op) op = TOPOP_CHAMFER;
-    _Shape.Nullify();
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
 
@@ -4514,7 +4483,6 @@ TopoShape &TopoShape::makEGeneralFuse(const std::vector<TopoShape> &_shapes,
     FC_THROWM(Base::NotImplementedError,"GFA is available only in OCC 6.9.0 and up.");
 #else
     if(!op) op = TOPOP_GENERAL_FUSE;
-    _Shape.Nullify();
 
     if(_shapes.empty())
         HANDLE_NULL_INPUT;
@@ -4699,7 +4667,6 @@ TopoShape &TopoShape::makEDraft(const TopoShape &shape, const std::vector<TopoSh
 {
     if(!op) op = TOPOP_DRAFT;
 
-    _Shape.Nullify();
     if(shape.isNull())
         HANDLE_NULL_SHAPE;
 
