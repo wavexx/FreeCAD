@@ -36,6 +36,25 @@ ClassName = 'PartParams'
 ParamPath = 'User parameter:BaseApp/Preferences/Mod/Part'
 ClassDoc = 'Convenient class to obtain Part/PartDesign related parameters'
 
+# import ../Gui/PartGuiParams.py
+sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
+'Gui'))
+import PartGuiParams
+_PartGuiParams = { param.name : param for param in PartGuiParams.Params }
+
+# import the following parameters in PartGuiParams.py so that we don't need to
+# maintain the same definition in two places. These parameters need to be in Gui
+# namespace because we need realtime changes in view providers in response to
+# changes in these parameters
+_MinimumDeviation = _PartGuiParams['MinimumDeviation']
+_MinimumDeviation.on_change = False
+_MeshDeviation = _PartGuiParams['MeshDeviation']
+_MeshDeviation.on_change = False
+_MeshAngularDeflection = _PartGuiParams['MeshAngularDeflection']
+_MeshAngularDeflection.on_change = False
+_MinimumAngularDeflection = _PartGuiParams['MinimumAngularDeflection']
+_MinimumAngularDeflection.on_change = False
+
 Params = [
     ParamBool("ShapePropertyCopy", False),
     ParamBool("DisableShapeCache", False),
@@ -53,6 +72,10 @@ Params = [
     ParamBool("AuxGroupUniqueLabel", False),
     ParamBool("SplitEllipsoid", True),
     ParamInt("ParallelRunThreshold", 100),
+    _MinimumDeviation,
+    _MeshDeviation,
+    _MeshAngularDeflection,
+    _MinimumAngularDeflection,
 ]
 
 def declare():

@@ -203,9 +203,15 @@
 #include <App/Material.h>
 #include <App/Application.h>
 
-#include "PartPyCXX.h"
-#include "TopoShape.h"
+#include "BRepOffsetAPI_MakeOffsetFix.h"
+#include "encodeFilename.h"
+#include "FaceMakerBullseye.h"
+#include "modelRefine.h"
 #include "CrossSection.h"
+#include "PartParams.h"
+#include "PartPyCXX.h"
+#include "ProgressIndicator.h"
+#include "TopoShape.h"
 #include "TopoShapeFacePy.h"
 #include "TopoShapeEdgePy.h"
 #include "TopoShapeVertexPy.h"
@@ -214,12 +220,7 @@
 #include "TopoShapeSolidPy.h"
 #include "TopoShapeCompoundPy.h"
 #include "TopoShapeCompSolidPy.h"
-#include "ProgressIndicator.h"
-#include "modelRefine.h"
 #include "Tools.h"
-#include "encodeFilename.h"
-#include "FaceMakerBullseye.h"
-#include "BRepOffsetAPI_MakeOffsetFix.h"
 
 FC_LOG_LEVEL_INIT("TopoShape",true,true)
 
@@ -3126,16 +3127,22 @@ TopoDS_Shape TopoShape::removeSplitter() const
     return _Shape;
 }
 
-static void meshShape(const TopoDS_Shape &shape, double accuracy=0.0)
+void TopoShape::meshShape(double linearDeflection,
+                          double angularDeflection,
+                          bool parallel,
+                          bool relative) const
 {
-    if (accuracy == 0.0) {
-        static ParameterGrp::handle hGrp;
-        if (!hGrp)
-            hGrp = App::GetApplication().GetParameterGroupByPath(
-                    "User parameter:BaseApp/Preferences/Mod/Part");
-        accuracy = hGrp->GetFloat("MeshDeviation", 0.2);
-    }
-    BRepMesh_IncrementalMesh aMesh(shape, accuracy);
+    if (linearDeflection == 0.0)
+        linearDeflection = std::max(PartParams::getMeshDeviation(),
+                                    PartParams::getMinimumDeviation());
+    if (angularDeflection == 0.0)
+        angularDeflection = std::max(PartParams::getMeshAngularDeflection(),
+                                     PartParams::getMinimumAngularDeflection());
+    BRepMesh_IncrementalMesh aMesh(_Shape,
+                                   linearDeflection,
+                                   relative ? Standard_True : Standard_False,
+                                   angularDeflection,
+                                   parallel ? Standard_True : Standard_False);
 }
 
 void TopoShape::getDomains(std::vector<Domain>& domains) const
@@ -3157,7 +3164,7 @@ void TopoShape::getDomains(std::vector<Domain>& domains) const
             if (!meshed) {
                 // Retry to make sure the shape is meshed
                 meshed = true;
-                meshShape(this->_Shape);
+                meshShape();
                 done = Tools::getTriangulation(face, points, facets);
             }
             if (!done) {
@@ -3602,7 +3609,7 @@ void TopoShape::getLinesFromSubElement(const Data::Segment* element,
                     if (meshed)
                         continue;
                     meshed = true;
-                    meshShape(shape.getShape());
+                    shape.meshShape();
                     if (!Tools::getPolygon3D(aEdge, points))
                         continue;
                 }
@@ -3616,7 +3623,7 @@ void TopoShape::getLinesFromSubElement(const Data::Segment* element,
                         continue;
                     // make sure the shape is meshed
                     meshed = true;
-                    meshShape(shape.getShape());
+                    shape.meshShape();
                     if (!Part::Tools::getPolygonOnTriangulation(aEdge, aFace, points))
                         continue;
                 }

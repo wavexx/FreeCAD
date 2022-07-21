@@ -228,6 +228,46 @@ public:
     static const char *docParallelRunThreshold();
     //@}
 
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter MinimumDeviation
+    static const double & getMinimumDeviation();
+    static const double & defaultMinimumDeviation();
+    static void removeMinimumDeviation();
+    static void setMinimumDeviation(const double &v);
+    static const char *docMinimumDeviation();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter MeshDeviation
+    static const double & getMeshDeviation();
+    static const double & defaultMeshDeviation();
+    static void removeMeshDeviation();
+    static void setMeshDeviation(const double &v);
+    static const char *docMeshDeviation();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter MeshAngularDeflection
+    static const double & getMeshAngularDeflection();
+    static const double & defaultMeshAngularDeflection();
+    static void removeMeshAngularDeflection();
+    static void setMeshAngularDeflection(const double &v);
+    static const char *docMeshAngularDeflection();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter MinimumAngularDeflection
+    static const double & getMinimumAngularDeflection();
+    static const double & defaultMinimumAngularDeflection();
+    static void removeMinimumAngularDeflection();
+    static void setMinimumAngularDeflection(const double &v);
+    static const char *docMinimumAngularDeflection();
+    //@}
+
 // Auto generated code (Tools/params_utils.py:150)
 }; // class PartParams
 } // namespace Part

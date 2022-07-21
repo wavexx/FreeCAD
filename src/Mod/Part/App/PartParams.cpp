@@ -57,6 +57,10 @@ public:
     bool AuxGroupUniqueLabel;
     bool SplitEllipsoid;
     long ParallelRunThreshold;
+    double MinimumDeviation;
+    double MeshDeviation;
+    double MeshAngularDeflection;
+    double MinimumAngularDeflection;
 
     // Auto generated code (Tools/params_utils.py:203)
     PartParamsP() {
@@ -95,6 +99,14 @@ public:
         funcs["SplitEllipsoid"] = &PartParamsP::updateSplitEllipsoid;
         ParallelRunThreshold = handle->GetInt("ParallelRunThreshold", 100);
         funcs["ParallelRunThreshold"] = &PartParamsP::updateParallelRunThreshold;
+        MinimumDeviation = handle->GetFloat("MinimumDeviation", 0.05);
+        funcs["MinimumDeviation"] = &PartParamsP::updateMinimumDeviation;
+        MeshDeviation = handle->GetFloat("MeshDeviation", 0.2);
+        funcs["MeshDeviation"] = &PartParamsP::updateMeshDeviation;
+        MeshAngularDeflection = handle->GetFloat("MeshAngularDeflection", 28.65);
+        funcs["MeshAngularDeflection"] = &PartParamsP::updateMeshAngularDeflection;
+        MinimumAngularDeflection = handle->GetFloat("MinimumAngularDeflection", 5.0);
+        funcs["MinimumAngularDeflection"] = &PartParamsP::updateMinimumAngularDeflection;
     }
 
     // Auto generated code (Tools/params_utils.py:217)
@@ -176,6 +188,22 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateParallelRunThreshold(PartParamsP *self) {
         self->ParallelRunThreshold = self->handle->GetInt("ParallelRunThreshold", 100);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateMinimumDeviation(PartParamsP *self) {
+        self->MinimumDeviation = self->handle->GetFloat("MinimumDeviation", 0.05);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateMeshDeviation(PartParamsP *self) {
+        self->MeshDeviation = self->handle->GetFloat("MeshDeviation", 0.2);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateMeshAngularDeflection(PartParamsP *self) {
+        self->MeshAngularDeflection = self->handle->GetFloat("MeshAngularDeflection", 28.65);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateMinimumAngularDeflection(PartParamsP *self) {
+        self->MinimumAngularDeflection = self->handle->GetFloat("MinimumAngularDeflection", 5.0);
     }
 };
 
@@ -622,5 +650,113 @@ void PartParams::setParallelRunThreshold(const long &v) {
 // Auto generated code (Tools/params_utils.py:314)
 void PartParams::removeParallelRunThreshold() {
     instance()->handle->RemoveInt("ParallelRunThreshold");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *PartParams::docMinimumDeviation() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & PartParams::getMinimumDeviation() {
+    return instance()->MinimumDeviation;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & PartParams::defaultMinimumDeviation() {
+    const static double def = 0.05;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void PartParams::setMinimumDeviation(const double &v) {
+    instance()->handle->SetFloat("MinimumDeviation",v);
+    instance()->MinimumDeviation = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void PartParams::removeMinimumDeviation() {
+    instance()->handle->RemoveFloat("MinimumDeviation");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *PartParams::docMeshDeviation() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & PartParams::getMeshDeviation() {
+    return instance()->MeshDeviation;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & PartParams::defaultMeshDeviation() {
+    const static double def = 0.2;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void PartParams::setMeshDeviation(const double &v) {
+    instance()->handle->SetFloat("MeshDeviation",v);
+    instance()->MeshDeviation = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void PartParams::removeMeshDeviation() {
+    instance()->handle->RemoveFloat("MeshDeviation");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *PartParams::docMeshAngularDeflection() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & PartParams::getMeshAngularDeflection() {
+    return instance()->MeshAngularDeflection;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & PartParams::defaultMeshAngularDeflection() {
+    const static double def = 28.65;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void PartParams::setMeshAngularDeflection(const double &v) {
+    instance()->handle->SetFloat("MeshAngularDeflection",v);
+    instance()->MeshAngularDeflection = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void PartParams::removeMeshAngularDeflection() {
+    instance()->handle->RemoveFloat("MeshAngularDeflection");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *PartParams::docMinimumAngularDeflection() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & PartParams::getMinimumAngularDeflection() {
+    return instance()->MinimumAngularDeflection;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & PartParams::defaultMinimumAngularDeflection() {
+    const static double def = 5.0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void PartParams::setMinimumAngularDeflection(const double &v) {
+    instance()->handle->SetFloat("MinimumAngularDeflection",v);
+    instance()->MinimumAngularDeflection = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void PartParams::removeMinimumAngularDeflection() {
+    instance()->handle->RemoveFloat("MinimumAngularDeflection");
 }
 //[[[end]]]

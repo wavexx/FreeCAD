@@ -351,6 +351,22 @@ public:
     TopoShape splitWires(std::vector<TopoShape> *inner = nullptr,
                          SplitWireReorient reorient = Reorient) const;
 
+    /** Mesh this shape with the given accuracy
+     *
+     * Triagulate this shape with a given accuracy stored internally.
+     *
+     * @param linearDeflection: linear deflection.
+     * @param angluarDeflection: angular deflection.
+     * @param parallel: if true, shape will be meshed in parallel.
+     * @param relative: if true, then deflection used for discretization of each
+     *        edge will be <theLinDeflection> * <size of edge>. Deflection used
+     *        for the faces will be the maximum deflection of their edges.
+     */
+    void meshShape(double linearDeflection=0.0,
+                   double angularDeflection=0.0,
+                   bool parallel = true,
+                   bool relative = false) const;
+
     /** @name Getting basic geometric entities */
     //@{
     /** Get points from object with given accuracy */
