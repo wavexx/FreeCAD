@@ -105,6 +105,7 @@
 #include <Mod/Part/App/Geometry.h>
 #include <Mod/Part/App/DatumFeature.h>
 #include <Mod/Part/App/BodyBase.h>
+#include <Mod/Part/App/PartParams.h>
 #include <Mod/Part/App/PartPyCXX.h>
 #include <Mod/Part/App/TopoShapeOpCode.h>
 
@@ -7213,6 +7214,11 @@ Part::Geometry* projectEdgeToLine(const TopoDS_Edge &edge,
 
     // Make a copy to work around OCC cicular edge transformation bug
     shape = shape.makECopy();
+
+    // Explicitly make the mesh, or else getBoundBox() will be very loosely
+    // bound.
+    shape.meshShape(Part::PartParams::getMinimumDeviation(),
+                    Part::PartParams::getMinimumAngularDeflection());
 
     // Obtain the bounding box and move the extreme points back to its original
     // location
