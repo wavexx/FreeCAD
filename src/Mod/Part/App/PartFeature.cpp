@@ -1502,6 +1502,7 @@ void Feature::beforeSave() const
 void Feature::unsetupObject()
 {
     collapseShapeContents(false);
+    inherited::unsetupObject();
 }
 
 void Feature::collapseShapeContents(bool removeProperty)
