@@ -2847,6 +2847,7 @@ TopoShape &TopoShape::makEWires(const TopoShape &shape,
     while (edge_list.size() > 0) {
         BRepBuilderAPI_MakeWire mkWire;
         // add and erase first edge
+        edges.clear();
         edges.push_back(edge_list.front());
         edge_list.pop_front();
         mkWire.Add(TopoDS::Edge(edges.back().getShape()));
