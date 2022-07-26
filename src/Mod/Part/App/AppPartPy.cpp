@@ -880,7 +880,7 @@ private:
         const char *op = 0;
         if (!PyArg_ParseTuple(args.ptr(), "O|s", &obj,&op))
             throw Py::Exception();
-        return shape2pyshape(Part::TopoShape().makEShape(TOPOP_SHELL,getPyShapes(obj),op));
+        return shape2pyshape(Part::TopoShape().makEBoolean(Part::OpCodes::Shell,getPyShapes(obj),op));
 #else
         PyObject *obj;
         if (!PyArg_ParseTuple(args.ptr(), "O", &obj))
@@ -1060,7 +1060,7 @@ private:
             [&](const TopoDS_Shape &s, PyObject *value, const char *err) {
                 if (!PyLong_Check(value))
                     throw Py::ValueError(err);
-                params.orders[s] = Py::Int(value);
+                params.orders[s] = static_cast<TopoShape::Continuity>(static_cast<long>(Py::Int(value)));
                 return;
             });
         auto shapes = getPyShapes(obj);
@@ -1868,9 +1868,12 @@ private:
         try {
 #ifndef FC_NO_ELEMENT_MAP
             TopoShape mShape = *static_cast<TopoShapePy*>(path)->getTopoShapePtr();
+            // makeSweep uses GeomFill_Pipe which does not support shape
+            // history. So use makEPipeShell() as a replacement
             return shape2pyshape(TopoShape(0, mShape.Hasher).makEPipeShell(
                         {mShape, *static_cast<TopoShapePy*>(profile)->getTopoShapePtr()},
-                        Standard_False, Standard_False, 0, nullptr, tolerance));
+                        Standard_False, Standard_False, TopoShape::TransitionMode::Transformed,
+                        nullptr, tolerance));
 #else
             if (tolerance == 0.0)
                 tolerance=0.001;
@@ -2043,11 +2046,11 @@ private:
             MapperMaker mapper(splitShape);
             for (TopTools_ListIteratorOfListOfShape it(d); it.More(); it.Next()) {
                 TopoShape s(0, sources.front().Hasher);
-                list1.append(shape2pyshape(s.makESHAPE(it.Value(), mapper, sources, TOPOP_SPLIT)));
+                list1.append(shape2pyshape(s.makESHAPE(it.Value(), mapper, sources, Part::OpCodes::Split)));
             }
             for (TopTools_ListIteratorOfListOfShape it(l); it.More(); it.Next()) {
                 TopoShape s(0, sources.front().Hasher);
-                list2.append(shape2pyshape(s.makESHAPE(it.Value(), mapper, sources, TOPOP_SPLIT)));
+                list2.append(shape2pyshape(s.makESHAPE(it.Value(), mapper, sources, Part::OpCodes::Split)));
             }
 #else
             for (TopTools_ListIteratorOfListOfShape it(d); it.More(); it.Next()) {

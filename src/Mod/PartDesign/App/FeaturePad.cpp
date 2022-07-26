@@ -310,7 +310,7 @@ App::DocumentObjectExecReturn *Pad::_execute(bool makeface, bool fuse)
             if (!supportface.hasSubShape(TopAbs_WIRE))
                 supportface = TopoShape();
             auto mode = TopoShape::PrismMode::None;
-            prism.makEPrism(base, sketchshape, supportface,
+            prism.makEPrismUntil(base, sketchshape, supportface,
                     upToFace, dir, mode, CheckUpToFaceLimits.getValue());
         } else {
             Part::Extrusion::ExtrusionParameters params;
@@ -373,15 +373,15 @@ App::DocumentObjectExecReturn *Pad::_execute(bool makeface, bool fuse)
                 const char *maker;
                 switch (getAddSubType()) {
                 case Subtractive:
-                    maker = TOPOP_CUT;
+                    maker = Part::OpCodes::Cut;
                     break;
                 case Intersecting:
-                    maker = TOPOP_COMMON;
+                    maker = Part::OpCodes::Common;
                     break;
                 default:
-                    maker = TOPOP_FUSE;
+                    maker = Part::OpCodes::Fuse;
                 }
-                result.makEShape(maker, {base,prism});
+                result.makEBoolean(maker, {base,prism});
             }catch(Standard_Failure &){
                 return new App::DocumentObjectExecReturn("Fusion with base feature failed");
             }

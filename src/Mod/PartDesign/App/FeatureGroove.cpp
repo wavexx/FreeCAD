@@ -175,15 +175,15 @@ App::DocumentObjectExecReturn *Groove::execute(void)
             const char *maker;
             switch (getAddSubType()) {
             case Additive:
-                maker = TOPOP_FUSE;
+                maker = Part::OpCodes::Fuse;
                 break;
             case Intersecting:
-                maker = TOPOP_COMMON;
+                maker = Part::OpCodes::Common;
                 break;
             default:
-                maker = TOPOP_CUT;
+                maker = Part::OpCodes::Cut;
             }
-            boolOp.makEShape(maker, {base,result});
+            boolOp.makEBoolean(maker, {base,result});
         }catch(Standard_Failure &) {
             return new App::DocumentObjectExecReturn("Failed to cut base feature");
         }

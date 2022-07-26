@@ -475,7 +475,7 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
                 ss.str("");
                 ss << Data::ComplexGeoData::externalTagPostfix()
                    << Data::ComplexGeoData::elementMapPrefix()
-                   << TOPOP_SHAPEBINDER << ':' << shapeOwners[idx].first
+                   << Part::OpCodes::Shapebinder << ':' << shapeOwners[idx].first
                    << ':' << shapeOwners[idx].second;
                 shape.reTagElementMap(-getID(),
                         getDocument()->getStringHasher(),ss.str().c_str());
@@ -679,7 +679,7 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
                 auto makeOffset = [&](const TopoShape &s, bool is2D) {
                     if (is2D)
                         results.push_back(s.makEOffset2D(Offset.getValue(),
-                                                         OffsetJoinType.getValue(),
+                                                         static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
                                                          OffsetFill.getValue(),
                                                          OffsetOpenResult.getValue(),
                                                          OffsetIntersection.getValue()));
@@ -689,7 +689,7 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
                                                        OffsetIntersection.getValue(),
                                                        false,
                                                        OffsetOpenResult.getValue() ? 0 : 1,
-                                                       OffsetJoinType.getValue(),
+                                                       static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
                                                        OffsetFill.getValue()));
                 };
                 for (const auto &s : result.getSubTopoShapes(TopAbs_SOLID))
@@ -763,7 +763,8 @@ App::DocumentObject *SubShapeBinder::getElementOwner(const Data::MappedName & na
     if(!name)
         return nullptr;
 
-    static std::string op(TOPOP_SHAPEBINDER ":");
+    static std::string op(Part::OpCodes::Shapebinder);
+    op += ":";
     int offset = name.rfind(op);
     if (offset < 0)
         return nullptr;

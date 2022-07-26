@@ -1669,7 +1669,7 @@ void Feature::mergeShapeContents()
         break;
     case TopAbs_COMPSOLID:
         if (!changed)
-            shape.makEShape(TOPOP_COMPSOLID, shapes);
+            shape.makEBoolean(Part::OpCodes::Compsolid, shapes);
         break;
     default:
         if (!changed)

@@ -487,7 +487,7 @@ void Extrusion::makeDraft(const ExtrusionParameters& params, const TopoShape& _s
             mat.SetTranslation(translation);
             TopoShape offsetShape(sourceWire.makETransform(mat,"RV"));
             if (fabs(offset)>Precision::Confusion())
-                offsetShape = offsetShape.makEOffset2D(offset, GeomAbs_Intersection);
+                offsetShape = offsetShape.makEOffset2D(offset, TopoShape::JoinType::Intersection);
             return offsetShape;
         };
 

@@ -664,18 +664,10 @@ App::DocumentObjectExecReturn *Sweep::execute(void)
     }
     Standard_Boolean isSolid = Solid.getValue() ? Standard_True : Standard_False;
     Standard_Boolean isFrenet = Frenet.getValue() ? Standard_True : Standard_False;
-    BRepBuilderAPI_TransitionMode transMode;
-    switch (Transition.getValue()) {
-        case 1: transMode = BRepBuilderAPI_RightCorner;
-                break;
-        case 2: transMode = BRepBuilderAPI_RoundCorner;
-                break;
-        default: transMode = BRepBuilderAPI_Transformed;
-                 break;
-    }
+    auto transMode = static_cast<TopoShape::TransitionMode>(Transition.getValue());
     try {
         TopoShape result(0,getDocument()->getStringHasher());
-        result.makEPipeShell(shapes,isSolid,isFrenet,transMode,TOPOP_SWEEP);
+        result.makEPipeShell(shapes,isSolid,isFrenet,transMode,Part::OpCodes::Sweep);
         if (Linearize.getValue())
             result.linearize(true, false);
         this->Shape.setValue(result);
@@ -803,7 +795,8 @@ App::DocumentObjectExecReturn *Thickness::execute(void)
         this->Shape.setValue(shape);
 #else
     this->Shape.setValue(TopoShape(0,getDocument()->getStringHasher()).makEThickSolid(
-                base,shapes,thickness,tol,inter,self,mode,join));
+                base,shapes,thickness,tol,inter,self,mode,
+                static_cast<TopoShape::JoinType>(join)));
 #endif
     return Part::Feature::execute();
 }

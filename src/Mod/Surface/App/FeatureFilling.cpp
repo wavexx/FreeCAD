@@ -327,7 +327,7 @@ App::DocumentObjectExecReturn *Filling::execute(void)
                         Standard_Failure::Raise("Invalid sub-shape type");
                 }
                 if (i < orders.size())
-                    params.orders[subShape.getShape()] = orders[i];
+                    params.orders[subShape.getShape()] = static_cast<Part::TopoShape::Continuity>(orders[i]);
             }
         };
 

@@ -293,8 +293,8 @@ TopoShape ProfileBased::getVerifiedFace(bool silent,
             if (!shape.isNull())
                 shape = shape.makEOffsetFace(Fit.getValue(),
                                             InnerFit.getValue(),
-                                            static_cast<short>(FitJoin.getValue()),
-                                            static_cast<short>(InnerFitJoin.getValue()));
+                                            static_cast<Part::TopoShape::JoinType>(FitJoin.getValue()),
+                                            static_cast<Part::TopoShape::JoinType>(InnerFitJoin.getValue()));
             if (!openshape.isNull())
                 openshape.makEOffset2D(Fit.getValue());
         }

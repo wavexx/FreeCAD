@@ -174,19 +174,19 @@ App::DocumentObjectExecReturn *Revolution::execute(void)
         const char *maker;
         switch(getAddSubType()) {
         case Additive:
-            maker = TOPOP_FUSE;
+            maker = Part::OpCodes::Fuse;
             break;
         case Subtractive:
-            maker = TOPOP_CUT;
+            maker = Part::OpCodes::Cut;
             break;
         case Intersecting:
-            maker = TOPOP_COMMON;
+            maker = Part::OpCodes::Common;
             break;
         default:
             return new App::DocumentObjectExecReturn("Unknown operation type");
         }
         try {
-            boolOp.makEShape(maker, {base,result});
+            boolOp.makEBoolean(maker, {base,result});
         }catch(Standard_Failure &e) {
             return new App::DocumentObjectExecReturn("Failed to perform boolean operation");
         }

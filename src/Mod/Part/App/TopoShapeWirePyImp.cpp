@@ -276,7 +276,7 @@ PyObject* TopoShapeWirePy::makePipe(PyObject *args)
             std::vector<TopoShape> shapes;
             shapes.push_back(*getTopoShapePtr());
             shapes.push_back(*static_cast<TopoShapePy*>(pShape)->getTopoShapePtr());
-            return Py::new_reference_to(shape2pyshape(TopoShape().makEShape(TOPOP_PIPE,shapes)));
+            return Py::new_reference_to(shape2pyshape(TopoShape().makEBoolean(Part::OpCodes::Pipe,shapes)));
 #else
             TopoDS_Shape profile = static_cast<TopoShapePy*>(pShape)->getTopoShapePtr()->getShape();
             TopoDS_Shape shape = this->getTopoShapePtr()->makePipe(profile);
@@ -306,7 +306,8 @@ PyObject* TopoShapeWirePy::makePipeShell(PyObject *args)
             getPyShapes(obj,shapes);
             return Py::new_reference_to(shape2pyshape(TopoShape().makEPipeShell(shapes, 
                             PyObject_IsTrue(make_solid) ? Standard_True : Standard_False,
-                            PyObject_IsTrue(is_Frenet)  ? Standard_True : Standard_False, transition)));
+                            PyObject_IsTrue(is_Frenet)  ? Standard_True : Standard_False,
+                            static_cast<TopoShape::TransitionMode>(transition))));
 #else
             TopTools_ListOfShape sections;
             Py::Sequence list(obj);

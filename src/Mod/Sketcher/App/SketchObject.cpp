@@ -317,8 +317,8 @@ void SketchObject::buildShape() {
     if(shapes.empty() && vertices.empty())
         Shape.setValue(Part::TopoShape());
     else if (vertices.empty()) {
-        // Notice here we supply op code TOPOP_SKETCH to makEWires().
-        Shape.setValue(Part::TopoShape().makEWires(shapes,TOPOP_SKETCH));
+        // Notice here we supply op code Part::OpCodes::Sketch to makEWires().
+        Shape.setValue(Part::TopoShape().makEWires(shapes,Part::OpCodes::Sketch));
     } else {
         std::vector<Part::TopoShape> results;
         if (!shapes.empty()) {
@@ -326,7 +326,7 @@ void SketchObject::buildShape() {
             // avoid duplication. Because we'll going to make a compound (to
             // include the vertices) below with the same op code.
             //
-            // Note, that we HAVE TO add the TOPOP_SKETCH op code to all
+            // Note, that we HAVE TO add the Part::OpCodes::Sketch op code to all
             // geometry exposed through the Shape property, because
             // SketchObject::getElementName() relies on this op code to
             // differentiate geometries that are exposed with those in edit
@@ -336,12 +336,12 @@ void SketchObject::buildShape() {
                 results.push_back(wire);
         }
         results.insert(results.end(), vertices.begin(), vertices.end());
-        Shape.setValue(Part::TopoShape().makECompound(results, TOPOP_SKETCH));
+        Shape.setValue(Part::TopoShape().makECompound(results, Part::OpCodes::Sketch));
     }
 }
 
 static const char *hasSketchMarker(const char *name) {
-    static std::string marker(Part::TopoShape::elementMapPrefix()+TOPOP_SKETCH);
+    static std::string marker(Part::TopoShape::elementMapPrefix()+Part::OpCodes::Sketch);
     if (!name)
         return nullptr;
     return strstr(name,marker.c_str());
@@ -10500,13 +10500,13 @@ bool SketchExport::update() {
             throw Base::RuntimeError("Invalid element reference");
         }
         if(!shape.hasSubShape(TopAbs_EDGE))
-            points.push_back(shape.makECopy(TOPOP_SKETCH_EXPORT));
+            points.push_back(shape.makECopy(Part::OpCodes::SketchExport));
         else
             shapes.push_back(shape.makECopy());
     }
     Part::TopoShape res;
     if(shapes.size()) {
-        res.makEWires(shapes,TOPOP_SKETCH_EXPORT);
+        res.makEWires(shapes,Part::OpCodes::SketchExport);
         shapes.clear();
         if(points.size()) {
             // Check if the vertex is already included in the wires

@@ -198,7 +198,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
             if (_Version.getValue() < 1) {
                 auto mode = base.isNull() ? TopoShape::PrismMode::None
                                           : TopoShape::PrismMode::CutFromBase;
-                prism = sketchBase.makEPrism(profileshape, supportface, upToFace,
+                prism = sketchBase.makEPrismUntil(profileshape, supportface, upToFace,
                         dir, mode, CheckUpToFaceLimits.getValue());
                 // DO NOT assign id to the generated prism, because this prism is
                 // actually the final result. We obtain the subtracted shape by cut
@@ -224,7 +224,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 if (NewSolid.getValue())
                     prism = this->AddSubShape.getShape();
                 else if (getAddSubType() == Intersecting)
-                    prism.makEShape(TOPOP_COMMON, {sketchBase, this->AddSubShape.getShape()});
+                    prism.makEBoolean(Part::OpCodes::Common, {sketchBase, this->AddSubShape.getShape()});
                 else if (getAddSubType() == Additive)
                     prism = sketchBase.makEFuse(this->AddSubShape.getShape());
                 else
@@ -234,7 +234,7 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 return App::DocumentObject::StdReturn;
             }
 
-            prism = sketchBase.makEPrism(profileshape, supportface, upToFace,
+            prism = sketchBase.makEPrismUntil(profileshape, supportface, upToFace,
                     dir, TopoShape::PrismMode::None, CheckUpToFaceLimits.getValue());
 
         } else {
@@ -299,15 +299,15 @@ App::DocumentObjectExecReturn *Pocket::execute(void)
                 const char *maker;
                 switch (getAddSubType()) {
                 case Additive:
-                    maker = TOPOP_FUSE;
+                    maker = Part::OpCodes::Fuse;
                     break;
                 case Intersecting:
-                    maker = TOPOP_COMMON;
+                    maker = Part::OpCodes::Common;
                     break;
                 default:
-                    maker = TOPOP_CUT;
+                    maker = Part::OpCodes::Cut;
                 }
-                result.makEShape(maker, {base,prism});
+                result.makEBoolean(maker, {base,prism});
             }
         }catch(Standard_Failure &){
             return new App::DocumentObjectExecReturn("Pocket: Cut out of base feature failed");
