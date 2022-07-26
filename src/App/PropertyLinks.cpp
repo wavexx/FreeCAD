@@ -1355,7 +1355,7 @@ void PropertyLinkSub::setPyObject(PyObject *value)
         if(seq.size() == 0)
             setValue(NULL);
         else if(seq.size()!=2)
-            throw Base::ValueError("Expect input sequence of size 2");
+            throw Base::TypeError("Expect input sequence of size 2");
         else if (PyObject_TypeCheck(seq[0].ptr(), &(DocumentObjectPy::Type))) {
             DocumentObjectPy  *pcObj = (DocumentObjectPy*)seq[0].ptr();
             static const char *errMsg = "type of second element in tuple must be str or sequence of str";
@@ -4620,7 +4620,7 @@ void PropertyXLinkSubList::setPyObject(PyObject *value)
         this->setValue(dummy.getValue(), dummy.getSubValues());
         return;
     }
-    catch (Base::Exception&) {}
+    catch (Base::TypeError&) {}
 
     if (!PyTuple_Check(value) && !PyList_Check(value))
         throw Base::TypeError("Invalid type. Accepts (DocumentObject, (subname...)) or sequence of such type.");
