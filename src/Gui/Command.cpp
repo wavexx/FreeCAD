@@ -955,11 +955,11 @@ bool Command::isActive() {
             if (auto action = qobject_cast<Action*>(qaction->parent())) {
                 if (auto cmd = action->command()) {
                     cmd->isActive();
-                    _pcAction->setIcon(commandIcon(cmd));
+                    setActionIcon(_pcAction, commandIcon(cmd));
                 } else
-                    _pcAction->setIcon(qaction->icon());
+                    setActionIcon(_pcAction, qaction->icon());
             } else
-                _pcAction->setIcon(qaction->icon());
+                setActionIcon(_pcAction, qaction->icon());
             _pcAction->setChecked(qaction->isChecked(),true);
         }
     }
@@ -1070,7 +1070,7 @@ Action * Command::createAction(void)
     Action *pcAction;
     pcAction = new Action(this,getMainWindow());
     if (auto pixmap = getPixmap())
-        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(pixmap));
+        setActionIcon(pcAction, Gui::BitmapFactory().iconFromTheme(pixmap));
     applyCommandData(this->className(), pcAction);
     return pcAction;
 }
@@ -1093,13 +1093,18 @@ void Command::languageChange()
     setup(_pcAction);
 }
 
+void Command::setActionIcon(Action *action, const QIcon &icon)
+{
+    action->setIcon(icon);
+}
+
 void Command::setup(Action *pcAction) {
     if (!pcAction)
         return;
     if (auto action = _getChildAction(pcAction)) {
         if (auto cmd = action->command()) {
             pcAction->setText(QCoreApplication::translate(className(), getMenuText()));
-            pcAction->setIcon(commandIcon(cmd));
+            setActionIcon(pcAction, commandIcon(cmd));
             const char *context = dynamic_cast<PythonCommand*>(cmd) ? cmd->getName() : cmd->className();
             const char *tooltip = cmd->getToolTipText();
             const char *statustip = cmd->getStatusTip();
@@ -1110,14 +1115,14 @@ void Command::setup(Action *pcAction) {
             pcAction->setStatusTip(QCoreApplication::translate(context,statustip));
         } else {
             pcAction->setText(action->text());
-            pcAction->setIcon(action->icon());
+            setActionIcon(pcAction, action->icon());
             pcAction->setToolTip(action->toolTip());
             pcAction->setStatusTip(action->statusTip());
         }
         return;
     }
     if (auto pixmap = getPixmap())
-        pcAction->setIcon(Gui::BitmapFactory().iconFromTheme(pixmap));
+        setActionIcon(pcAction, Gui::BitmapFactory().iconFromTheme(pixmap));
     applyCommandData(this->className(), pcAction);
 }
 
@@ -1269,10 +1274,14 @@ Gui::Action * CheckableCommand::createAction(void)
 {
     Action *pcAction = Command::createAction();
     pcAction->setCheckable(true);
-    pcAction->setIcon(QIcon());
     _pcAction = pcAction;
     isActive();
     return pcAction;
+}
+
+void CheckableCommand::setActionIcon(Action *, const QIcon &)
+{
+    // Do not set icon, as it looks bad in menu for checkable
 }
 
 //===========================================================================

@@ -626,6 +626,7 @@ public:
 protected:
     /// Common setup of action using command data
     void setup(Action *);
+    virtual void setActionIcon(Action *action, const QIcon &);
 
 private:
     void _invoke(int, bool disablelog);
@@ -713,6 +714,8 @@ protected:
     virtual bool getOption() const = 0;
     /// Called to set checked state of this command/option
     virtual void setOption(bool checked) = 0;
+
+    virtual void setActionIcon(Action *action, const QIcon &);
 };
 
 
