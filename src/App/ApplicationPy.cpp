@@ -748,6 +748,11 @@ PyObject *Application::sSetLogLevel(PyObject * /*self*/, PyObject *args)
         return NULL;
     PY_TRY{
         int l;
+        auto hParam = GetApplication().GetParameterGroupByPath("User parameter:BaseApp/LogLevels");
+        if (pcObj == Py_None) {
+            hParam->RemoveInt(tag);
+            Py_Return;
+        }
         if (PyUnicode_Check(pcObj)) {
             const char *pstr = PyUnicode_AsUTF8(pcObj);
             if(strcmp(pstr,"Log") == 0)
@@ -769,7 +774,7 @@ PyObject *Application::sSetLogLevel(PyObject * /*self*/, PyObject *args)
             }
         }else
             l = PyLong_AsLong(pcObj);
-        GetApplication().GetParameterGroupByPath("User parameter:BaseApp/LogLevels")->SetInt(tag,l);
+        hParam->SetInt(tag,l);
         if(strcmp(tag,"Default") == 0) {
 #ifndef FC_DEBUG
             if(l>=0) Base::Console().SetDefaultLogLevel(l);
