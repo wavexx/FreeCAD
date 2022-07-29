@@ -75,6 +75,7 @@
 # include <ShapeFix_ShapeTolerance.hxx>
 # include <ShapeExtend_WireData.hxx>
 # include <ShapeFix_Wire.hxx>
+# include <ShapeFix_Wireframe.hxx>
 # include <ShapeAnalysis_FreeBounds.hxx>
 # include <TopTools_HSequenceOfShape.hxx>
 #endif
@@ -831,6 +832,7 @@ struct WireJoiner {
         // tolerance of edges which are supposed to be connected. So use a
         // lesser precision below, and call makeCleanWire to fix the tolerance
 
+        tol *= tol;
         std::vector<VertexInfo> adjacentList;
         std::set<EdgeInfo*> edgesToVisit;
         int count = 0;
@@ -903,6 +905,7 @@ struct WireJoiner {
         };
         std::vector<StackInfo> stack;
         std::vector<VertexInfo> vertexStack;
+        std::unordered_set<TopoDS_Edge,Part::ShapeHasher,Part::ShapeHasher> edgeSet; // stores all edges in the stack
 
         for(int iteration=1;edgesToVisit.size();++iteration) {
             EdgeInfo *currentInfo = *edgesToVisit.begin();
@@ -915,6 +918,7 @@ struct WireJoiner {
             currentInfo->iteration = iteration;
             stack.clear();
             vertexStack.clear();
+            edgeSet.clear();
 
             // pstart and pend is the start and end vertex of the current wire
             while(true) {
@@ -926,6 +930,12 @@ struct WireJoiner {
                 for(int i=currentInfo->iStart[currentIdx];i<currentInfo->iEnd[currentIdx];++i) {
                     auto &info = *adjacentList[i].it;
                     if(info.iteration!=iteration) {
+                        if (edgeSet.count(info.edge)) {
+                            // This means the current edge connects to an
+                            // existing edge in the middle of the stack. Do not
+                            // push this edge to avoid self intersection.
+                            continue;
+                        }
                         info.iteration = iteration;
                         vertexStack.push_back(adjacentList[i]);
                         ++r.iEnd;
@@ -941,9 +951,12 @@ struct WireJoiner {
                         // update current edge info
                         currentInfo = &(*vinfo.it);
                         currentIdx = vinfo.start?1:0;
+                        if (stack.size() > 1)
+                            edgeSet.insert(currentInfo->edge);
                         break;
                     }
                     // if no edge left in stack.back(), then pop it, and try again
+                    edgeSet.erase(currentInfo->edge);
                     vertexStack.erase(vertexStack.begin()+r.iStart,vertexStack.end());
                     stack.pop_back();
                     if(stack.empty())
@@ -1005,21 +1018,24 @@ struct WireJoiner {
         BRepBuilderAPI_MakeWire mkWire;
         ShapeFix_ShapeTolerance sTol;
 
-        Handle(ShapeFix_Wire) fixer = new ShapeFix_Wire;
-        fixer->Load(wireData);
-        fixer->Perform();
-        fixer->FixReorder();
-        fixer->SetMaxTolerance(tol);
-        fixer->ClosedWireMode() = Standard_True;
-        fixer->FixConnected(Precision::Confusion());
-        fixer->FixClosed(Precision::Confusion());
+        ShapeFix_Wire fixer;
+        fixer.Load(wireData);
+        fixer.SetMaxTolerance(tol);
+        fixer.ClosedWireMode() = Standard_True;
+        fixer.Perform();
+        fixer.FixReorder();
+        fixer.FixConnected();
+        fixer.FixClosed();
+
+        ShapeFix_Wireframe aWireFramFix(fixer.Wire());
+        aWireFramFix.FixWireGaps();
+        aWireFramFix.FixSmallEdges();
 
         for (int i = 1; i <= wireData->NbEdges(); i ++) {
-            TopoDS_Edge edge = fixer->WireData()->Edge(i);
+            TopoDS_Edge edge = fixer.WireData()->Edge(i);
             sTol.SetTolerance(edge, tol, TopAbs_VERTEX);
             mkWire.Add(edge);
         }
-
         result = mkWire.Wire();
         return result;
     }
@@ -1606,8 +1622,10 @@ std::list<Area::Shape> Area::getProjectedShapes(const gp_Trsf &trsf, bool invers
         if(!out.IsNull())
             ret.emplace_back(s.op,inverse?out.Moved(locInverse):out);
     }
-    if(mySkippedShapes)
+    if(mySkippedShapes) {
         AREA_WARN("skipped " << mySkippedShapes << " sub shapes during projection");
+        mySkippedShapes = 0;
+    }
     return ret;
 }
 
@@ -1663,9 +1681,12 @@ void Area::build() {
             addToBuild(op==OperationUnion?*myArea:areaClip,s.shape);
             pending = true;
         }
-        if(mySkippedShapes && !myHaveSolid)
-            AREA_WARN((myParams.Coplanar==CoplanarForce?"Skipped ":"Found ")<<
-                mySkippedShapes<<" non coplanar shapes");
+        if(mySkippedShapes) {
+            if (!myHaveSolid)
+                AREA_WARN((myParams.Coplanar==CoplanarForce?"Skipped ":"Found ")<<
+                    mySkippedShapes<<" non coplanar shapes");
+            mySkippedShapes = 0;
+        }
 
         if(pending){
             if(myParams.OpenMode!=OpenModeNone)
