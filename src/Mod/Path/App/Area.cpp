@@ -2210,9 +2210,14 @@ TopoDS_Shape Area::toShape(const CCurve &_c, const gp_Trsf *trsf, int reorient) 
             while(1) {
                 if(fix_arc) {
                     double d = pt.Distance(pnext);
+                    r = (r + r2) * 0.5;
                     double rr = r*r;
                     double dd = d*d*0.25;
-                    double q = rr<=dd?0:sqrt(rr-dd);
+                    if (rr < dd) {
+                        r = d*0.5;
+                        rr = dd;
+                    }
+                    double q = sqrt(rr-dd);
                     double x = (pt.X()+pnext.X())*0.5;
                     double y = (pt.Y()+pnext.Y())*0.5;
                     double dx = q*(pt.Y()-pnext.Y())/d;
@@ -2222,7 +2227,8 @@ TopoDS_Shape Area::toShape(const CCurve &_c, const gp_Trsf *trsf, int reorient) 
                         newCenter.SetX(x - dx);
                         newCenter.SetY(y - dy);
                     }
-                    AREA_WARN("Arc correction: "<<r<<", "<<r2<<", center"<<
+                    AREA_WARN("Arc correction: " << std::setprecision(16)
+                            << r <<", "<<r2<<", center"<<
                             AREA_XYZ(center)<<"->"<<AREA_XYZ(newCenter));
                     center = newCenter;
                 }
