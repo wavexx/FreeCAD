@@ -186,7 +186,7 @@ PyMethodDef Application::Methods[] = {
      "This only works if there is an active sequencer (or ProgressIndicator in Python).\n"
      "There is an active sequencer during document restore and recomputation. User may\n"
      "abort the operation by pressing the ESC key. Once detected, this function will\n"
-     "trigger a BaseExceptionFreeCADAbort exception."},
+     "trigger a RuntimeError exception."},
     {NULL, NULL, 0, NULL}		/* Sentinel */
 };
 
@@ -951,7 +951,11 @@ PyObject *Application::sCheckAbort(PyObject * /*self*/, PyObject *args)
         return 0;
 
     PY_TRY {
-        Base::Sequencer().checkAbort();
+        try {
+            Base::Sequencer().checkAbort();
+        } catch (Base::AbortException &) {
+            throw Py::RuntimeError("user abort");
+        }
         Py_Return;
     }PY_CATCH
 }
