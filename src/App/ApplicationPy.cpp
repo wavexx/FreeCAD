@@ -702,8 +702,12 @@ PyObject* Application::sListDocuments(PyObject * /*self*/, PyObject *args)
         Base::PyObjectBase* pValue;
 
         std::vector<Document*> docs = GetApplication().getDocuments();;
-        if(PyObject_IsTrue(sort))
-            docs = Document::getDependentDocuments(docs,true);
+        if(PyObject_IsTrue(sort)) {
+            Py::List res;
+            for (auto doc : Document::getDependentDocuments(docs,true))
+                res.append(Py::asObject(doc->getPyObject()));
+            return Py::new_reference_to(res);
+        }
 
         for (auto doc : docs) {
             pKey   = PyUnicode_FromString(doc->getName());
