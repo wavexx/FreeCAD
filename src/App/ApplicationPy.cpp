@@ -187,6 +187,8 @@ PyMethodDef Application::Methods[] = {
      "There is an active sequencer during document restore and recomputation. User may\n"
      "abort the operation by pressing the ESC key. Once detected, this function will\n"
      "trigger a RuntimeError exception."},
+    {"silenceSequencer", (PyCFunction) Application::sSilenceSequencer, METH_VARARGS,
+     "silenceSequencer(enable = True : Bool) -- suppress progress sequencer output"},
     {NULL, NULL, 0, NULL}		/* Sentinel */
 };
 
@@ -962,6 +964,22 @@ PyObject *Application::sCheckAbort(PyObject * /*self*/, PyObject *args)
         }
         Py_Return;
     }PY_CATCH
+}
+
+PyObject *Application::sSilenceSequencer(PyObject * /*self*/, PyObject *args)
+{
+    PyObject *enable = Py_True;
+    if (!PyArg_ParseTuple(args, "|O", &enable))
+        return 0;
+    static Base::EmptySequencer *emptySequencer;
+    if (PyObject_IsTrue(enable)) {
+        if (!emptySequencer)
+            emptySequencer = new Base::EmptySequencer;
+    } else if (emptySequencer) {
+        delete emptySequencer;
+        emptySequencer = nullptr;
+    }
+    Py_Return;
 }
 
 PyObject *Application::sDumpSWIG(PyObject * /*self*/, PyObject *args)
