@@ -276,6 +276,7 @@ def read(filename):
                         cnt.append(1)
                     else:
                         cnt[0] += 1
+                    continue
                 start = mesh.CountFacets
                 facets = []
                 for tri in prim:
