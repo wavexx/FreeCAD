@@ -233,6 +233,8 @@ def read(filename):
     else:
         geommap = None
 
+    mesh_scales = {}
+
     for node in col.scene.nodes:
         for geomnode in node.objects('geometry'):
             mesh = None
@@ -266,6 +268,13 @@ def read(filename):
                 obj.Label = geomnode.original.xmlnode.get('name', obj.Name)
                 mesh = Mesh.Mesh()
 
+            matrix = _get_matrix(geomnode.matrix)
+            t,r,s,_ = matrix.getTransform()
+            if FreeCAD.Vector(s).isEqual(FreeCAD.Vector(1.0,1.0,1.0), 1e-7):
+                s = None
+            elif mesh:
+                mesh_scales[obj] = s
+
             segments = []
             skip = 0
             unsupported = defaultdict(list)
@@ -282,6 +291,10 @@ def read(filename):
                 for tri in prim:
                     for v in tri.vertices:
                         v = [x * unit for x in v]
+                        if s:
+                            v[0] *= s[0]
+                            v[1] *= s[1]
+                            v[2] *= s[2]
                         facets.append([v[0],v[1],v[2]])
                 if not facets:
                     skip += 1
@@ -322,16 +335,15 @@ def read(filename):
             if geommap is None:
                 continue
 
-            matrix = _get_matrix(geomnode.matrix)
-            t,r,s,_ = matrix.getTransform()
             t *= unit
-            if mesh and FreeCAD.Vector(s).isEqual(FreeCAD.Vector(1.0,1.0,1.0), 1e-7):
+            if mesh:
                 obj.Placement = FreeCAD.Placement(t,r)
                 if geommap is not None:
                     geommap[geomnode.original] = obj
                 obj.recompute(True)
                 continue
 
+            linked.add(obj)
             link = FreeCAD.ActiveDocument.addObject("App::Link","Link")
             if mesh:
                 obj.Visibility = False
@@ -340,6 +352,11 @@ def read(filename):
                 mat = None
             link.LinkedObject = obj
             link.Placement = FreeCAD.Placement(t,r)
+            mesh_scale = mesh_scales.get(obj, None)
+            if mesh_scale:
+                s[0] /= mesh_scale[0]
+                s[1] /= mesh_scale[1]
+                s[2] /= mesh_scale[2]
             link.ScaleVector = s
             link.Label = geomnode.original.xmlnode.get('name', obj.Label)
             if mat:
