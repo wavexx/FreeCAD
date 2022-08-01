@@ -220,6 +220,7 @@ def read(filename):
     "reads a DAE file"
 
     instancing = _param.GetBool("ColladaImportInstances",False)
+    check_backface = _param.GetBool("ColladaCheckBackFace",True)
 
     col = collada.Collada(filename, ignore=[collada.DaeUnsupportedError])
     # Read the unitmeter info from dae file and compute unit to convert to mm
@@ -288,6 +289,7 @@ def read(filename):
                     continue
                 start = mesh.CountFacets
                 facets = []
+                triangle = []
                 for tri in prim:
                     for v in tri.vertices:
                         v = [x * unit for x in v]
@@ -295,7 +297,18 @@ def read(filename):
                             v[0] *= s[0]
                             v[1] *= s[1]
                             v[2] *= s[2]
-                        facets.append([v[0],v[1],v[2]])
+                        if not check_backface:
+                            facets.append([v[0],v[1],v[2]])
+                            continue
+                        triangle.append([v[0],v[1],v[2]])
+                        if len(triangle) == 3:
+                            # Some dae file (e.g. those exported by SketchUp)
+                            # produce mesh file with duplicated faces of
+                            # different winding (i.e. CW vs. CCW. Backface?) for
+                            # some unknown reason.
+                            if not facets or any(t not in triangle for t in facets[-3:]):
+                                facets += triangle
+                            del triangle[:]
                 if not facets:
                     skip += 1
                     continue
