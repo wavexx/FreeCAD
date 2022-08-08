@@ -30,6 +30,7 @@
 #include <App/DocumentObserver.h>
 #include <App/FeaturePython.h>
 #include "PartFeature.h"
+#include "PropertyTopoShape.h"
 
 namespace Data
 {
@@ -53,6 +54,8 @@ public:
 
     void setLinks(std::map<App::DocumentObject *, std::vector<std::string> > &&values, bool reset=false);
 
+    Part::PropertyPartShape SupportShape;
+
     App::PropertyXLinkSubList Support;
     App::PropertyBool ClaimChildren;
     App::PropertyBool Relative;
@@ -71,6 +74,12 @@ public:
     App::PropertyBool OffsetOpenResult;
     App::PropertyBool OffsetIntersection;
 
+    App::PropertyPrecision EdgeTolerance;
+    App::PropertyBool Outline;
+    App::PropertyBool SplitEdges;
+    App::PropertyBool MergeEdges;
+    App::PropertyBool TightBound;
+
     enum BindModeEnum {
         Syncrhonized = 0,
         Frozen = 1,
@@ -85,6 +94,8 @@ public:
         UpdateForced = 2,
     };
     void update(UpdateOption options = UpdateNone);
+
+    void buildShape(TopoShape &);
 
     virtual int canLoadPartial() const override {
         return PartialLoad.getValue()?1:0;

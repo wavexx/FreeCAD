@@ -140,6 +140,7 @@
 #include "modelRefine.h"
 #include "SubShapeBinder.h"
 #include "Tools.h"
+#include "WireJoiner.h"
 
 #ifdef FCUseFreeType
 #  include "FT2FC.h"
@@ -562,6 +563,26 @@ public:
         add_varargs_method("isElementMappingDisabled",&Module::isElementMappingDisabled,
             "isElementMappingDisabled(obj : Document | DocumentObject) -> Bool\n\n"
             "Check if new topological element mapping is disable for an object or document"
+        );
+        add_keyword_method("joinWires",&Module::joinWires,
+            "joinWires(shape : Part.Shape | List[Part.Shape],\n"
+            "          split = True : Boolean,\n"
+            "          merge = True : Boolean,\n"
+            "          tighten = True : Boolean,\n"
+            "          outline = False : Boolean,\n"
+            "          keep_open = False : Boolean,\n"
+            "          tol = 1e-6 : Float) -> Part.Shape | Tuple(Part.Shape, Part.Shape)\n"
+            "Join edges to make closed wires.\n\n"
+            "shapes: source shape or list of shapes. Only edges inside the shape will be used.\n"
+            "split: whether to split intersected edges before making wires.\n"
+            "merge: whether to merge edges without branch into an open wire before building\n"
+            "       closed wires, intended to save traversing time.\n"
+            "tighten: create only wires that cannot be further splitted into smaller wires\n"
+            "         by other edges. If True, then it implies split=True.\n"
+            "outline: remove edges that appears in more than one wire, effectively creating\n"
+            "         oan outline of all wires. If True, then it implies tighten=True.\n"
+            "keep_open: if True, then return a tuple of closed and open wires.\n"
+            "tol: distance tolerance to check if two edges are connected."
         );
         initialize("This is a module working with shapes."); // register with Python
 
@@ -2625,6 +2646,36 @@ private:
         try {
             return Py::Boolean(Feature::isElementMappingDisabled(
                             static_cast<App::PropertyContainerPy*>(pyobj)->getPropertyContainerPtr()));
+        } _PY_CATCH_OCC(throw Py::Exception())
+    }
+
+    Py::Object joinWires(const Py::Tuple& args, const Py::Dict &kwds) {
+        PyObject *pyshape;
+        PyObject *split = Py_True;
+        PyObject *merge = Py_True;
+        PyObject *tighten = Py_True;
+        PyObject *outline = Py_False;
+        PyObject *keep_open = Py_False;
+        double tol = 1e-6;
+        static char* kwd_list[] = {"shape", "split", "merge", "tighten", "outline", "keep_open", "tol", 0};
+        if(!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O|OOOOOd", kwd_list,
+                &pyshape, &split, &merge, &tighten, &outline, &keep_open, &tol))
+            throw Py::Exception();
+
+        PY_TRY {
+            auto shapes = getPyShapes(pyshape);
+            WireJoiner joiner;
+            joiner.setTolerance(tol);
+            joiner.setTightBound(PyObject_IsTrue(tighten));
+            joiner.setMergeEdges(PyObject_IsTrue(merge));
+            joiner.setOutline(PyObject_IsTrue(outline));
+            joiner.setSplitEdges(PyObject_IsTrue(split));
+            joiner.addShape(shapes);
+            TopoShape result;
+            result.makEShape(joiner, shapes);
+            if (!PyObject_IsTrue(keep_open))
+                return shape2pyshape(result);
+            return Py::TupleN(shape2pyshape(result), shape2pyshape(joiner.getOpenWires()));
         } _PY_CATCH_OCC(throw Py::Exception())
     }
 };

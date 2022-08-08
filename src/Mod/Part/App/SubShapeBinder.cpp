@@ -64,6 +64,7 @@ typedef boost::iterator_range<const char*> CharRange;
 #include "SubShapeBinder.h"
 #include "BodyBase.h"
 #include "PartParams.h"
+#include "WireJoiner.h"
 
 FC_LOG_LEVEL_INIT("Part",true,true)
 
@@ -142,6 +143,16 @@ SubShapeBinder::SubShapeBinder()
     ADD_PROPERTY_TYPE(_CopiedLink,(0),"Base",(App::PropertyType)(
                 App::Prop_Hidden|App::Prop_ReadOnly|App::Prop_NoPersist), "");
 
+    ADD_PROPERTY_TYPE(SplitEdges, (false), "Wire Construction",  App::Prop_None,
+            "Whether to split edge if it intersects with other edges");
+    ADD_PROPERTY_TYPE(MergeEdges, (true), "Wire Construction",  App::Prop_None,
+            "Merge connected edges without branches into wire before searching for closed wires.");
+    ADD_PROPERTY_TYPE(TightBound, (false), "Wire Construction",  App::Prop_None,
+            "Create only wires that cannot be further splitted into smaller wires");
+    ADD_PROPERTY_TYPE(Outline, (false), "Wire Construction",  App::Prop_None,
+            "Whether to remove any edges that are shared by more than one wire, effectively creating an outline.");
+    ADD_PROPERTY_TYPE(EdgeTolerance, (1e-6), "Wire Construction",  App::Prop_None,
+            "Wire construction tolerance");
 }
 
 SubShapeBinder::~SubShapeBinder() {
@@ -523,235 +534,11 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
         }
 
         result.makECompound(shapes);
-
-        if(MakeFace.getValue() && !result.hasSubShape(TopAbs_FACE)) {
-            try {
-                if (_Version.getValue()>4
-                    && !result.hasSubShape(TopAbs_EDGE)
-                    && result.countSubShapes(TopAbs_VERTEX) > 1) {
-                    std::vector<Part::TopoShape> edges;
-                    Part::TopoShape first, prev;
-                    for (auto &vertex : result.getSubTopoShapes(TopAbs_VERTEX)) {
-                        if (prev.isNull()) {
-                            first = vertex;
-                            prev = vertex;
-                            continue;
-                        }
-                        BRepBuilderAPI_MakeEdge builder(
-                                BRep_Tool::Pnt(TopoDS::Vertex(prev.getShape())),
-                                BRep_Tool::Pnt(TopoDS::Vertex(vertex.getShape())));
-                        Part::TopoShape edge(builder.Shape());
-                        edge.mapSubElement({prev, vertex});
-                        edges.push_back(edge);
-                        prev = vertex;
-                    }
-                    auto p1 = BRep_Tool::Pnt(TopoDS::Vertex(prev.getShape()));
-                    auto p2 = BRep_Tool::Pnt(TopoDS::Vertex(first.getShape()));
-                    if (result.countSubShapes(TopAbs_VERTEX) > 2
-                            && p1.SquareDistance(p2) > Precision::SquareConfusion()) {
-                        BRepBuilderAPI_MakeEdge builder(p1, p2);
-                        Part::TopoShape edge(builder.Shape());
-                        edge.mapSubElement({prev, first});
-                        edges.push_back(edge);
-                    }
-                    result.makEWires(edges);
-                }
-                else if (result.hasSubShape(TopAbs_EDGE))
-                    result = result.makEWires();
-            } catch(Base::Exception & e) {
-                FC_LOG(getFullName() << " Failed to make wire: " << e.what());
-            } catch(Standard_Failure & e) {
-                FC_LOG(getFullName() << " Failed to make wire: " << e.GetMessageString());
-            } catch(...) {
-                FC_LOG(getFullName() << " Failed to make wire");
-            }
-
-            if (result.hasSubShape(TopAbs_WIRE)) {
-                bool done = false;
-                gp_Pln pln;
-                if (_Version.getValue() > 4 && !result.findPlane(pln)) {
-                    bool closedWire = false;
-                    for (const auto &wire :result.getSubShapes(TopAbs_WIRE)) {
-                        if (BRep_Tool::IsClosed(TopoDS::Wire(wire))) {
-                            closedWire = true;
-                            break;
-                        }
-                    }
-                    if (closedWire && result.countSubShapes(TopAbs_WIRE) == 1) {
-                        auto wire = result.getSubTopoShape(TopAbs_WIRE, 1);
-                        unsigned edgeCount = result.countSubShapes(TopAbs_EDGE);
-                        if (edgeCount >= 1 && edgeCount <= 4
-                                           && edgeCount == wire.countSubShapes(TopAbs_EDGE)
-                                           && result.countSubShapes(TopAbs_VERTEX) == wire.countSubShapes(TopAbs_VERTEX))
-                        {
-                            try {
-                                result = result.makEBSplineFace(
-                                        static_cast<Part::TopoShape::FillingStyle>(FillStyle.getValue()));
-                                done = true;
-                            } catch(Base::Exception & e) {
-                                FC_LOG(getFullName() << " Failed to make bspline face: " << e.what());
-                            } catch(Standard_Failure & e) {
-                                FC_LOG(getFullName() << " Failed to make bspline face: " << e.GetMessageString());
-                            } catch(...) {
-                                FC_LOG(getFullName() << " Failed to make bspline face");
-                            }
-                        }
-                    }
-                    if (closedWire && !done) {
-                        try {
-                            Part::TopoShape filledFace(-getID(), getDocument()->getStringHasher());
-                            filledFace.makEFilledFace({result}, TopoShape::BRepFillingParams());
-                            if (filledFace.hasSubShape(TopAbs_FACE)) {
-                                done = true;
-                                result = filledFace;
-                            }
-                        } catch(Base::Exception & e) {
-                            FC_LOG(getFullName() << " Failed to make filled face: " << e.what());
-                        } catch(Standard_Failure & e) {
-                            FC_LOG(getFullName() << " Failed to make filled face: " << e.GetMessageString());
-                        } catch(...) {
-                            FC_LOG(getFullName() << " Failed to make filled face");
-                        }
-                    }
-                }
-                if (!done) {
-                    try {
-                        result = result.makEFace(0);
-                        done = true;
-                    } catch(Base::Exception & e) {
-                        FC_LOG(getFullName() << " Failed to make face: " << e.what());
-                    } catch(Standard_Failure & e) {
-                        FC_LOG(getFullName() << " Failed to make face: " << e.GetMessageString());
-                    } catch(...) {
-                        FC_LOG(getFullName() << " Failed to make face");
-                    }
-
-                    if (!done && _Version.getValue() > 7) {
-                        try {
-                            result = result.makERuledSurface(result.getSubTopoShapes(TopAbs_WIRE));
-                        } catch(Base::Exception & e) {
-                            FC_LOG(getFullName() << " Failed to make ruled face: " << e.what());
-                        } catch(Standard_Failure & e) {
-                            FC_LOG(getFullName() << " Failed to make ruled face: " << e.GetMessageString());
-                        } catch(...) {
-                            FC_LOG(getFullName() << " Failed to make ruled face");
-                        }
-                    }
-                }
-            }
-        }
-
-        if(Fuse.getValue()) {
-            if (_Version.getValue() > 4
-                    && !result.hasSubShape(TopAbs_SOLID)
-                    && result.hasSubShape(TopAbs_FACE))
-            {
-                if (!result.hasSubShape(TopAbs_SHELL)) {
-                    try {
-                        result = result.makEShell();
-                    } catch(Base::Exception & e) {
-                        FC_LOG(getFullName() << " Failed to make shell: " << e.what());
-                    } catch(Standard_Failure & e) {
-                        FC_LOG(getFullName() << " Failed to make shell: " << e.GetMessageString());
-                    } catch(...) {
-                        FC_LOG(getFullName() << " Failed to make shell");
-                    }
-                }
-
-                if (result.hasSubShape(TopAbs_SHELL)) {
-                    try {
-                        result = result.makESolid();
-                    } catch(Base::Exception & e) {
-                        FC_LOG(getFullName() << " Failed to make solid: " << e.what());
-                    } catch(Standard_Failure & e) {
-                        FC_LOG(getFullName() << " Failed to make solid: " << e.GetMessageString());
-                    } catch(...) {
-                        FC_LOG(getFullName() << " Failed to make solid");
-                    }
-                }
-            }
-            if (result.hasSubShape(TopAbs_SOLID)) {
-                // If the compound has solid, fuse them together, and ignore other type of
-                // shapes
-                auto solids = result.getSubTopoShapes(TopAbs_SOLID);
-                if(solids.size() > 1) {
-                    try {
-                        result.makEFuse(solids);
-                        if (Refine.getValue())
-                            result = result.makERefine();
-                    } catch(Base::Exception & e) {
-                        FC_LOG(getFullName() << " Failed to fuse: " << e.what());
-                    } catch(Standard_Failure & e) {
-                        FC_LOG(getFullName() << " Failed to fuse: " << e.GetMessageString());
-                    } catch(...) {
-                        FC_LOG(getFullName() << " Failed to fuse");
-                    }
-                } else {
-                    // wrap the single solid in compound to keep its placement
-                    auto solid = solids.front();
-                    if (Refine.getValue())
-                        solid = solid.makERefine();
-                    result.makECompound({solid});
-                }
-            } else if (result.hasSubShape(TopAbs_SHELL) && Refine.getValue())
-                result = result.makERefine();
-        } 
-
-        if (fabs(Offset.getValue()) > Precision::Confusion()) {
-            try {
-                std::vector<TopoShape> results;
-                auto makeOffset = [&](const TopoShape &s, bool is2D) {
-                    if (is2D)
-                        results.push_back(s.makEOffset2D(Offset.getValue(),
-                                                         static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
-                                                         OffsetFill.getValue(),
-                                                         OffsetOpenResult.getValue(),
-                                                         OffsetIntersection.getValue()));
-                    else
-                        results.push_back(s.makEOffset(Offset.getValue(),
-                                                       Precision::Confusion(),
-                                                       OffsetIntersection.getValue(),
-                                                       false,
-                                                       OffsetOpenResult.getValue() ? 0 : 1,
-                                                       static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
-                                                       OffsetFill.getValue()));
-                };
-                for (const auto &s : result.getSubTopoShapes(TopAbs_SOLID))
-                    makeOffset(s, false);
-                for (const auto &s : result.getSubTopoShapes(TopAbs_SHELL, TopAbs_SOLID))
-                    makeOffset(s, false);
-                for (auto s : result.getSubTopoShapes(TopAbs_FACE, TopAbs_SHELL)) {
-                    if (s.isPlanarFace()) {
-                        s.linearize(true, false);
-                        makeOffset(s, true);
-                    } else
-                        makeOffset(s, false);
-                }
-                for (auto s : result.getSubTopoShapes(TopAbs_EDGE, TopAbs_FACE)) {
-                    if (s.isLinearEdge()) {
-                        s.linearize(false, true);
-                        makeOffset(s, true);
-                    } else
-                        makeOffset(s, false);
-                }
-
-                result.makECompound(results);
-
-            } catch(Base::Exception & e) {
-                e.ReportException();
-                throw;
-            } catch(Standard_Failure & e) {
-                FC_THROWM(Base::CADKernelError, "Failed to make offset: " << e.GetMessageString());
-            }
-        }
-
-        result.setPlacement(Placement.getValue());
-        Shape.setValue(result);
-        auto res = executeExtensions();
-        if (res) {
-            FC_ERR(res->Why);
-            delete res;
-        }
+        if (needUpdate())
+            SupportShape.setValue(TopoShape());
+        else
+            SupportShape.setValue(result);
+        buildShape(result);
     }
 
     // collect transformation matrix cache entries
@@ -779,6 +566,256 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
         try {
             removeDynamicProperty(name.c_str());
         } catch(...) {}
+    }
+}
+
+void SubShapeBinder::buildShape(TopoShape &result)
+{
+    bool makeWire = true;
+    if (!result.hasSubShape(TopAbs_FACE)
+            && result.hasSubShape(TopAbs_EDGE)
+            && (SplitEdges.getValue()
+                || Outline.getValue()
+                || TightBound.getValue()))
+    {
+        WireJoiner joiner;
+        joiner.setTolerance(EdgeTolerance.getValue());
+        joiner.setTightBound(TightBound.getValue());
+        joiner.setMergeEdges(MergeEdges.getValue());
+        joiner.setOutline(Outline.getValue());
+        joiner.setSplitEdges(SplitEdges.getValue());
+        joiner.addShape(result);
+        result.makEShape(joiner, {result});
+        makeWire = false;
+    }
+
+    if(MakeFace.getValue() && !result.hasSubShape(TopAbs_FACE)) {
+        try {
+            if (_Version.getValue()>4
+                && !result.hasSubShape(TopAbs_EDGE)
+                && result.countSubShapes(TopAbs_VERTEX) > 1) {
+                std::vector<Part::TopoShape> edges;
+                Part::TopoShape first, prev;
+                for (auto &vertex : result.getSubTopoShapes(TopAbs_VERTEX)) {
+                    if (prev.isNull()) {
+                        first = vertex;
+                        prev = vertex;
+                        continue;
+                    }
+                    BRepBuilderAPI_MakeEdge builder(
+                            BRep_Tool::Pnt(TopoDS::Vertex(prev.getShape())),
+                            BRep_Tool::Pnt(TopoDS::Vertex(vertex.getShape())));
+                    Part::TopoShape edge(builder.Shape());
+                    edge.mapSubElement({prev, vertex});
+                    edges.push_back(edge);
+                    prev = vertex;
+                }
+                auto p1 = BRep_Tool::Pnt(TopoDS::Vertex(prev.getShape()));
+                auto p2 = BRep_Tool::Pnt(TopoDS::Vertex(first.getShape()));
+                if (result.countSubShapes(TopAbs_VERTEX) > 2
+                        && p1.SquareDistance(p2) > Precision::SquareConfusion()) {
+                    BRepBuilderAPI_MakeEdge builder(p1, p2);
+                    Part::TopoShape edge(builder.Shape());
+                    edge.mapSubElement({prev, first});
+                    edges.push_back(edge);
+                }
+                result.makEWires(edges);
+            }
+            else if (makeWire && result.hasSubShape(TopAbs_EDGE))
+                result = result.makEWires();
+        } catch(Base::Exception & e) {
+            FC_LOG(getFullName() << " Failed to make wire: " << e.what());
+        } catch(Standard_Failure & e) {
+            FC_LOG(getFullName() << " Failed to make wire: " << e.GetMessageString());
+        } catch(...) {
+            FC_LOG(getFullName() << " Failed to make wire");
+        }
+
+        if (result.hasSubShape(TopAbs_WIRE)) {
+            bool done = false;
+            gp_Pln pln;
+            if (_Version.getValue() > 4 && !result.findPlane(pln)) {
+                bool closedWire = false;
+                for (const auto &wire :result.getSubShapes(TopAbs_WIRE)) {
+                    if (BRep_Tool::IsClosed(TopoDS::Wire(wire))) {
+                        closedWire = true;
+                        break;
+                    }
+                }
+                if (closedWire && result.countSubShapes(TopAbs_WIRE) == 1) {
+                    auto wire = result.getSubTopoShape(TopAbs_WIRE, 1);
+                    unsigned edgeCount = result.countSubShapes(TopAbs_EDGE);
+                    if (edgeCount >= 1 && edgeCount <= 4
+                                        && edgeCount == wire.countSubShapes(TopAbs_EDGE)
+                                        && result.countSubShapes(TopAbs_VERTEX) == wire.countSubShapes(TopAbs_VERTEX))
+                    {
+                        try {
+                            result = result.makEBSplineFace(
+                                    static_cast<Part::TopoShape::FillingStyle>(FillStyle.getValue()));
+                            done = true;
+                        } catch(Base::Exception & e) {
+                            FC_LOG(getFullName() << " Failed to make bspline face: " << e.what());
+                        } catch(Standard_Failure & e) {
+                            FC_LOG(getFullName() << " Failed to make bspline face: " << e.GetMessageString());
+                        } catch(...) {
+                            FC_LOG(getFullName() << " Failed to make bspline face");
+                        }
+                    }
+                }
+                if (closedWire && !done) {
+                    try {
+                        Part::TopoShape filledFace(-getID(), getDocument()->getStringHasher());
+                        filledFace.makEFilledFace({result}, TopoShape::BRepFillingParams());
+                        if (filledFace.hasSubShape(TopAbs_FACE)) {
+                            done = true;
+                            result = filledFace;
+                        }
+                    } catch(Base::Exception & e) {
+                        FC_LOG(getFullName() << " Failed to make filled face: " << e.what());
+                    } catch(Standard_Failure & e) {
+                        FC_LOG(getFullName() << " Failed to make filled face: " << e.GetMessageString());
+                    } catch(...) {
+                        FC_LOG(getFullName() << " Failed to make filled face");
+                    }
+                }
+            }
+            if (!done) {
+                try {
+                    result = result.makEFace(0);
+                    done = true;
+                } catch(Base::Exception & e) {
+                    FC_LOG(getFullName() << " Failed to make face: " << e.what());
+                } catch(Standard_Failure & e) {
+                    FC_LOG(getFullName() << " Failed to make face: " << e.GetMessageString());
+                } catch(...) {
+                    FC_LOG(getFullName() << " Failed to make face");
+                }
+
+                if (!done && _Version.getValue() > 7) {
+                    try {
+                        result = result.makERuledSurface(result.getSubTopoShapes(TopAbs_WIRE));
+                    } catch(Base::Exception & e) {
+                        FC_LOG(getFullName() << " Failed to make ruled face: " << e.what());
+                    } catch(Standard_Failure & e) {
+                        FC_LOG(getFullName() << " Failed to make ruled face: " << e.GetMessageString());
+                    } catch(...) {
+                        FC_LOG(getFullName() << " Failed to make ruled face");
+                    }
+                }
+            }
+        }
+    }
+
+    if(Fuse.getValue()) {
+        if (_Version.getValue() > 4
+                && !result.hasSubShape(TopAbs_SOLID)
+                && result.hasSubShape(TopAbs_FACE))
+        {
+            if (!result.hasSubShape(TopAbs_SHELL)) {
+                try {
+                    result = result.makEShell();
+                } catch(Base::Exception & e) {
+                    FC_LOG(getFullName() << " Failed to make shell: " << e.what());
+                } catch(Standard_Failure & e) {
+                    FC_LOG(getFullName() << " Failed to make shell: " << e.GetMessageString());
+                } catch(...) {
+                    FC_LOG(getFullName() << " Failed to make shell");
+                }
+            }
+
+            if (result.hasSubShape(TopAbs_SHELL)) {
+                try {
+                    result = result.makESolid();
+                } catch(Base::Exception & e) {
+                    FC_LOG(getFullName() << " Failed to make solid: " << e.what());
+                } catch(Standard_Failure & e) {
+                    FC_LOG(getFullName() << " Failed to make solid: " << e.GetMessageString());
+                } catch(...) {
+                    FC_LOG(getFullName() << " Failed to make solid");
+                }
+            }
+        }
+        if (result.hasSubShape(TopAbs_SOLID)) {
+            // If the compound has solid, fuse them together, and ignore other type of
+            // shapes
+            auto solids = result.getSubTopoShapes(TopAbs_SOLID);
+            if(solids.size() > 1) {
+                try {
+                    result.makEFuse(solids);
+                    if (Refine.getValue())
+                        result = result.makERefine();
+                } catch(Base::Exception & e) {
+                    FC_LOG(getFullName() << " Failed to fuse: " << e.what());
+                } catch(Standard_Failure & e) {
+                    FC_LOG(getFullName() << " Failed to fuse: " << e.GetMessageString());
+                } catch(...) {
+                    FC_LOG(getFullName() << " Failed to fuse");
+                }
+            } else {
+                // wrap the single solid in compound to keep its placement
+                auto solid = solids.front();
+                if (Refine.getValue())
+                    solid = solid.makERefine();
+                result.makECompound({solid});
+            }
+        } else if (result.hasSubShape(TopAbs_SHELL) && Refine.getValue())
+            result = result.makERefine();
+    } 
+
+    if (fabs(Offset.getValue()) > Precision::Confusion()) {
+        try {
+            std::vector<TopoShape> results;
+            auto makeOffset = [&](const TopoShape &s, bool is2D) {
+                if (is2D)
+                    results.push_back(s.makEOffset2D(Offset.getValue(),
+                                                        static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
+                                                        OffsetFill.getValue(),
+                                                        OffsetOpenResult.getValue(),
+                                                        OffsetIntersection.getValue()));
+                else
+                    results.push_back(s.makEOffset(Offset.getValue(),
+                                                    Precision::Confusion(),
+                                                    OffsetIntersection.getValue(),
+                                                    false,
+                                                    OffsetOpenResult.getValue() ? 0 : 1,
+                                                    static_cast<TopoShape::JoinType>(OffsetJoinType.getValue()),
+                                                    OffsetFill.getValue()));
+            };
+            for (const auto &s : result.getSubTopoShapes(TopAbs_SOLID))
+                makeOffset(s, false);
+            for (const auto &s : result.getSubTopoShapes(TopAbs_SHELL, TopAbs_SOLID))
+                makeOffset(s, false);
+            for (auto s : result.getSubTopoShapes(TopAbs_FACE, TopAbs_SHELL)) {
+                if (s.isPlanarFace()) {
+                    s.linearize(true, false);
+                    makeOffset(s, true);
+                } else
+                    makeOffset(s, false);
+            }
+            for (auto s : result.getSubTopoShapes(TopAbs_EDGE, TopAbs_FACE)) {
+                if (s.isLinearEdge()) {
+                    s.linearize(false, true);
+                    makeOffset(s, true);
+                } else
+                    makeOffset(s, false);
+            }
+
+            result.makECompound(results);
+
+        } catch(Base::Exception & e) {
+            e.ReportException();
+            throw;
+        } catch(Standard_Failure & e) {
+            FC_THROWM(Base::CADKernelError, "Failed to make offset: " << e.GetMessageString());
+        }
+    }
+
+    result.setPlacement(Placement.getValue());
+    Shape.setValue(result);
+    auto res = executeExtensions();
+    if (res) {
+        FC_ERR(res->Why);
+        delete res;
     }
 }
 
@@ -856,6 +893,11 @@ App::DocumentObjectExecReturn* SubShapeBinder::execute(void) {
 
     if (needUpdate())
         update(UpdateForced);
+    else {
+        TopoShape result(SupportShape.getShape());
+        if (!result.isNull())
+            buildShape(result);
+    }
 
     return inherited::execute();
 }
@@ -984,9 +1026,8 @@ void SubShapeBinder::onChanged(const App::Property *prop) {
         }else if(prop == &BindCopyOnChange) {
             setupCopyOnChange();
         }else if(prop == &BindMode) {
-           if(needUpdate())
-               update();
-           checkPropertyStatus();
+            update(UpdateForced);
+            checkPropertyStatus();
         }else if(prop == &PartialLoad) {
            checkPropertyStatus();
         }else if(prop && !prop->testStatus(App::Property::User3)) {
