@@ -299,8 +299,11 @@ void SequencerLauncher::setText (const char* pszTxt)
 bool SequencerLauncher::next(bool canAbort)
 {
     QMutexLocker locker(&SequencerP::mutex);
-    if (SequencerP::_topLauncher != this)
+    if (SequencerP::_topLauncher != this) {
+        if (canAbort)
+            SequencerBase::Instance().checkAbort();
         return true; // ignore
+    }
     return SequencerBase::Instance().next(canAbort);
 }
 
