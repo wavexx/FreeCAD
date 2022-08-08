@@ -103,15 +103,19 @@ SubShapeBinder::SubShapeBinder()
     ADD_PROPERTY_TYPE(OffsetIntersection, (false), "Offsetting", App::Prop_None, "False = offset child wires independently.");
     ADD_PROPERTY_TYPE(ClaimChildren, (false), "Base",App::Prop_Output,"Claim linked object as children");
     ADD_PROPERTY_TYPE(Relative, (true), "Base",App::Prop_None,"Enable relative sub-object binding");
-    ADD_PROPERTY_TYPE(BindMode, ((long)0), "Base", App::Prop_None, 
+    ADD_PROPERTY_TYPE(BindMode, ((long)BindModeEnum::Syncrhonized), "Base", App::Prop_None, 
             "Synchronized: auto update binder shape on changed of bound object.\n"
             "Frozen: disable auto update, but can be updated manually using context menu.\n"
-            "Detached: copy the shape of bound object and then remove the binding immediately.");
+            "Detached: copy the shape of bound object and then remove the binding immediately.\n"
+            "Float: same as 'Syncrhonized' but with independent placement to the bound object.\n"
+            "FloatFirst: same as 'Float' but with independent placement to the first bound object.\n"
+            "            The rest bound objects (if any) will maintain the same relative placement\n"
+            "            to the first bound object.");
     ADD_PROPERTY_TYPE(PartialLoad, (false), "Base", App::Prop_None,
             "Enable partial loading, which disables auto loading of external document for"
             "external bound object.");
     PartialLoad.setStatus(App::Property::PartialTrigger,true);
-    static const char *BindModeEnum[] = {"Synchronized", "Frozen", "Detached", 0};
+    static const char *BindModeEnum[] = {"Synchronized", "Frozen", "Detached", "Float", "FloatFirst", 0};
     BindMode.setEnums(BindModeEnum);
 
     static const char *BindCopyOnChangeEnum[] = {"Disabled", "Enabled", "Mutated", 0};
@@ -282,7 +286,8 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
             Context.setValue(parent,parentSub.c_str());
     }
 
-    bool first = false;
+    bool first = true;
+    Base::Matrix4D matFirst;
     std::unordered_map<const App::DocumentObject*, Base::Matrix4D> mats;
     int idx = -1;
     for(auto &l : Support.getSubListValues()) {
@@ -294,10 +299,10 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
             continue;
         }
         auto res = mats.emplace(obj,Base::Matrix4D());
+        auto link = obj;
+        std::string linkSub = l.getSubName();
         if(parent && res.second) {
             std::string resolvedSub = parentSub;
-            std::string linkSub = l.getSubName();
-            auto link = obj;
             auto resolved = parent->resolveRelativeLink(resolvedSub,link,linkSub, RelativeLinkOption::TopParent);
             if(!resolved) {
                 if(!link) {
@@ -332,6 +337,25 @@ void SubShapeBinder::update(SubShapeBinder::UpdateOption options) {
                 }
             }
         }
+
+        if (res.second && (BindMode.getValue() == BindModeEnum::Float
+                            || BindMode.getValue() == BindModeEnum::FloatFirst)) {
+            Base::Matrix4D mat;
+            if (first || BindMode.getValue() == BindModeEnum::Float) {
+                first = false;
+                link->getSubObject(linkSub.c_str(),0,&mat);
+                Base::Vector3d t;
+                Base::Rotation r;
+                Base::Vector3d s;
+                Base::Rotation so;
+                mat.getTransform(t, r, s, so);
+                mat.setTransform(t, r, Base::Vector3d(1, 1, 1), Base::Rotation());
+                mat.inverse();
+                matFirst = mat;
+            }
+            res.first->second *= matFirst;
+        }
+
         if(init)
             continue;
 
@@ -814,11 +838,23 @@ void SubShapeBinder::slotRecomputedObject(const App::DocumentObject& Obj) {
 
 static const char _GroupPrefix[] = "Configuration (";
 
+bool SubShapeBinder::needUpdate() const
+{
+    switch(BindMode.getValue()) {
+    case BindModeEnum::Syncrhonized:
+    case BindModeEnum::Float:
+    case BindModeEnum::FloatFirst:
+        return true;
+    default:
+        return false;
+    }
+}
+
 App::DocumentObjectExecReturn* SubShapeBinder::execute(void) {
 
     setupCopyOnChange();
 
-    if(BindMode.getValue()==0)
+    if (needUpdate())
         update(UpdateForced);
 
     return inherited::execute();
@@ -828,7 +864,7 @@ void SubShapeBinder::onDocumentRestored() {
     if(_Version.getValue()<2)
         update(UpdateInit);
     else if (_Version.getValue()<4
-            && BindMode.getValue()==0
+            && needUpdate()
             && !testStatus(App::ObjectStatus::PartialObject))
     {
         // Older version SubShapeBinder does not treat missing sub object as
@@ -948,7 +984,7 @@ void SubShapeBinder::onChanged(const App::Property *prop) {
         }else if(prop == &BindCopyOnChange) {
             setupCopyOnChange();
         }else if(prop == &BindMode) {
-           if(BindMode.getValue() == 0)
+           if(needUpdate())
                update();
            checkPropertyStatus();
         }else if(prop == &PartialLoad) {
@@ -958,7 +994,7 @@ void SubShapeBinder::onChanged(const App::Property *prop) {
         }
 
         if(prop == &BindMode || prop == &Support) {
-            if(BindMode.getValue()==2 && Support.getSubListValues().size())
+            if(BindMode.getValue()==BindModeEnum::Detached && Support.getSubListValues().size())
                 Support.setValue(0);
         }
 
@@ -1061,7 +1097,7 @@ void SubShapeBinder::checkPropertyStatus() {
     // loading time as well. But there maybe complication arise when doing
     // TopoShape version upgrade. So we DO NOT set trasient at the moment.
     //
-    // Shape.setStatus(App::Property::Transient, !PartialLoad.getValue() && BindMode.getValue()==0);
+    // Shape.setStatus(App::Property::Transient, !PartialLoad.getValue() && BindMode.getValue()==BindModeEnum::Syncrhonized);
 }
 
 void SubShapeBinder::setLinks(std::map<App::DocumentObject *,

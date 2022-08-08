@@ -71,6 +71,14 @@ public:
     App::PropertyBool OffsetOpenResult;
     App::PropertyBool OffsetIntersection;
 
+    enum BindModeEnum {
+        Syncrhonized = 0,
+        Frozen = 1,
+        Detached = 2,
+        Float = 3,
+        FloatFirst = 4,
+    };
+
     enum UpdateOption {
         UpdateNone = 0,
         UpdateInit = 1,
@@ -102,6 +110,8 @@ public:
                                   bool noSubObject = true);
 
 protected:
+    bool needUpdate() const;
+
     virtual App::DocumentObjectExecReturn* execute(void) override;
     virtual void onChanged(const App::Property *prop) override;
 
