@@ -139,7 +139,13 @@ SelectionView::SelectionView(Gui::Document* pcDocument, QWidget *parent)
 
     connect(clearButton, SIGNAL(clicked()), searchBox, SLOT(clear()));
     connect(searchBox, SIGNAL(textChanged(QString)), this, SLOT(search(QString)));
-    connect(searchBox, SIGNAL(editingFinished()), this, SLOT(validateSearch()));
+
+    // editingFinished() will fire on lost of focus, which may cause undesired
+    // effect. Use returnPressed() instead for clearer user intention.
+    //
+    // connect(searchBox, SIGNAL(editingFinished()), this, SLOT(validateSearch()));
+    connect(searchBox, SIGNAL(returnPressed()), this, SLOT(validateSearch()));
+
     connect(selectionView, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(toggleSelect(QTreeWidgetItem*)));
     connect(selectionView, SIGNAL(itemEntered(QTreeWidgetItem*, int)), this, SLOT(preselect(QTreeWidgetItem*)));
     connect(pickList, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(toggleSelect(QTreeWidgetItem*)));
