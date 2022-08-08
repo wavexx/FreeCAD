@@ -259,17 +259,17 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
 
 void SelectionView::search(const QString& text)
 {
+    searchList.clear();
+    selectionView->clear();
     if (!text.isEmpty()) {
-        searchList.clear();
         App::Document* doc = App::GetApplication().getActiveDocument();
         std::vector<App::DocumentObject*> objects;
         if (doc) {
             objects = doc->getObjects();
-            selectionView->clear();
             for (std::vector<App::DocumentObject*>::iterator it = objects.begin(); it != objects.end(); ++it) {
                 QString label = QString::fromUtf8((*it)->Label.getValue());
                 if (label.contains(text,Qt::CaseInsensitive)) {
-                    searchList.push_back(*it);
+                    searchList.emplace_back(*it);
                     addItem(selectionView, App::SubObjectT(*it, ""));
                 }
             }
@@ -284,9 +284,7 @@ void SelectionView::validateSearch(void)
         App::Document* doc = App::GetApplication().getActiveDocument();
         if (doc) {
             Gui::Selection().clearSelection();
-            for (std::vector<App::DocumentObject*>::iterator it = searchList.begin(); it != searchList.end(); ++it) {
-                Gui::Selection().addSelection(doc->getName(),(*it)->getNameInDocument(),0);
-            }
+            Gui::Selection().addSelections(searchList);
         }
     }
 }
