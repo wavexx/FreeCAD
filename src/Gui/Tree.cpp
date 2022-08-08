@@ -4148,7 +4148,8 @@ void TreeWidget::onToolTipTimer()
         if (ViewParams::getToolTipIconSize())
             iconSize = ViewParams::getToolTipIconSize();
         pixmap = item->object()->getIcon().pixmap(iconSize);
-    }
+    } else if (tooltip == item->text(0))
+        return;
     ToolTip::showText(this->viewport()->mapToGlobal(pos), tooltip, pixmap, this);
     pimpl->tooltipItem = item;
 }
