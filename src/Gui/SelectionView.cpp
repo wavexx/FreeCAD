@@ -153,6 +153,11 @@ SelectionView::SelectionView(Gui::Document* pcDocument, QWidget *parent)
     connect(selectionView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onItemContextMenu(QPoint)));
     connect(enablePickList, SIGNAL(stateChanged(int)), this, SLOT(onEnablePickList()));
 
+    QObject::connect(selectionView, &QTreeWidget::currentItemChanged,
+        [&](QTreeWidgetItem *current, QTreeWidgetItem*) {
+            if (current)
+                preselect(current);
+        });
 }
 
 SelectionView::~SelectionView()
