@@ -283,6 +283,7 @@ void SelectionView::validateSearch(void)
     if (!searchList.empty()) {
         App::Document* doc = App::GetApplication().getActiveDocument();
         if (doc) {
+            selectionView->clear();
             Gui::Selection().clearSelection();
             Gui::Selection().addSelections(searchList);
         }
