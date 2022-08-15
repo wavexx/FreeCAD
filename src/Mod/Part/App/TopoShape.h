@@ -97,10 +97,16 @@ class PartExport TopoShape : public Data::ComplexGeoData
     TYPESYSTEM_HEADER();
 
 public:
-    explicit TopoShape(long Tag=0, App::StringHasherRef hasher=App::StringHasherRef(), 
-            const TopoDS_Shape &shape=TopoDS_Shape());
-    TopoShape(const TopoDS_Shape&);
+    explicit TopoShape(long Tag=0,
+                       App::StringHasherRef hasher=App::StringHasherRef(), 
+                       const TopoDS_Shape &shape=TopoDS_Shape());
+
+    TopoShape(const TopoDS_Shape&,
+              long Tag=0,
+              App::StringHasherRef hasher=App::StringHasherRef());
+
     TopoShape(const TopoShape&);
+
     ~TopoShape();
 
     void setShape(const TopoDS_Shape& shape, bool resetElementMap=true);
