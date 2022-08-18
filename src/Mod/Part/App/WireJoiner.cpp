@@ -155,6 +155,7 @@ public:
     }
 
     struct WireInfo;
+    struct EdgeSet;
 
     struct EdgeInfo {
         TopoDS_Edge edge;
@@ -171,6 +172,7 @@ public:
         int iteration2;
         bool queryBBox;
         std::shared_ptr<WireInfo> wireInfo;
+        std::shared_ptr<WireInfo> wireInfo2; // an edge can be shared by at most two tight bound wires.
 
         EdgeInfo(const TopoDS_Edge &e,
                  const gp_Pnt &pt1,
@@ -190,6 +192,7 @@ public:
         }
         void reset() {
             wireInfo.reset();
+            wireInfo2.reset();
             if (iteration >= 0)
                 iteration = 0;
             iteration2 = 0;
@@ -212,34 +215,77 @@ public:
         }
     };
 
-    class EdgeSet {
-    public:
-        bool contains(EdgeInfo *info)
+    template<class T>
+    struct VectorSet {
+        void sort()
         {
             if (!sorted) {
-                if (data.size() < 30)
-                    return std::find(data.begin(), data.end(), info) != data.end();
                 sorted = true;
                 std::sort(data.begin(), data.end());
             }
-            auto it = std::lower_bound(data.begin(), data.end(), info);
-            return it!=data.end() && *it == info;
         }
-        void insert(EdgeInfo *info)
+        bool contains(const T &v)
+        {
+            if (!sorted) {
+                if (data.size() < 30)
+                    return std::find(data.begin(), data.end(), v) != data.end();
+                sort();
+            }
+            auto it = std::lower_bound(data.begin(), data.end(), v);
+            return it!=data.end() && *it == v;
+        }
+        bool intersects(const VectorSet<T> &other)
+        {
+            if (other.size() < size())
+                return other.intersects(*this);
+            else if (!sorted) {
+                for (const auto &v : data) {
+                    if (other.contains(v))
+                        return true;
+                }
+            } else {
+                other.sort();
+                auto it = other.data.begin();
+                for (const auto &v : data) {
+                    it = std::lower_bound(it, other.data.end(), v);
+                    if (it == other.data.end())
+                        return false;
+                    if (*it == v)
+                        return true;
+                }
+            }
+            return false;
+        }
+        void insert(const T &v)
         {
             if (sorted)
-                data.insert(std::upper_bound(data.begin(), data.end(), info), info);
+                data.insert(std::upper_bound(data.begin(), data.end(), v), v);
             else
-                data.push_back(info);
+                data.push_back(v);
         }
-        void erase(EdgeInfo *info)
+        bool insertUnique(const T &v)
+        {
+            if (sorted) {
+                auto it = std::lower_bound(data.begin(), data.end(), v);
+                if (it != data.end() && *it == v)
+                    return false;
+                data.insert(it, v);
+                return true;
+            }
+            
+            if (contains(v))
+                return false;
+            data.push_back(v);
+            return true;
+        }
+        void erase(const T &v)
         {
             if (!sorted)
-                data.erase(std::remove(data.begin(), data.end(), info), data.end());
+                data.erase(std::remove(data.begin(), data.end(), v), data.end());
             else {
-                auto it = std::lower_bound(data.begin(), data.end(), info);
+                auto it = std::lower_bound(data.begin(), data.end(), v);
                 auto itEnd = it;
-                while (itEnd!=data.end() && *itEnd==info)
+                while (itEnd!=data.end() && *itEnd==v)
                     ++itEnd;
                 data.erase(it, itEnd);
             }
@@ -251,12 +297,18 @@ public:
             data.clear();
             sorted = false;
         }
+        std::size_t size() const
+        {
+            return data.size();
+        }
+        bool empty() const
+        {
+            return data.empty();
+        }
     private:
         bool sorted = false;
-        std::vector<EdgeInfo*> data;
+        std::vector<T> data;
     };
-
-    EdgeSet edgeSet;
 
     std::unordered_map<TopoDS_Shape, TopTools_ListOfShape, ShapeHasher, ShapeHasher> generated;
 
@@ -280,11 +332,13 @@ public:
             return it==other.it && start==other.start;
         }
         bool operator<(const VertexInfo &other) const {
-            if (start > other.start)
-                return false;
-            if (start < other.start)
+            auto a = edgeInfo();
+            auto b = other.edgeInfo();
+            if (a < b)
                 return true;
-            return edgeInfo() < other.edgeInfo();
+            if (a > b)
+                return false;
+            return start < other.start;
         }
         const gp_Pnt &pt() const {
             return start?it->p1:it->p2;
@@ -310,7 +364,7 @@ public:
         size_t iStart;
         size_t iEnd;
         size_t iCurrent;
-        StackInfo(size_t idx):iStart(idx),iEnd(idx),iCurrent(idx){}
+        StackInfo(size_t idx=0):iStart(idx),iEnd(idx),iCurrent(idx){}
     };
 
     std::vector<StackInfo> stack;
@@ -325,7 +379,20 @@ public:
         TopoDS_Face face;
         mutable Bnd_Box box;
         bool done = false;
+        bool purge = false;
 
+        void sort() const
+        {
+            if (sorted.size() == vertices.size())
+                return;
+            assertCheck(sorted.size() < vertices.size());
+            sorted.reserve(vertices.size());
+            for (int i=(int)sorted.size(); i<(int)vertices.size(); ++i)
+                sorted.push_back(i);
+            std::sort(sorted.begin(), sorted.end(), [&](int a, int b) {
+                return vertices[a] < vertices[b];
+            });
+        }
         int find(const VertexInfo &info) const
         {
             if (vertices.size() < 20) {
@@ -334,14 +401,7 @@ public:
                     return 0;
                 return it - vertices.begin() + 1;
             }
-            if (sorted.size() != vertices.size()) {
-                sorted.reserve(vertices.size());
-                for (int i=0; i<(int)vertices.size(); ++i)
-                    sorted.push_back(i);
-                std::sort(sorted.begin(), sorted.end(), [&](int a, int b) {
-                    return vertices[a] < vertices[b];
-                });
-            }
+            sort();
             auto it = std::lower_bound(sorted.begin(), sorted.end(), info,
                     [&](int idx, const VertexInfo &v) {return vertices[idx]<v;});
             int res = 0;
@@ -351,13 +411,49 @@ public:
         }
         int find(const EdgeInfo *info) const
         {
-            for (auto it=vertices.begin(); it!=vertices.end(); ++it) {
-                if (it->edgeInfo() == info)
-                    return it - vertices.begin() + 1;
+            if (vertices.size() < 20) {
+                for (auto it=vertices.begin(); it!=vertices.end(); ++it) {
+                    if (it->edgeInfo() == info)
+                        return it - vertices.begin() + 1;
+                }
+                return 0;
             }
-            return 0;
+            sort();
+            auto it = std::lower_bound(sorted.begin(), sorted.end(), info,
+                    [&](int idx, const EdgeInfo *v) {return vertices[idx].edgeInfo()<v;});
+            int res = 0;
+            if (it != sorted.end() && vertices[*it].edgeInfo() == info)
+                res = *it + 1;
+            return res;
+        }
+        bool isSame(const WireInfo &other) const
+        {
+            if (this == &other)
+                return true;
+            if (vertices.size() != other.vertices.size())
+                return false;
+            if (vertices.empty())
+                return true;
+            int idx=find(other.vertices.front().edgeInfo()) - 1;
+            if (idx < 0)
+                return false;
+            for (auto &v : other.vertices) {
+                if (v.edgeInfo() != vertices[idx].edgeInfo())
+                    return false;
+                if (++idx == (int)vertices.size())
+                    idx = 0;
+            }
+            return true;
         }
     };
+
+    struct EdgeSet: VectorSet<EdgeInfo*> {
+    };
+    EdgeSet edgeSet;
+
+    struct WireSet: VectorSet<WireInfo*> {
+    };
+    WireSet wireSet;
 
     const Bnd_Box &getWireBound(const WireInfo &wireInfo)
     {
@@ -385,7 +481,7 @@ public:
             showShape(wireInfo.wire, "FailedToClose");
             FC_ERR("Wire not closed");
             for (auto &v : wireInfo.vertices) {
-                showShape(v.edgeInfo(), v.start ? "failed" : "failed_r");
+                showShape(v.edgeInfo(), v.start ? "failed" : "failed_r", iteration);
             }
             return false;
         }
@@ -450,6 +546,8 @@ public:
         boxMap.clear();
         vmap.clear();
         edges.clear();
+        edgeSet.clear();
+        wireSet.clear();
         openEdges.clear();
         adjacentList.clear();
         stack.clear();
@@ -863,6 +961,7 @@ public:
             }
             auto first = vertices.front().edgeInfo();
             first->superEdge = makeCleanWire(false);
+            first->superEdgeReversed.Nullify();
             if (BRep_Tool::IsClosed(first->superEdge)) {
                 first->iteration = -2;
                 showShape(first, "super_done");
@@ -960,34 +1059,37 @@ public:
             }
         }
 
-        if (doMergeEdge)
-            findSuperEdges();
+        bool done = false;
 
-        //Skip edges that are connected to only one end
-        int skipped = 0;
-        for (auto &info : edges) {
-            if (info.iteration<0)
-                continue;
-            for (int k=0; k<2; ++k) {
-                int i;
-                for (i=info.iStart[k]; i<info.iEnd[k]; ++i) {
-                    const auto &v = adjacentList[i];
-                    auto other = v.edgeInfo();
-                    if (other->iteration >= 0 && other != &info)
+        while (!done) {
+            done = true;
+
+            if (doMergeEdge || doTightBound)
+                findSuperEdges();
+
+            //Skip edges that are connected to only one end
+            for (auto &info : edges) {
+                if (info.iteration<0)
+                    continue;
+                for (int k=0; k<2; ++k) {
+                    int i;
+                    for (i=info.iStart[k]; i<info.iEnd[k]; ++i) {
+                        const auto &v = adjacentList[i];
+                        auto other = v.edgeInfo();
+                        if (other->iteration >= 0 && other != &info)
+                            break;
+                    }
+                    if (i == info.iEnd[k]) {
+                        // If merge or tight bound, then repeat until no edges
+                        // can be skipped.
+                        done = !doMergeEdge & !doTightBound;
+                        info.iteration = -3;
+                        showShape(&info, "skip");
                         break;
-                }
-                if (i == info.iEnd[k]) {
-                    ++skipped;
-                    info.iteration = -3;
-                    showShape(&info, "skip");
-                    break;
+                    }
                 }
             }
         }
-
-        if (doMergeEdge)
-            findSuperEdges();
-
     }
 
     // This algorithm tries to find a set of closed wires that includes as many
@@ -999,8 +1101,10 @@ public:
                 new Base::SequencerLauncher("Finding wires", edges.size()));
 
         for (auto &info : edges) {
-            if (info.iteration >= 0)
+            if (info.iteration >= 0) {
                 info.wireInfo.reset();
+                info.wireInfo2.reset();
+            }
         }
 
         for (auto it=edges.begin(); it!=edges.end(); ++it) {
@@ -1034,7 +1138,6 @@ public:
                 if (tightBound)
                     beginInfo.wireInfo->vertices.push_back(v);
                 if (!info.wireInfo) {
-                    assertCheck(!info.wireInfo);
                     info.wireInfo = beginInfo.wireInfo;
                     // showShape(&info, "visited");
                 }
@@ -1077,9 +1180,11 @@ public:
 
     TopoDS_Wire _findClosedWires(VertexInfo beginVertex,
                                  VertexInfo currentVertex,
+                                 std::shared_ptr<WireInfo> wireInfo = std::shared_ptr<WireInfo>(),
                                  int *idxVertex = nullptr,
                                  int *stackPos = nullptr)
     {
+        Base::SequencerBase::Instance().checkAbort();
         EdgeInfo &beginInfo = *beginVertex.it;
 
         EdgeInfo *currentInfo = currentVertex.edgeInfo();
@@ -1097,6 +1202,7 @@ public:
             // push a new stack entry
             stack.emplace_back(vertexStack.size());
             auto &r = stack.back();
+            showShape(currentInfo, "check", iteration);
 
             // The loop below is to find all edges connected to pend, and save them into stack.back()
             auto size = vertexStack.size();
@@ -1106,8 +1212,16 @@ public:
                 if (info.iteration < 0 || currentInfo == &info)
                     continue;
 
+                bool abort = false;
+                if (!wireSet.empty() && wireSet.contains(info.wireInfo.get())) {
+                    showShape(&info, "wired", iteration);
+                    if (wireInfo)
+                        wireInfo->purge = true;
+                    abort = true;
+                }
+
                 if (edgeSet.contains(&info)) {
-                    showShape(&info, "intersect");
+                    showShape(&info, "intersect", iteration);
                     // This means the current edge connects to an
                     // existing edge in the middle of the stack.
                     // skip the current edge.
@@ -1116,21 +1230,26 @@ public:
                     break;
                 }
 
+                if (abort || currentInfo->wireInfo2) {
+                    if (wireInfo)
+                        wireInfo->purge = true;
+                    continue;
+                }
+
                 if (info.iteration == iteration)
                     continue;
                 info.iteration = iteration;
 
-                if (beginInfo.wireInfo) {
-                    const auto &wireInfo = *beginInfo.wireInfo;
-                    if (wireInfo.find(VertexInfo(vinfo.it, !vinfo.start))) {
-                        showShape(&info, "rintersect");
+                if (wireInfo) {
+                    if (wireInfo->find(VertexInfo(vinfo.it, !vinfo.start))) {
+                        showShape(&info, "rintersect", iteration);
+                        // Only used when exhausting tight bound.
+                        wireInfo->purge = true; 
                         continue;
                     }
 
-                    // if (getWireBound(wireInfo).IsOut(info.box.min_corner())
-                    //         || getWireBound(wireInfo).IsOut(info.box.max_corner()))
-                    if (isOutside(wireInfo, info.mid)) {
-                        showShape(&info, "outside");
+                    if (isOutside(*wireInfo, info.mid)) {
+                        showShape(&info, "outside", iteration);
                         continue;
                     }
                 }
@@ -1148,9 +1267,11 @@ public:
                     pend = currentVertex.ptOther();
                     // update current edge info
                     currentInfo = currentVertex.edgeInfo();
+                    showShape(currentInfo, "iterate", iteration);
                     currentIdx = currentVertex.start?1:0;
                     edgeSet.insert(currentInfo);
-                    showShape(currentInfo, "iterate", iteration);
+                    if (!wireSet.empty())
+                        wireSet.insert(currentInfo->wireInfo.get());
                     break;
                 }
                 vertexStack.erase(vertexStack.begin()+r.iStart,vertexStack.end());
@@ -1163,17 +1284,17 @@ public:
 
                 auto &lastInfo = *vertexStack[stack.back().iCurrent].it;
                 edgeSet.erase(&lastInfo);
+                wireSet.erase(lastInfo.wireInfo.get());
                 showShape(&lastInfo, "pop", iteration);
                 ++stack.back().iCurrent;
             }
 
             bool checkDistance = true;
-            if (beginInfo.wireInfo) {
+            if (wireInfo) {
                 // We may be called by findTightBound() with an existing wire
                 // to try to find a new wire by splitting the current one. So
                 // check if we've iterated to some edge in the existing wire.
-                const auto &wireInfo = *beginInfo.wireInfo;
-                if (int idx = wireInfo.find(currentVertex)) {
+                if (int idx = wireInfo->find(currentVertex)) {
                     --idx;
                     checkDistance = false;
                     if (idxVertex)
@@ -1181,18 +1302,18 @@ public:
                     if (stackPos)
                         *stackPos = (int)stack.size()-2;
 
-                    auto info = wireInfo.vertices[idx].edgeInfo();
+                    auto info = wireInfo->vertices[idx].edgeInfo();
                     showShape(info, "merge", iteration);
 
                     if (info != &beginInfo) {
                         while (true) {
-                            if (++idx == (int)wireInfo.vertices.size())
+                            if (++idx == (int)wireInfo->vertices.size())
                                 idx = 0;
-                            info = wireInfo.vertices[idx].edgeInfo();
+                            info = wireInfo->vertices[idx].edgeInfo();
                             if (info == &beginInfo)
                                 break;
                             stack.emplace_back(vertexStack.size());
-                            vertexStack.push_back(wireInfo.vertices[idx]);
+                            vertexStack.push_back(wireInfo->vertices[idx]);
                             ++stack.back().iEnd;
                             checkStack();
                         }
@@ -1206,9 +1327,9 @@ public:
                     // next connected edge
                     continue;
                 }
-                if (beginInfo.wireInfo) {
+                if (wireInfo) {
                     if (idxVertex)
-                        *idxVertex = (int)beginInfo.wireInfo->vertices.size();
+                        *idxVertex = (int)wireInfo->vertices.size();
                     if (stackPos)
                         *stackPos = (int)stack.size()-1;
                 }
@@ -1223,13 +1344,15 @@ public:
             }
             TopoDS_Wire wire = makeCleanWire();
             if (!BRep_Tool::IsClosed(wire)) {
-                FC_WARN("failed to close some wire");
-                showShape(wire,"_FailedToClose");
-                showShape(&beginInfo, "failed");
+                FC_WARN("failed to close some wire in iteration " << iteration);
+                showShape(wire,"_FailedToClose", iteration);
+                showShape(beginInfo.shape(beginVertex.start), "failed", iteration);
                 for (auto &r : stack) {
                     const auto &v = vertexStack[r.iCurrent];
-                    showShape(v.edgeInfo(), v.start ? "failed" : "failed_r");
+                    auto &info = *v.it;
+                    showShape(info.shape(v.start), v.start ? "failed" : "failed_r", iteration);
                 }
+                assertCheck(false);
                 continue;
             }
             return wire;
@@ -1238,17 +1361,20 @@ public:
 
     void findTightBound()
     {
-        for (auto &info : edges) {
-            if (info.iteration >= 0) {
-                info.iteration = 0;
-                info.iteration2 = 0;
-            }
-        }
+        // Assumption: all edges lies on a common manifold surface
+        //
+        // Definition of 'Tight Bound': a wire that cannot be splitted into
+        // smaller wires by any intersecting edges internal to the wire.
+        //
+        // The idea of the searching algorithm is simple. The initial condition
+        // here is that we've found a closed wire for each edge. To find the
+        // tight bound, for each wire, check wire edge branches (using the
+        // adjacent list built earlier), and split the wire whenever possible.
 
         std::unique_ptr<Base::SequencerLauncher> seq(
                 new Base::SequencerLauncher("Finding tight bound", edges.size()));
 
-        int iteration2 = 0;
+        int iteration2 = iteration;
         for (auto &info : edges) {
             ++iteration;
             seq->next(true);
@@ -1306,7 +1432,7 @@ public:
 
                         TopoDS_Wire wire;
                         if (pstart.SquareDistance(currentVertex.ptOther()) > myTol2) {
-                            wire = _findClosedWires(beginVertex, currentVertex, &idxEnd, &stackPos);
+                            wire = _findClosedWires(beginVertex, currentVertex, beginInfo.wireInfo, &idxEnd, &stackPos);
                             if (wire.IsNull()) {
                                 vertexStack.pop_back();
                                 stack.pop_back();
@@ -1419,7 +1545,11 @@ public:
                     // marked as done. This can also prevent duplicated wires.
                     for (auto &v : beginInfo.wireInfo->vertices) {
                         auto info = v.edgeInfo();
-                        if (!info->wireInfo || info->wireInfo->done)
+                        if (!info->wireInfo) {
+                            info->wireInfo = beginInfo.wireInfo;
+                            continue;
+                        }
+                        else if (info->wireInfo->done)
                             continue;
                         auto otherWire = info->wireInfo;
                         auto &otherWireVertices = info->wireInfo->vertices;
@@ -1450,10 +1580,248 @@ public:
         }
     }
 
-    //! make a clean wire with sorted, oriented, connected, etc edges
-    // Copied from TechDraw::EdgeWalker
+    void exhaustTightBound()
+    {
+        // findTightBound() function will find a tight bound wire for each
+        // edge. Now we try to find all possible tight bound wires, relying on
+        // the important fact that an edge can be shared by at most two tight
+        // bound wires.
+
+        std::unique_ptr<Base::SequencerLauncher> seq(
+                new Base::SequencerLauncher("Exhaust tight bound", edges.size()));
+
+        for (auto &info : edges) {
+            if (info.iteration < 0 || !info.wireInfo || !info.wireInfo->done)
+                continue;
+            for (auto &v : info.wireInfo->vertices) {
+                auto edgeInfo = v.edgeInfo();
+                if (edgeInfo->wireInfo != info.wireInfo)
+                    edgeInfo->wireInfo2 = info.wireInfo;
+            }
+        }
+
+        int iteration2 = iteration;
+        for (auto &info : edges) {
+            ++iteration;
+            seq->next(true);
+            if (info.iteration < 0
+                    || !info.wireInfo
+                    || !info.wireInfo->done)
+            {
+                if (info.wireInfo)
+                    showShape(*info.wireInfo, "iskip");
+                else
+                    showShape(&info, "iskip");
+                continue;
+            }
+
+            if (info.wireInfo2 && info.wireInfo2->done) {
+                showShape(*info.wireInfo, "idone");
+                continue;
+            }
+
+            showShape(*info.wireInfo, "iwire2", iteration);
+            showShape(&info, "begin2", iteration);
+
+            int idx = info.wireInfo->find(&info);
+            assertCheck(idx > 0);
+            const auto &vertices = info.wireInfo->vertices;
+            --idx;
+            int nextIdx = idx == (int)vertices.size()-1 ? 0 : idx + 1;
+            int prevIdx = idx == 0 ? (int)vertices.size()-1 : idx - 1;
+            int count = prevIdx == nextIdx ? 1 : 2;
+            for (int n=0; n<count && !info.wireInfo2; ++n) {
+                auto check = vertices[n==0 ? nextIdx : prevIdx].edgeInfo();
+                auto beginVertex = vertices[idx];
+                if (n == 1)
+                    beginVertex.start = !beginVertex.start;
+                const gp_Pnt &pstart = beginVertex.pt();
+                int vidx = beginVertex.start ? 1 : 0;
+
+                edgeSet.clear();
+                vertexStack.clear();
+                stack.clear();
+                stack.emplace_back();
+
+                for (int i=info.iStart[vidx]; i<info.iEnd[vidx]; ++i) {
+                    const auto &currentVertex = adjacentList[i];
+                    auto next = currentVertex.edgeInfo();
+                    if (next == &info
+                            || next == check
+                            || next->iteration<0
+                            || !next->wireInfo
+                            || !next->wireInfo->done
+                            || next->wireInfo2)
+                        continue;
+
+                    showShape(next, "n2", iteration);
+
+                    stack.clear();
+                    stack.emplace_back();
+                    ++stack.back().iEnd;
+                    vertexStack.clear();
+                    vertexStack.push_back(currentVertex);
+
+                    edgeSet.clear();
+                    edgeSet.insert(next);
+                    wireSet.clear();
+                    wireSet.insert(next->wireInfo.get());
+
+                    TopoDS_Wire wire;
+                    if (pstart.SquareDistance(currentVertex.ptOther()) > myTol2) {
+                        wire = _findClosedWires(beginVertex, currentVertex);
+                        if (wire.IsNull())
+                            continue;
+                    }
+
+                    std::shared_ptr<WireInfo> wireInfo(new WireInfo);
+                    wireInfo->vertices.push_back(beginVertex);
+                    for (auto &r : stack) {
+                        const auto &v = vertexStack[r.iCurrent];
+                        wireInfo->vertices.push_back(v);
+                    }
+                    if (!wire.IsNull())
+                        wireInfo->wire = wire;
+                    else if (!initWireInfo(*wireInfo))
+                        continue;
+
+                    showShape(*wireInfo, "nw2", iteration);
+
+                    ++iteration;
+
+                    while (wireInfo && !wireInfo->done) {
+                        showShape(next, "next2", iteration);
+
+                        vertexStack.resize(1);
+                        stack.resize(1);
+                        edgeSet.clear();
+                        edgeSet.insert(next);
+                        wireSet.clear();
+                        wireSet.insert(next->wireInfo.get());
+
+                        const auto &wireVertices = wireInfo->vertices;
+                        initWireInfo(*wireInfo);
+                        ++iteration2;
+                        for (auto &v : wireVertices)
+                            v.it->iteration2 = iteration2;
+
+                        std::shared_ptr<WireInfo> newWire;
+
+                        int idxV = 1;
+                        while (true) {
+                            int idx = wireVertices[idxV].start ? 1 : 0;
+                            auto current = wireVertices[idxV].edgeInfo();
+
+                            for (int n=current->iStart[idx]; n<current->iEnd[idx]; ++n) {
+                                const auto &currentVertex = adjacentList[n];
+                                auto next = currentVertex.edgeInfo();
+                                if (next == current || next->iteration2 == iteration2 || next->iteration<0)
+                                    continue;
+
+                                showShape(next, "check2", iteration);
+
+                                if (!isInside(*wireInfo, next->mid)) {
+                                    showShape(next, "ninside2", iteration);
+                                    next->iteration2 = iteration2;
+                                    continue;
+                                }
+
+                                edgeSet.insert(next);
+                                stack.emplace_back(vertexStack.size());
+                                ++stack.back().iEnd;
+                                vertexStack.push_back(currentVertex);
+                                checkStack();
+
+                                TopoDS_Wire wire;
+                                if (pstart.SquareDistance(currentVertex.ptOther()) > myTol2) {
+                                    wire = _findClosedWires(beginVertex, currentVertex, wireInfo);
+                                    if (wire.IsNull()) {
+                                        vertexStack.pop_back();
+                                        stack.pop_back();
+                                        edgeSet.erase(next);
+                                        wireSet.erase(next->wireInfo.get());
+                                        continue;
+                                    }
+                                }
+
+                                newWire.reset(new WireInfo);
+                                auto &newWireVertices = newWire->vertices;
+                                newWireVertices.push_back(beginVertex);
+                                for (auto &r : stack) {
+                                    const auto &v = vertexStack[r.iCurrent];
+                                    newWireVertices.push_back(v);
+                                }
+                                if (!wire.IsNull())
+                                    newWire->wire = wire;
+                                else if (!initWireInfo(*newWire)) {
+                                    newWire.reset();
+                                    vertexStack.pop_back();
+                                    stack.pop_back();
+                                    edgeSet.erase(next);
+                                    wireSet.erase(next->wireInfo.get());
+                                    continue;
+                                }
+                                for (auto &v : newWire->vertices) {
+                                    if (v.edgeInfo()->wireInfo == wireInfo)
+                                        v.edgeInfo()->wireInfo = newWire;
+                                }
+                                showShape(*newWire, "nwire2", iteration);
+                                checkWireInfo(*newWire);
+                                break;
+                            }
+
+                            if (newWire) {
+                                ++iteration;
+                                wireInfo = newWire;
+                                break;
+                            }
+
+                            if (++idxV == (int)wireVertices.size()) {
+                                if (wireInfo->purge) {
+                                    showShape(*wireInfo, "discard2", iteration);
+                                    wireInfo.reset();
+                                } else {
+                                    wireInfo->done = true;
+                                    showShape(*wireInfo, "done2", iteration);
+                                }
+                                break;
+                            }
+                            stack.emplace_back(vertexStack.size());
+                            ++stack.back().iEnd;
+                            vertexStack.push_back(wireVertices[idxV]);
+                            edgeSet.insert(wireVertices[idxV].edgeInfo());
+                            checkStack();
+                        }
+                    }
+
+                    if (wireInfo && wireInfo->done) {
+                        for (auto &v : wireInfo->vertices) {
+                            auto edgeInfo = v.edgeInfo();
+                            assertCheck(edgeInfo->wireInfo != nullptr);
+                            if (edgeInfo->wireInfo->isSame(*wireInfo)) {
+                                wireInfo = edgeInfo->wireInfo;
+                                break;
+                            }
+                        }
+                        for (auto &v : wireInfo->vertices) {
+                            auto edgeInfo = v.edgeInfo();
+                            if (!edgeInfo->wireInfo2 && edgeInfo->wireInfo != wireInfo)
+                                edgeInfo->wireInfo2 = wireInfo;
+                        }
+                        assertCheck(info.wireInfo2 == wireInfo);
+                        assertCheck(info.wireInfo2 != info.wireInfo);
+                        showShape(*wireInfo, "exhaust");
+                        break;
+                    }
+                }
+            }
+        }
+        wireSet.clear();
+    }
+
     TopoDS_Wire makeCleanWire(bool fixGap=true)
     {
+        // Make a clean wire with sorted, oriented, connected, etc edges
         TopoDS_Wire result;
         ShapeFix_ShapeTolerance sTol;
 
@@ -1534,56 +1902,66 @@ public:
         if (!doTightBound && !doOutline)
             findClosedWires();
         else {
-            int i = 0;
-            while (true) {
-                ++i;
-                bool removed = false;
-                findClosedWires(true);
-                findTightBound();
-                if (doOutline) {
-                    std::unordered_map<EdgeInfo*, int> counter;
-                    std::unordered_set<WireInfo*> wires;
-                    for (auto &info : edges) {
-                        if (info.iteration == -2)
-                            continue;
-                        if (info.iteration < 0 || !info.wireInfo || !info.wireInfo->done) {
-                            if (info.iteration >= 0) {
-                                info.iteration = -1;
-                                removed = true;
-                            }
-                            continue;
+            findClosedWires(true);
+            findTightBound();
+            exhaustTightBound();
+            bool done = !doOutline;
+            while(!done) {
+                ++iteration;
+                done = true;
+                std::unordered_map<EdgeInfo*, int> counter;
+                std::unordered_set<WireInfo*> wires;
+                for (auto &info : edges) {
+                    if (info.iteration == -2)
+                        continue;
+                    if (info.iteration < 0 || !info.wireInfo || !info.wireInfo->done) {
+                        if (info.iteration >= 0) {
+                            info.iteration = -1;
+                            done = false;
+                            showShape(&info, "removed", iteration);
                         }
-                        if (!wires.insert(info.wireInfo.get()).second)
-                            continue;
-                        for (auto &v : info.wireInfo->vertices) {
+                        continue;
+                    }
+                    if (info.wireInfo2 && wires.insert(info.wireInfo2.get()).second) {
+                        for (auto &v : info.wireInfo2->vertices) {
                             if (++counter[v.edgeInfo()] == 2) {
                                 v.edgeInfo()->iteration = -1;
-                                removed = true;
+                                done = false;
+                                showShape(v.edgeInfo(), "removed2", iteration);
                             }
                         }
                     }
+                    if (!wires.insert(info.wireInfo.get()).second)
+                        continue;
+                    for (auto &v : info.wireInfo->vertices) {
+                        if (++counter[v.edgeInfo()] == 2) {
+                            v.edgeInfo()->iteration = -1;
+                            done = false;
+                            showShape(v.edgeInfo(), "removed1", iteration);
+                        }
+                    }
                 }
-                if (!removed)
-                    break;
+                findClosedWires(true);
+                findTightBound();
             }
+
             builder.MakeCompound(compound);
-            std::unordered_set<WireInfo*> wires;
+            wireSet.clear();
             for (auto &info : edges) {
                 if (info.iteration == -2) {
-                    if (info.wireInfo)
-                        builder.Add(compound, info.wireInfo->wire);
-                    else
+                    if (!info.wireInfo) {
                         builder.Add(compound, info.shape());
-                    continue;
+                        continue;
+                    }
+                    addWire(info.wireInfo);
+                    addWire(info.wireInfo2);
                 }
-                if (info.iteration < 0
-                        || !info.wireInfo
-                        || !info.wireInfo->done
-                        || !wires.insert(info.wireInfo.get()).second)
-                    continue;
-                initWireInfo(*info.wireInfo);
-                builder.Add(compound, info.wireInfo->wire);
+                else if (info.iteration >= 0) {
+                    addWire(info.wireInfo2);
+                    addWire(info.wireInfo);
+                }
             }
+            wireSet.clear();
         }
 
         for (const auto &info : edges) {
@@ -1591,6 +1969,15 @@ public:
                 openEdges.emplace_back(info.shape());
         }
     }
+
+    void addWire(std::shared_ptr<WireInfo> &wireInfo)
+    {
+        if (!wireInfo || !wireInfo->done || !wireSet.insertUnique(wireInfo.get()))
+            return;
+        initWireInfo(*wireInfo);
+        builder.Add(compound, wireInfo->wire);
+    }
+
 };
 
 
