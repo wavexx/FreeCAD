@@ -48,6 +48,9 @@
 # include <TopTools_HSequenceOfShape.hxx>
 #endif
 
+#include <BRepTools_History.hxx>
+#include <ShapeBuild_ReShape.hxx>
+
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
@@ -310,7 +313,7 @@ public:
         std::vector<T> data;
     };
 
-    std::unordered_map<TopoDS_Shape, TopTools_ListOfShape, ShapeHasher, ShapeHasher> generated;
+    Handle(BRepTools_History) aHistory = new BRepTools_History;
 
     typedef std::list<EdgeInfo> Edges;
     Edges edges;
@@ -542,6 +545,7 @@ public:
 
     void clear()
     {
+        aHistory->Clear();
         iteration = 0;
         boxMap.clear();
         vmap.clear();
@@ -597,6 +601,7 @@ public:
         Box bbox;
         if (!getBBox(e, bbox)) {
             showShape(e, "small");
+            aHistory->Remove(e);
             return 0;
         }
         return add(e, queryBBox, bbox, it) ? 1 : -1;
@@ -622,6 +627,7 @@ public:
                         || g1->isSame(*g2, myTol, myAngularTol))
                 {
                     showShape(e, "duplicate");
+                    aHistory->Remove(e);
                     return false;
                 }
             }
@@ -812,10 +818,6 @@ public:
                 continue;
             }
 
-            auto &glist = generated[info.edge];
-            TopTools_ListOfShape *otherGlist = nullptr;
-            TopoDS_Shape otherEdge;
-            
             splitted.clear();
             itParam = params.begin();
             for (auto itPrevParam=itParam++; itParam!=params.end(); ++itParam) {
@@ -861,12 +863,8 @@ public:
                 if (!add(v.edge, false, v.bbox, it))
                     continue;
                 auto &newInfo = *it++;
-                if (!otherEdge.IsSame(v.support)) {
-                    otherEdge = v.support;
-                    otherGlist = &generated[v.support];
-                }
-                glist.Append(newInfo.edge);
-                otherGlist->Append(newInfo.edge);
+                aHistory->AddModified(v.support, newInfo.edge);
+                aHistory->AddModified(info.edge, newInfo.edge);
                 showShape(newInfo.edge, "split");
             }
         }
@@ -1834,13 +1832,12 @@ public:
         fixer.FixConnected();
         fixer.FixClosed();
 
-        if (!fixGap)
-            return fixer.Wire();
+        if (fixGap)
+            fixer.FixGap3d(1, Standard_True);
 
-        ShapeFix_Wireframe aWireFramFix(fixer.Wire());
-        aWireFramFix.FixWireGaps();
-        aWireFramFix.FixSmallEdges();
-        result = TopoDS::Wire(aWireFramFix.Shape());
+        result = fixer.Wire();
+        if (fixer.Context() && fixer.Context()->History())
+            aHistory->Merge(fixer.Context()->History());
         return result;
     }
 
@@ -1919,6 +1916,7 @@ public:
                             info.iteration = -1;
                             done = false;
                             showShape(&info, "removed", iteration);
+                            aHistory->Remove(info.edge);
                         }
                         continue;
                     }
@@ -1928,6 +1926,7 @@ public:
                                 v.edgeInfo()->iteration = -1;
                                 done = false;
                                 showShape(v.edgeInfo(), "removed2", iteration);
+                                aHistory->Remove(info.edge);
                             }
                         }
                     }
@@ -1938,6 +1937,7 @@ public:
                             v.edgeInfo()->iteration = -1;
                             done = false;
                             showShape(v.edgeInfo(), "removed1", iteration);
+                            aHistory->Remove(info.edge);
                         }
                     }
                 }
@@ -2082,9 +2082,17 @@ TopoShape WireJoiner::getOpenWires()
 const TopTools_ListOfShape& WireJoiner::Generated (const TopoDS_Shape& S)
 {
     Build();
-    auto it = pimpl->generated.find(S);
-    if (it != pimpl->generated.end())
-        return it->second;
-    return BRepBuilderAPI_MakeShape::Generated(S);
+    return pimpl->aHistory->Generated(S);
 }
 
+const TopTools_ListOfShape& WireJoiner::Modified (const TopoDS_Shape& S)
+{
+    Build();
+    return pimpl->aHistory->Modified(S);
+}
+
+Standard_Boolean WireJoiner::IsDeleted (const TopoDS_Shape& S)
+{
+    Build();
+    return pimpl->aHistory->IsRemoved(S);
+}

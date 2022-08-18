@@ -47,7 +47,9 @@ public:
     TopoShape getOpenWires();
 
     void Build(const Message_ProgressRange& theRange = Message_ProgressRange()) override;
+    const TopTools_ListOfShape& Modified (const TopoDS_Shape& S) override;
     const TopTools_ListOfShape& Generated (const TopoDS_Shape& S) override;
+    Standard_Boolean IsDeleted (const TopoDS_Shape& S) override;
 
 private:
     class WireJoinerP;
