@@ -46,7 +46,11 @@ public:
 
     TopoShape getOpenWires();
 
+#if OCC_VERSION_HEX < 0x070600
+    void Build() override;
+#else
     void Build(const Message_ProgressRange& theRange = Message_ProgressRange()) override;
+#endif
     const TopTools_ListOfShape& Modified (const TopoDS_Shape& S) override;
     const TopTools_ListOfShape& Generated (const TopoDS_Shape& S) override;
     Standard_Boolean IsDeleted (const TopoDS_Shape& S) override;
