@@ -42,6 +42,9 @@
 #include <QVector>
 
 class BRepBuilderAPI_MakeShape;
+class BRepTools_History;
+class BRepTools_ReShape;
+class ShapeFix_Root;
 class BRepBuilderAPI_Sewing;
 class BRepOffsetAPI_ThruSections;
 class BRepFeat_MakePrism;
@@ -663,33 +666,33 @@ public:
      *  Cooresponds to OCCT type GeomAbs_Shape
      */
     enum class Continuity {
-    /// Only geometric continuity
-    C0,
-    /** for each point on the curve, the tangent vectors 'on the right' and 'on
-     *  the left' are collinear with the same orientation.
-     */
-    G1, 
-    /** Continuity of the first derivative. The 'C1' curve is also 'G1' but, in
-     *  addition, the tangent vectors 'on the right' and 'on the left' are equal.
-     */
-    C1,
+        /// Only geometric continuity
+        C0,
+        /** for each point on the curve, the tangent vectors 'on the right' and 'on
+        *  the left' are collinear with the same orientation.
+        */
+        G1, 
+        /** Continuity of the first derivative. The 'C1' curve is also 'G1' but, in
+        *  addition, the tangent vectors 'on the right' and 'on the left' are equal.
+        */
+        C1,
 
-    /** For each point on the curve, the normalized normal vectors 'on the
-     *  right' and 'on the left' are equal.
-     */
-    G2,
+        /** For each point on the curve, the normalized normal vectors 'on the
+        *  right' and 'on the left' are equal.
+        */
+        G2,
 
-    /// Continuity of the second derivative.
-    C2,
+        /// Continuity of the second derivative.
+        C2,
 
-    /// Continuity of the third derivative.
-    C3,
+        /// Continuity of the third derivative.
+        C3,
 
-    /** Continuity of the N-th derivative, whatever is the value given for N
-     * (infinite order of continuity). Also provides information about the
-     * continuity of a surface.
-     */
-    CN,
+        /** Continuity of the N-th derivative, whatever is the value given for N
+        * (infinite order of continuity). Also provides information about the
+        * continuity of a surface.
+        */
+        CN,
     };
 
     /** Make a non-planar filled face with boundary and/or constraint edge/wire 
@@ -2458,6 +2461,20 @@ struct PartExport MapperMaker: TopoShape::Mapper {
     MapperMaker(BRepBuilderAPI_MakeShape &maker)
         :maker(maker)
     {}
+    virtual const std::vector<TopoDS_Shape> &modified(const TopoDS_Shape &s) const override;
+    virtual const std::vector<TopoDS_Shape> &generated(const TopoDS_Shape &s) const override;
+};
+
+/** Shape mapper for BRepTools_History
+ *
+ * Uses BRepTools_History::Modified/Generated() function to extract
+ * shape history for generating mapped element names
+ */
+struct PartExport MapperHistory: TopoShape::Mapper {
+    Handle(BRepTools_History) history;
+    MapperHistory(const Handle(BRepTools_History) &history);
+    MapperHistory(const Handle(BRepTools_ReShape) &reshape);
+    MapperHistory(ShapeFix_Root &fix);
     virtual const std::vector<TopoDS_Shape> &modified(const TopoDS_Shape &s) const override;
     virtual const std::vector<TopoDS_Shape> &generated(const TopoDS_Shape &s) const override;
 };

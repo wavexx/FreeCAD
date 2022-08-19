@@ -1753,6 +1753,56 @@ MapperMaker::generated(const TopoDS_Shape &s) const
     return _res;
 }
 
+MapperHistory::MapperHistory(const Handle(BRepTools_History) &history)
+    :history(history)
+{}
+
+MapperHistory::MapperHistory(const Handle(BRepTools_ReShape) &reshape)
+{
+    if (reshape)
+        history = reshape->History();
+}
+
+MapperHistory::MapperHistory(ShapeFix_Root &fix)
+{
+    if (fix.Context())
+        history = fix.Context()->History();
+}
+    
+const std::vector<TopoDS_Shape> &
+MapperHistory::modified(const TopoDS_Shape &s) const
+{
+    _res.clear();
+    try {
+        if (history) {
+            TopTools_ListIteratorOfListOfShape it;
+            for (it.Initialize(history->Modified(s)); it.More(); it.Next())
+                _res.push_back(it.Value());
+        }
+    } catch (const Standard_Failure & e) {
+        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG))
+            FC_WARN("Exception on shape mapper: " << e.GetMessageString());
+    }
+    return _res;
+}
+
+const std::vector<TopoDS_Shape> &
+MapperHistory::generated(const TopoDS_Shape &s) const
+{
+    _res.clear();
+    try {
+        if (history) {
+            TopTools_ListIteratorOfListOfShape it;
+            for (it.Initialize(history->Generated(s)); it.More(); it.Next())
+                _res.push_back(it.Value());
+        }
+    } catch (const Standard_Failure & e) {
+        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG))
+            FC_WARN("Exception on shape mapper: " << e.GetMessageString());
+    }
+    return _res;
+}
+
 struct MapperThruSections: MapperMaker {
     TopoShape firstProfile;
     TopoShape lastProfile;
