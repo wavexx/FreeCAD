@@ -1145,6 +1145,70 @@ std::vector<TopoShape> TopoShape::getSubTopoShapes(TopAbs_ShapeEnum type, TopAbs
     return res;
 }
 
+std::vector<TopoShape> TopoShape::getOrderedEdges(bool mapElement) const
+{
+    if(isNull())
+        return std::vector<TopoShape>();
+
+    std::vector<TopoShape> shapes;
+    if (shapeType() == TopAbs_WIRE) {
+        BRepTools_WireExplorer xp(TopoDS::Wire(getShape()));
+        while (xp.More()) {
+            shapes.push_back(TopoShape(xp.Current()));
+            xp.Next();
+        }
+    }
+    else {
+        INIT_SHAPE_CACHE();
+        for (const auto &w : getSubShapes(TopAbs_WIRE)) {
+            BRepTools_WireExplorer xp(TopoDS::Wire(w));
+            while (xp.More()) {
+                shapes.push_back(TopoShape(xp.Current()));
+                xp.Next();
+            }
+        }
+    }
+    if (mapElement)
+        mapSubElementsTo(shapes);
+    return shapes;
+}
+
+std::vector<TopoShape> TopoShape::getOrderedVertexes(bool mapElement) const
+{
+    if(isNull())
+        return std::vector<TopoShape>();
+
+    std::vector<TopoShape> shapes;
+
+    auto collect = [&](const TopoDS_Shape &s) {
+        auto wire = TopoDS::Wire(s);
+        BRepTools_WireExplorer xp(wire);
+        while (xp.More()) {
+            shapes.push_back(TopoShape(xp.CurrentVertex()));
+            xp.Next();
+        }
+        // special treatment for open wires
+        TopoDS_Vertex Vfirst, Vlast;
+        TopExp::Vertices(wire, Vfirst, Vlast);
+        if (!Vfirst.IsNull() && !Vlast.IsNull()) {
+            if (!Vfirst.IsSame(Vlast)) {
+                shapes.push_back(TopoShape(Vlast));
+            }
+        }
+    };
+
+    if (shapeType() == TopAbs_WIRE)
+        collect(getShape());
+    else {
+        INIT_SHAPE_CACHE();
+        for (const auto &s : getSubShapes(TopAbs_WIRE))
+            collect(s);
+    }
+    if (mapElement)
+        mapSubElementsTo(shapes);
+    return shapes;
+}
+
 std::pair<TopAbs_ShapeEnum,int>
 TopoShape::shapeTypeAndIndex(const Data::IndexedName & element)
 {
@@ -4256,8 +4320,14 @@ TopoShape &TopoShape::makEFilledFace(const std::vector<TopoShape> &_shapes,
     for(auto &s : _shapes)
         expandCompound(s,shapes);
 
+    TopoShapeMap output;
     auto getOrder = [&](const TopoDS_Shape &s) {
         auto it = params.orders.find(s);
+        if (it == params.orders.end()) {
+            auto iter = output.find(s);
+            if (iter != output.end())
+                it = params.orders.find(iter->second.getShape());
+        }
         if (it != params.orders.end())
             return static_cast<GeomAbs_Shape>(it->second);
         return GeomAbs_C0;
@@ -4266,6 +4336,11 @@ TopoShape &TopoShape::makEFilledFace(const std::vector<TopoShape> &_shapes,
     auto getSupport = [&](const TopoDS_Shape &s) {
         TopoDS_Face support;
         auto it = params.supports.find(s);
+        if (it == params.supports.end()) {
+            auto iter = output.find(s);
+            if (iter != output.end())
+                it = params.supports.find(iter->second.getShape());
+        }
         if (it != params.supports.end()) {
             if (!it->second.IsNull() && it->second.ShapeType() == TopAbs_FACE)
                 support = TopoDS::Face(it->second);
@@ -4295,29 +4370,49 @@ TopoShape &TopoShape::makEFilledFace(const std::vector<TopoShape> &_shapes,
         return TopoShape();
     };
 
-    TopoShape bound = findBoundary(shapes);
-    if (bound.isNull()) {
-        // If no boundry is found, then try build one.
-        std::vector<TopoShape> edges;
-        for(auto it=shapes.begin(); it!=shapes.end();) {
-            if (it->shapeType(true) == TopAbs_EDGE) {
-                edges.push_back(*it);
-                it = shapes.erase(it);
-            } else
-                ++it;
+    TopoShape bound;
+    std::vector<TopoShape> wires;
+    if (params.boundary_begin >= 0
+            && params.boundary_end > params.boundary_begin
+            && params.boundary_end <= (int)shapes.size())
+    {
+        if (params.boundary_end-1 != params.boundary_begin
+                || shapes[params.boundary_begin].shapeType() != TopAbs_WIRE)
+        {
+            std::vector<TopoShape> edges;
+            edges.insert(edges.end(),
+                    shapes.begin()+params.boundary_begin,
+                    shapes.begin()+params.boundary_end);
+            wires = TopoShape(0, Hasher).makEWires(edges,"",0.0,false,&output).getSubTopoShapes(TopAbs_WIRE);
+            shapes.erase(shapes.begin()+params.boundary_begin,
+                         shapes.begin()+params.boundary_end);
         }
-        std::vector<TopoShape> wires;
-        if(edges.size()) {
-            wires = TopoShape(0, Hasher).makEWires(edges).getSubTopoShapes(TopAbs_WIRE);
-            bound = findBoundary(wires);
+    } else {
+        bound = findBoundary(shapes);
+        if (bound.isNull()) {
+            // If no boundry is found, then try to build one.
+            std::vector<TopoShape> edges;
+            for(auto it=shapes.begin(); it!=shapes.end();) {
+                if (it->shapeType(true) == TopAbs_EDGE) {
+                    edges.push_back(*it);
+                    it = shapes.erase(it);
+                } else
+                    ++it;
+            }
+            if(edges.size())
+                wires = TopoShape(0, Hasher).makEWires(edges,"",0.0,false,&output).getSubTopoShapes(TopAbs_WIRE);
         }
-        if (bound.isNull())
-            FC_THROWM(Base::CADKernelError,"No boundary wire");
-
-        // Since we've only selected one wire for boundary, return all the
-        // other edges to shapes to be added as non boundary constraints
-        shapes.insert(shapes.end(), wires.begin(), wires.end());
     }
+
+    if (bound.isNull())
+        bound = findBoundary(wires);
+
+    if (bound.isNull())
+        FC_THROWM(Base::CADKernelError,"No boundary wire");
+
+    // Since we've only selected one wire for boundary, return all the
+    // other edges in shapes to be added as non boundary constraints
+    shapes.insert(shapes.end(), wires.begin(), wires.end());
 
     // Must fix wire connection to avoid OCC crash in BRepFill_Filling.cxx WireFromList()
     // https://github.com/Open-Cascade-SAS/OCCT/blob/1c96596ae7ba120a678021db882857e289c73947/src/BRepFill/BRepFill_Filling.cxx#L133
@@ -4327,11 +4422,12 @@ TopoShape &TopoShape::makEFilledFace(const std::vector<TopoShape> &_shapes,
               Precision::Confusion(),
               Precision::Confusion());
 
-    for (BRepTools_WireExplorer xp(TopoDS::Wire(bound.getShape())); xp.More(); xp.Next())
-        maker.Add(TopoDS::Edge(xp.Current()),
-                  getSupport(xp.Current()),
-                  getOrder(xp.Current()),
+    for (const auto &e : bound.getOrderedEdges()) {
+        maker.Add(TopoDS::Edge(e.getShape()),
+                  getSupport(e.getShape()),
+                  getOrder(e.getShape()),
                   /*IsBound*/Standard_True);
+    }
 
     for(const auto &s : shapes) {
         if(s.isNull())

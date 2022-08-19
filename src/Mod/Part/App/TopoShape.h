@@ -185,6 +185,8 @@ public:
     TopoShape getSubTopoShape(TopAbs_ShapeEnum type, int idx, bool silent=false) const;
     std::vector<TopoShape> getSubTopoShapes(TopAbs_ShapeEnum type=TopAbs_SHAPE, TopAbs_ShapeEnum avoid=TopAbs_SHAPE) const;
     std::vector<TopoDS_Shape> getSubShapes(TopAbs_ShapeEnum type=TopAbs_SHAPE, TopAbs_ShapeEnum avoid=TopAbs_SHAPE) const;
+    std::vector<TopoShape> getOrderedEdges(bool mapElement=true) const;
+    std::vector<TopoShape> getOrderedVertexes(bool mapElement=true) const;
     unsigned long countSubShapes(const char* Type) const;
     unsigned long countSubShapes(TopAbs_ShapeEnum type) const;
     bool hasSubShape(const char *Type) const;
@@ -2618,6 +2620,10 @@ struct PartExport TopoShape::BRepFillingParams {
     std::unordered_map<TopoDS_Shape, TopoShape::Continuity, ShapeHasher, ShapeHasher> orders;
     /// Optional map from input shape to face used as support
     std::unordered_map<TopoDS_Shape, TopoDS_Shape, ShapeHasher, ShapeHasher> supports;
+    /// Optional begin index to the input shapes to be used as the boundary of the filled face.
+    int boundary_begin = -1;
+    /// Optional end index (last index + 1) to the input shapes to be used as the boundary of the filled face.
+    int boundary_end = -1;
     /// The energe minimizing criterion degree;
     unsigned int degree = 3;
     /// The number of points on the curve NbPntsOnCur
