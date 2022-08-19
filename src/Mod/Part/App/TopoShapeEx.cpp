@@ -2652,15 +2652,15 @@ TopoShape &TopoShape::makEThickSolid(const TopoShape &shape,
 
 TopoShape &TopoShape::makEWires(const std::vector<TopoShape> &shapes,
                                 const char *op,
-                                bool keepOrder,
                                 double tol,
-                                bool shared)
+                                bool shared,
+                                TopoShapeMap *output)
 {
     if(shapes.empty())
         HANDLE_NULL_SHAPE;
     if(shapes.size() == 1)
-        return makEWires(shapes[0],op,keepOrder,tol,shared);
-    return makEWires(TopoShape(Tag).makECompound(shapes),op,keepOrder,tol,shared);
+        return makEWires(shapes[0],op,tol,shared,output);
+    return makEWires(TopoShape(Tag).makECompound(shapes),op,tol,shared,output);
 }
 
 struct EdgePoints {
@@ -2797,12 +2797,45 @@ TopoShape::sortEdges(std::list<TopoShape>& edges, bool keepOrder, double tol)
     return sorted;
 }
 
+TopoShape &TopoShape::makEOrderedWires(const std::vector<TopoShape> &shapes,
+                                       const char *op,
+                                       double tol,
+                                       TopoShapeMap *output)
+{
+    if(!op) op = Part::OpCodes::Wire;
+    if(tol<Precision::Confusion()) tol = Precision::Confusion();
+
+    std::vector<TopoShape> wires;
+    std::list<TopoShape> edge_list;
+
+    auto shape = TopoShape().makECompound(shapes, "", false);
+    for(auto &e : shape.getSubTopoShapes(TopAbs_EDGE))
+        edge_list.push_back(e);
+
+    while(edge_list.size()) {
+        BRepBuilderAPI_MakeWire mkWire;
+        std::vector<TopoShape> edges;
+        for (auto &edge : sortEdges(edge_list, true, tol)) {
+            edges.push_back(edge);
+            mkWire.Add(TopoDS::Edge(edge.getShape()));
+            // MakeWire will replace vertex of connected edge, which
+            // effectively creat a new edge. So we need to update the shape
+            // in order to preserve element mapping.
+            edges.back().setShape(mkWire.Edge(), false);
+            if (output)
+                (*output)[edges.back()] = edge;
+        }
+        wires.push_back(mkWire.Wire());
+        wires.back().mapSubElement(edges,op);
+    }
+    return makECompound(wires,0,false);
+}
 
 TopoShape &TopoShape::makEWires(const TopoShape &shape,
                                 const char *op,
-                                bool keepOrder,
                                 double tol,
-                                bool shared)
+                                bool shared,
+                                TopoShapeMap *output)
 {
     if(!op) op = Part::OpCodes::Wire;
     if(tol<Precision::Confusion()) tol = Precision::Confusion();
@@ -2834,18 +2867,7 @@ TopoShape &TopoShape::makEWires(const TopoShape &shape,
     std::list<TopoShape> edge_list;
 
     for(auto &e : shape.getSubTopoShapes(TopAbs_EDGE))
-        edge_list.push_back(e);
-
-    if (keepOrder) {
-        while(edge_list.size()) {
-            BRepBuilderAPI_MakeWire mkWire;
-            for (auto &edge : sortEdges(edge_list, keepOrder, tol))
-                mkWire.Add(TopoDS::Edge(edge.getShape()));
-            wires.push_back(mkWire.Wire());
-            wires.back().mapSubElement(shape,op);
-        }
-        return makECompound(wires,0,false);
-    }
+        edge_list.emplace_back(e);
 
     std::vector<TopoShape> edges;
     edges.reserve(edge_list.size());
@@ -2857,9 +2879,11 @@ TopoShape &TopoShape::makEWires(const TopoShape &shape,
         // add and erase first edge
         edges.clear();
         edges.push_back(edge_list.front());
-        edge_list.pop_front();
         mkWire.Add(TopoDS::Edge(edges.back().getShape()));
         edges.back().setShape(mkWire.Edge(),false);
+        if (output)
+            (*output)[edges.back()] = edge_list.front();
+        edge_list.pop_front();
 
         TopoDS_Wire new_wire = mkWire.Wire(); // current new wire
 
@@ -2873,7 +2897,12 @@ TopoShape &TopoShape::makEWires(const TopoShape &shape,
                     // edge added ==> remove it from list
                     found = true;
                     edges.push_back(*it);
+                    // MakeWire will replace vertex of connected edge, which
+                    // effectively creat a new edge. So we need to update the
+                    // shape in order to preserve element mapping.
                     edges.back().setShape(mkWire.Edge(),false);
+                    if (output)
+                        (*output)[edges.back()] = *it;
                     edge_list.erase(it);
                     new_wire = mkWire.Wire();
                     break;

@@ -278,8 +278,21 @@ public:
         add_varargs_method("makeShell",&Module::makeShell,
             "makeShell(list) -- Create a shell out of a list of faces."
         );
-        add_varargs_method("makeWires",&Module::makeWires,
-            "makeWires(list_of_shapes_or_compound) -- Create wires from a list of a unsorted edges."
+        add_keyword_method("makeWires",&Module::makeWires,
+            "makeWires(shapes : Part.Shape | Sequence[Part.Shape],\n"
+            "          op = "" : String) -> Part.Shape\n"
+            "          tol = 1e-7 : Float,\n"
+            "          keep_order = False : Boolean,\n"
+            "          shared = False : Boolean) -> Part.Shape\n"
+            "\n"
+            "Create wires from a list of a unsorted edges.\n"
+            "\n"
+            "Args:\n"
+            "   shapes: input shape or list of shapes\n"
+            "   op: optional string for creating topological naming of the new shape.\n"
+            "   tol: the 3D tolerance.\n"
+            "   keep_order: whether to respect the order of the input edge.\n"
+            "   shared: If True, then only make wire with edges that shares vertex.\n"
         );
         add_varargs_method("makeFace",&Module::makeFace,
             "makeFace(list_of_shapes_or_compound, maker_class_name) -- Create a face (faces) using facemaker class.\n"
@@ -946,15 +959,23 @@ private:
         return Py::asObject(new TopoShapeShellPy(new TopoShape(shape)));
 #endif
     }
-    Py::Object makeWires(const Py::Tuple& args)
+    Py::Object makeWires(const Py::Tuple& args, const Py::Dict &kwds)
     {
         PyObject *obj;
         const char *op = 0;
         PyObject *keepOrder = Py_False;
-        double tol = 0.0;
-        if(!PyArg_ParseTuple(args.ptr(), "O|sdO!", &obj, &op, &tol, &PyBool_Type,&keepOrder))
+        PyObject *shared = Py_False;
+        double tol = 1e-7;
+        static char* kwd_list[] = {"shapes", "op", "tol", "keep_order", "shared", nullptr};
+        if(!PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O|sdOO", kwd_list,
+                                        &obj, &op, &tol, &keepOrder, &shared))
             throw Py::Exception();
-        return shape2pyshape(TopoShape().makEWires(getPyShapes(obj),op,PyObject_IsTrue(keepOrder),tol));
+        TopoShape res;
+        if (PyObject_IsTrue(keepOrder))
+            res.makEOrderedWires(getPyShapes(obj),op,tol);
+        else
+            res.makEWires(getPyShapes(obj),op,tol,PyObject_IsTrue(shared));
+        return shape2pyshape(res);
     }
     Py::Object makeFace(const Py::Tuple& args)
     {
