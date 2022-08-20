@@ -1645,12 +1645,24 @@ TopoShape &TopoShape::makEEvolve(const TopoShape &spine,
             FC_THROWM(Base::CADKernelError, "Expect the the profile to be a planar wire or face or a line");
         }
     }
-    BRepOffsetAPI_MakeEvolved maker(spineShape, TopoDS::Wire(profileShape), joinType,
-            axeProf ? Standard_True : Standard_False,
-            solid ? Standard_True : Standard_False,
-            profOnSpine ? Standard_True : Standard_False,
-            tol);
-    return makEShape(maker, {spine, profile}, op);
+    if (spineShape.ShapeType() == TopAbs_FACE) {
+        BRepOffsetAPI_MakeEvolved maker(TopoDS::Face(spineShape),
+                TopoDS::Wire(profileShape), joinType,
+                axeProf ? Standard_True : Standard_False,
+                solid ? Standard_True : Standard_False,
+                profOnSpine ? Standard_True : Standard_False,
+                tol);
+        return makEShape(maker, {spine, profile}, op);
+    }
+    else {
+        BRepOffsetAPI_MakeEvolved maker(TopoDS::Wire(spineShape),
+                TopoDS::Wire(profileShape), joinType,
+                axeProf ? Standard_True : Standard_False,
+                solid ? Standard_True : Standard_False,
+                profOnSpine ? Standard_True : Standard_False,
+                tol);
+        return makEShape(maker, {spine, profile}, op);
+    }
 }
 
 TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
