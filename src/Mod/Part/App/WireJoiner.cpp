@@ -746,8 +746,9 @@ public:
     void splitEdges()
     {
         BRepExtrema_DistShapeShape extss;
+#if OCC_VERSION_HEX >= 0x070600
         extss.SetMultiThread(Standard_True);
-
+#endif
         std::unordered_map<const EdgeInfo*, std::map<double, IntersectInfo>> intersects;
 
         int i=0;
