@@ -3609,7 +3609,6 @@ void TopoShape::getLinesFromSubElement(const Data::Segment* element,
             TopoDS_Edge aEdge = TopoDS::Edge(exp.Current());
             std::vector<gp_Pnt> points;
             TopoDS_Face aFace = TopoDS::Face(findAncestorShape(aEdge, TopAbs_FACE));
-            bool done = false;
             if (aFace.IsNull()) {
                 if (!Tools::getPolygon3D(aEdge, points)) {
                     if (meshed)
