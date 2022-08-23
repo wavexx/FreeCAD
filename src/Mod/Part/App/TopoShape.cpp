@@ -3179,33 +3179,33 @@ void TopoShape::getDomains(std::vector<Domain>& domains) const
                 // faces and domains match
                 Domain domain;
                 domains.push_back(domain);
+                continue;
             }
         }
-        else {
-            Domain domain;
-            // copy the points
-            domain.points.reserve(points.size());
-            for (const auto& it : points) {
-                Standard_Real X, Y, Z;
-                it.Coord (X, Y, Z);
-                domain.points.emplace_back(X, Y, Z);
-            }
 
-            // copy the triangles
-            domain.facets.reserve(facets.size());
-            for (const auto& it : facets) {
-                Standard_Integer N1, N2, N3;
-                it.Get(N1, N2, N3);
-
-                Facet tria;
-                tria.I1 = N1;
-                tria.I2 = N2;
-                tria.I3 = N3;
-                domain.facets.push_back(tria);
-            }
-
-            domains.push_back(domain);
+        Domain domain;
+        // copy the points
+        domain.points.reserve(points.size());
+        for (const auto& it : points) {
+            Standard_Real X, Y, Z;
+            it.Coord (X, Y, Z);
+            domain.points.emplace_back(X, Y, Z);
         }
+
+        // copy the triangles
+        domain.facets.reserve(facets.size());
+        for (const auto& it : facets) {
+            Standard_Integer N1, N2, N3;
+            it.Get(N1, N2, N3);
+
+            Facet tria;
+            tria.I1 = N1;
+            tria.I2 = N2;
+            tria.I3 = N3;
+            domain.facets.push_back(tria);
+        }
+
+        domains.push_back(domain);
     }
 }
 
@@ -3609,9 +3609,9 @@ void TopoShape::getLinesFromSubElement(const Data::Segment* element,
             TopoDS_Edge aEdge = TopoDS::Edge(exp.Current());
             std::vector<gp_Pnt> points;
             TopoDS_Face aFace = TopoDS::Face(findAncestorShape(aEdge, TopAbs_FACE));
+            bool done = false;
             if (aFace.IsNull()) {
-                bool done = Tools::getPolygon3D(aEdge, points);
-                if (!done) {
+                if (!Tools::getPolygon3D(aEdge, points)) {
                     if (meshed)
                         continue;
                     meshed = true;
@@ -3619,8 +3619,7 @@ void TopoShape::getLinesFromSubElement(const Data::Segment* element,
                     if (!Tools::getPolygon3D(aEdge, points))
                         continue;
                 }
-            }
-            else {
+            } else {
                 // the edge has not its own triangulation, but then a face the edge is attached to
                 // must provide this triangulation
 
