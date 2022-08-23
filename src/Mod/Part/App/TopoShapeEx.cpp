@@ -691,20 +691,22 @@ std::vector<TopoShape> TopoShape::searchSubShape(
     int i=0;
     TopAbs_ShapeEnum shapeType = subshape.shapeType();
     switch(shapeType) {
-    case TopAbs_VERTEX:
+    case TopAbs_VERTEX: {
         // Vertex search will do comparison with tolerance to account for
         // rounding error inccured through transformation.
+        auto pt = BRep_Tool::Pnt(TopoDS::Vertex(subshape.getShape()));
         for(auto &s : getSubTopoShapes(TopAbs_VERTEX)) {
             ++i;
-            if(BRep_Tool::Pnt(TopoDS::Vertex(s.getShape())).SquareDistance(
-                        BRep_Tool::Pnt(TopoDS::Vertex(subshape.getShape()))) <= tol2)
-            {
+            auto ptOther = BRep_Tool::Pnt(TopoDS::Vertex(s.getShape()));
+            double d = pt.SquareDistance(ptOther);
+            if (d <= tol2) {
                 if(names)
                     names->push_back(std::string("Vertex")+std::to_string(i));
                 res.push_back(s);
             }
         }
         break;
+    }
     case TopAbs_EDGE:
     case TopAbs_FACE: {
         std::unique_ptr<Geometry> g;
@@ -1668,7 +1670,8 @@ TopoShape &TopoShape::makEEvolve(const TopoShape &spine,
 TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
         int orientation, const char *op)
 {
-    if(!op) op = Part::OpCodes::RuledSurface;
+    if(!op)
+        op = Part::OpCodes::RuledSurface;
 
     if(shapes.size()!=2)
         FC_THROWM(Base::CADKernelError,"Wrong number of input shape");
@@ -1718,10 +1721,9 @@ TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
 
     // https://forum.freecadweb.org/viewtopic.php?f=8&t=24052
     //
-    // if both shapes are sub-elements of one common shape then the fill algorithm
-    // leads to problems if the shape has set a placement
-    // The workaround is to reset the placement before calling BRepFill and then
-    // applying the placement to the output shape
+    // if both shapes are sub-elements of one common shape then the fill
+    // algorithm leads to problems if the shape has set a placement. The
+    // workaround is to copy the sub-shape
     S1 = S1.makECopy();
     S2 = S2.makECopy();
 
@@ -1785,9 +1787,24 @@ TopoShape &TopoShape::makERuledSurface(const std::vector<TopoShape> &shapes,
     else {
         ruledShape = BRepFill::Shell(TopoDS::Wire(S1.getShape()), TopoDS::Wire(S2.getShape()));
     }
+    
+    // Both BRepFill::Face() and Shell() modifies the original input edges
+    // without any API to provide relationship to the output edges. So we have
+    // to use searchSubShape() to build the relationship by ourselves.
 
+    TopoShape res(ruledShape.Located(TopLoc_Location()));
+    std::vector<TopoShape> edges;
+    for (const auto &c : curves) {
+        for (const auto &e : c.getSubTopoShapes(TopAbs_EDGE)) {
+            auto found = res.searchSubShape(e);
+            if (found.size() > 0) {
+                found.front().resetElementMap(e.elementMap());
+                edges.push_back(found.front());
+            }
+        }
+    }
     // Use empty mapper and let makEShape name the created surface with lower elements.
-    return makESHAPE(ruledShape,Mapper(),curves,op);
+    return makESHAPE(res.getShape(),Mapper(),edges,op);
 }
 
 const std::vector<TopoDS_Shape> &
