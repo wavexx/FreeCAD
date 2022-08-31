@@ -1489,8 +1489,14 @@ bool LinkBaseExtension::extensionGetLinkedObject(DocumentObject *&ret,
 
 void LinkBaseExtension::extensionOnChanged(const Property *prop) {
     auto parent = getContainer();
-    if(parent && !parent->isRestoring() && prop && !prop->testStatus(Property::User3))
-        update(parent,prop);
+    if(parent && !parent->isRestoring() && prop && !prop->testStatus(Property::User3)) {
+        if (!parent->getDocument() || !parent->getDocument()->isPerformingTransaction())
+            update(parent,prop);
+        else {
+            Base::StateLocker guard(pauseCopyOnChange);
+            update(parent,prop);
+        }
+    }
     inherited::extensionOnChanged(prop);
 }
 
@@ -1579,7 +1585,8 @@ void LinkBaseExtension::updateGroupVisibility() {
 }
 
 void LinkBaseExtension::update(App::DocumentObject *parent, const Property *prop) {
-    if(!prop) return;
+    if(!prop)
+        return;
 
     if(prop == getLinkPlacementProperty() || prop == getPlacementProperty()) {
         auto src = getLinkPlacementProperty();
