@@ -2565,7 +2565,7 @@ Link::Link()
     ADD_PROPERTY_TYPE(LinkTransform, (false), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropLinkTransform].doc);
     ADD_PROPERTY_TYPE(LinkPlacement, (Base::Placement{}), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropLinkPlacement].doc);
     ADD_PROPERTY_TYPE(Placement, (Base::Placement{}), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropPlacement].doc);
-    ADD_PROPERTY_TYPE(ShowElement, (false), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropShowElement].doc);
+    ADD_PROPERTY_TYPE(ShowElement, (true), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropShowElement].doc);
     ADD_PROPERTY_TYPE(SyncGroupVisibility, (false), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropSyncGroupVisibility].doc);
     ADD_PROPERTY_TYPE(ElementCount, (0), " Link", App::Prop_None, getPropertyInfo()[PropIndex::PropElementCount].doc);
     {// Auto generated code (App/Link.py:99)
@@ -2615,6 +2615,7 @@ void Link::setupObject()
 {
     inherited::setupObject();
     AutoLinkLabel.setValue(true);
+    ShowElement.setValue(LinkParams::getShowElement());
 }
 
 bool Link::canLinkProperties() const {
