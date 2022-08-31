@@ -119,6 +119,8 @@ public:
 
     virtual std::vector< DocumentObject* > addObjects(std::vector< DocumentObject* > obj) override;
     virtual std::vector< DocumentObject* > removeObjects(std::vector< DocumentObject* > obj) override;
+
+    virtual bool canRemoveChild(App::DocumentObject *) const {return true;}
     
     /// Collects all links that are relevant for the coordinate system, meaning all recursive links to 
     /// obj and from obj excluding expressions and stopping the recursion at other geofeaturegroups. 
