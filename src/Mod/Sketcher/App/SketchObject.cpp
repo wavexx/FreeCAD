@@ -1195,6 +1195,7 @@ void SketchObject::acceptGeometry()
 {
     Constraints.acceptGeometry(getCompleteGeometry());
     rebuildVertexIndex();
+    signalElementsChanged();
 }
 
 bool SketchObject::isSupportedGeometry(const Part::Geometry *geo) const
