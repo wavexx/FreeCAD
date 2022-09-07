@@ -67,6 +67,7 @@
 
 #include "Geometry.h"
 #include "PartFeature.h"
+#include "TopoShapeOpCode.h"
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -540,8 +541,7 @@ public:
     TopoDS_Compound compound;
 
     std::vector<TopoShape> sourceEdges;
-    std::vector<TopoShape> openEdges;
-    TopoShape openEdgeCompound;
+    TopoDS_Compound openEdgeCompound;
 
     Handle(ShapeExtend_WireData) wireData = new ShapeExtend_WireData();
 
@@ -554,12 +554,12 @@ public:
         edges.clear();
         edgeSet.clear();
         wireSet.clear();
-        openEdges.clear();
         adjacentList.clear();
         stack.clear();
         tmpVertices.clear();
         vertexStack.clear();
         builder.MakeCompound(compound);
+        openEdgeCompound.Nullify();
     }
 
     Edges::iterator remove(Edges::iterator it)
@@ -861,13 +861,15 @@ public:
             }
 
             showShape(info.edge, "remove");
+            auto removedEdge = info.edge;
             it = remove(it);
             for (const auto &v : splitted) {
                 if (!add(v.edge, false, v.bbox, it))
                     continue;
                 auto &newInfo = *it++;
                 aHistory->AddModified(v.support, newInfo.edge);
-                aHistory->AddModified(info.edge, newInfo.edge);
+                if (v.support != removedEdge)
+                    aHistory->AddModified(removedEdge, newInfo.edge);
                 showShape(newInfo.edge, "split");
             }
         }
@@ -1826,7 +1828,15 @@ public:
         TopoDS_Wire result;
         ShapeFix_ShapeTolerance sTol;
 
+        std::vector<TopoShape> inputEdges;
+
+        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_TRACE)) {
+            for (int i=1; i<=wireData->NbEdges(); ++i)
+                inputEdges.emplace_back(wireData->Edge(i));
+        }
+
         ShapeFix_Wire fixer;
+        fixer.SetContext(new ShapeBuild_ReShape);
         fixer.Load(wireData);
         fixer.SetMaxTolerance(myTol);
         fixer.ClosedWireMode() = Standard_True;
@@ -1839,9 +1849,38 @@ public:
             fixer.FixGap3d(1, Standard_True);
 
         result = fixer.Wire();
-        if (fixer.Context() && fixer.Context()->History())
-            aHistory->Merge(fixer.Context()->History());
+        auto newHistory = fixer.Context()->History(); 
+
+        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_TRACE)) {
+            FC_MSG("init:");
+            for (const auto &s : sourceEdges)
+                FC_MSG(s.getShape().TShape().get() << ", " << s.getShape().HashCode(INT_MAX));
+            printHistory(aHistory, sourceEdges);
+            printHistory(newHistory, inputEdges);
+        }
+
+        aHistory->Merge(newHistory);
+
+        if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_TRACE)) {
+            printHistory(aHistory, sourceEdges);
+            FC_MSG("final:");
+            for (int i=1; i<=wireData->NbEdges(); ++i) {
+                auto s = wireData->Edge(i);
+                FC_MSG(s.TShape().get() << ", " << s.HashCode(INT_MAX));
+            }
+        }
         return result;
+    }
+
+    void printHistory(Handle(BRepTools_History) hist, const std::vector<TopoShape> &input)
+    {
+        FC_MSG("\nHistory:\n");
+        for (const auto &s : input) {
+            for(TopTools_ListIteratorOfListOfShape it(hist->Modified(s.getShape())); it.More(); it.Next()) {
+                FC_MSG(s.getShape().TShape().get() << ", " << s.getShape().HashCode(INT_MAX)
+                        << " -> " << it.Value().TShape().get() << ", " << it.Value().HashCode(INT_MAX));
+            }
+        }
     }
 
     bool canShowShape(int idx, bool forced)
@@ -1967,9 +2006,23 @@ public:
             wireSet.clear();
         }
 
+        // TODO: We choose to put open wires in a separated shape from the final
+        // result shape, so the history may contains some entries that are not
+        // presented in the final result, which will cause warning message when
+        // generating topo naming in TopoShape::makESHAPE(). We've lowered log
+        // message level to suppress the warning for the moment. The right way
+        // to solve the problem is to reconstruct the history and filter out
+        // those entries.
+
+        bool hasOpenEdge = false;
         for (const auto &info : edges) {
-            if (info.iteration == -3 || (!info.wireInfo && info.iteration>=0))
-                openEdges.emplace_back(info.shape());
+            if (info.iteration == -3 || (!info.wireInfo && info.iteration>=0)) {
+                if (!hasOpenEdge) {
+                    hasOpenEdge = true;
+                    builder.MakeCompound(openEdgeCompound);
+                }
+                builder.Add(openEdgeCompound, info.shape());
+            }
         }
     }
 
@@ -1981,6 +2034,12 @@ public:
         builder.Add(compound, wireInfo->wire);
     }
 
+    bool getOpenWires(TopoShape &shape, const char *op) {
+        if (openEdgeCompound.IsNull())
+            return false;
+        shape.makESHAPE(openEdgeCompound, MapperHistory(aHistory), sourceEdges, op);
+        return true;
+    }
 };
 
 
@@ -2072,18 +2131,17 @@ void WireJoiner::Build(const Message_ProgressRange&)
     if (IsDone())
         return;
     pimpl->build();
-    myShape = pimpl->compound;
+    if (TopoShape(pimpl->compound).countSubShapes(TopAbs_SHAPE) > 0)
+        myShape = pimpl->compound;
+    else
+        myShape.Nullify();
     Done();
 }
 
-TopoShape WireJoiner::getOpenWires()
+bool WireJoiner::getOpenWires(TopoShape &shape, const char *op)
 {
     Build();
-    if (pimpl->openEdgeCompound.isNull() && pimpl->openEdges.size()) {
-        pimpl->openEdgeCompound.makEWires(
-                pimpl->openEdges).mapSubElement(pimpl->sourceEdges);
-    }
-    return pimpl->openEdgeCompound;
+    return pimpl->getOpenWires(shape, op);
 }
 
 const TopTools_ListOfShape& WireJoiner::Generated (const TopoDS_Shape& S)
