@@ -63,9 +63,12 @@ void Part::FaceMaker::addTopoShape(const TopoShape& shape) {
         break;
         case TopAbs_WIRE:
             this->myWires.push_back(TopoDS::Wire(sh));
+            this->myTopoWires.push_back(shape);
         break;
         case TopAbs_EDGE:
             this->myWires.push_back(BRepBuilderAPI_MakeWire(TopoDS::Edge(sh)).Wire());
+            this->myTopoWires.push_back(shape);
+            this->myTopoWires.back().setShape(this->myWires.back(), false);
         break;
         case TopAbs_FACE:
             this->myInputFaces.push_back(sh);
