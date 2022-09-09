@@ -186,6 +186,7 @@ void Part::FaceMaker::postBuild() {
     const char *op = this->MyOp;
     if(!op) op = Part::OpCodes::Face;
     const auto &faces = this->myTopoShape.getSubTopoShapes(TopAbs_FACE);
+    std::set<Data::MappedName> namesUsed;
     // name the face using the edges of its outer wire
     for(auto &face : faces) {
         ++i;
@@ -215,6 +216,13 @@ void Part::FaceMaker::postBuild() {
         // We just use the first source element name to make the face name more
         // stable
         names.push_back(edgeNames.begin()->name);
+        if (!namesUsed.insert(names.back()).second) {
+            if (edgeNames.size() > 1) {
+                auto it = edgeNames.begin();
+                ++it;
+                names.push_back(it->name);
+            }
+        }
         sids = edgeNames.begin()->sids;
 #endif
         this->myTopoShape.setElementComboName(
