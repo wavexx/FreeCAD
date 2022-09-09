@@ -28,6 +28,7 @@
 # include <BRep_Builder.hxx>
 # include <BRep_Tool.hxx>
 # include <BRepBndLib.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 # include <BRepBuilderAPI_MakeEdge.hxx>
 # include <BRepBuilderAPI_MakeWire.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
@@ -41,8 +42,7 @@
 # include <ShapeFix_ShapeTolerance.hxx>
 # include <ShapeExtend_WireData.hxx>
 # include <ShapeFix_Wire.hxx>
-# include <ShapeFix_Wireframe.hxx>
-# include <ShapeAnalysis_FreeBounds.hxx>
+# include <ShapeFix_Shape.hxx>
 # include <TopExp.hxx>
 # include <TopExp_Explorer.hxx>
 # include <TopTools_HSequenceOfShape.hxx>
@@ -219,6 +219,13 @@ public:
                 superEdgeReversed = superEdge.Reversed();
             return superEdgeReversed;
         }
+        TopoDS_Wire wire() const
+        {
+            auto s = shape();
+            if (s.ShapeType() == TopAbs_WIRE)
+                return TopoDS::Wire(s);
+            return BRepBuilderAPI_MakeWire(TopoDS::Edge(s)).Wire();
+        }
     };
 
     template<class T>
@@ -357,6 +364,12 @@ public:
         }
         gp_Pnt &ptOther() {
             return start?it->p2:it->p1;
+        }
+        TopoDS_Vertex vertex() const {
+            return start ? TopExp::FirstVertex(edge()) : TopExp::LastVertex(edge());
+        }
+        TopoDS_Vertex otherVertex() const {
+            return start ? TopExp::LastVertex(edge()) : TopExp::FirstVertex(edge());
         }
         EdgeInfo *edgeInfo() const {
             return &(*it);
@@ -540,7 +553,8 @@ public:
     BRep_Builder builder;
     TopoDS_Compound compound;
 
-    std::vector<TopoShape> sourceEdges;
+    std::unordered_set<TopoShape, ShapeHasher, ShapeHasher> sourceEdges;
+    std::vector<TopoShape> sourceEdgeArray;
     TopoDS_Compound openEdgeCompound;
 
     Handle(ShapeExtend_WireData) wireData = new ShapeExtend_WireData();
@@ -613,6 +627,8 @@ public:
     {
         gp_Pnt p1,p2;
         getEndPoints(e,p1,p2);
+        TopoDS_Vertex v1, v2;
+        TopoDS_Edge ev1, ev2;
         double tol = myTol2;
         // search for duplicate edges
         for (auto vit=vmap.qbegin(bgi::nearest(p1,INT_MAX));vit!=vmap.qend();++vit) {
@@ -620,8 +636,16 @@ public:
             double d1 = vinfo.pt().SquareDistance(p1);
             if (d1 >= tol)
                 break;
+            if (v1.IsNull()) {
+                ev1 = vinfo.edge();
+                v1 = vinfo.vertex();
+            }
             double d2 = vinfo.ptOther().SquareDistance(p2);
             if (d2 < tol) {
+                if (v2.IsNull()) {
+                    ev2 = vinfo.edge();
+                    v2 = vinfo.otherVertex();
+                }
                 auto g1 = Geometry::fromShape(e);
                 auto g2 = Geometry::fromShape(vinfo.edge());
                 if ((static_cast<GeomCurve*>(g1.get())->isLinear()
@@ -634,8 +658,57 @@ public:
                 }
             }
         }
+        if (v2.IsNull()) {
+            for (auto vit=vmap.qbegin(bgi::nearest(p2,1));vit!=vmap.qend();++vit) {
+                auto &vinfo = *vit;
+                double d1 = vinfo.pt().SquareDistance(p2);
+                if (d1 < tol) {
+                    v2 = vit->vertex();
+                    ev2 = vit->edge();
+                }
+            }
+        }
 
-        it = edges.emplace(it,e,p1,p2,bbox,queryBBox);
+        // Make sure coincident vertices are actually the same TopoDS_Vertex,
+        // which is crutial for the OCC internal shape hierarchy structure. We
+        // achieve this by making a temp wire and let OCC do the hard work of
+        // replacing the vertex.
+        auto connectEdge = [](TopoDS_Edge &e,
+                              const TopoDS_Vertex &v,
+                              const TopoDS_Edge &eOther,
+                              const TopoDS_Vertex &vOther)
+        {
+            if (vOther.IsNull())
+                return;
+            if (v.IsSame(vOther))
+                return;
+            double tol = std::max(BRep_Tool::Pnt(v).Distance(BRep_Tool::Pnt(vOther)),
+                                  BRep_Tool::Tolerance(vOther));
+            if (tol > BRep_Tool::Tolerance(v)) {
+                ShapeFix_ShapeTolerance fix;
+                fix.SetTolerance(v, tol, TopAbs_VERTEX);
+            }
+            BRepBuilderAPI_MakeWire mkWire(eOther);
+            mkWire.Add(e);
+            e = mkWire.Edge();
+        };
+
+        TopoDS_Edge edge = e;
+        TopoDS_Vertex vFirst = TopExp::FirstVertex(e);
+        TopoDS_Vertex vLast = TopExp::LastVertex(e);
+        connectEdge(edge, vFirst, ev1, v1);
+        connectEdge(edge, vLast, ev2, v2);
+        if (edge.IsSame(e)) {
+            auto itSource = sourceEdges.find(e);
+            if (itSource != sourceEdges.end()) {
+                TopoShape newEdge = *itSource;
+                newEdge.setShape(edge, false);
+                sourceEdges.erase(itSource);
+                sourceEdges.insert(newEdge);
+            }
+            getEndPoints(edge,p1,p2);
+        }
+        it = edges.emplace(it,edge,p1,p2,bbox,queryBBox);
         add(it);
         return true;
     }
@@ -1009,16 +1082,14 @@ public:
 #endif
                 showShape(&info,"closed");
                 if (!doTightBound)
-                    builder.Add(compound,info.shape());
+                    builder.Add(compound,info.wire());
                 continue;
             } else if (info.iteration < 0)
                 continue;
 
             if (info.p1.SquareDistance(info.p2)<=myTol2) {
-                auto wire = BRepBuilderAPI_MakeWire(info.edge).Wire();
-                showShape(wire,"closed");
                 if (!doTightBound)
-                    builder.Add(compound,wire);
+                    builder.Add(compound,info.wire());
                 info.iteration = -2;
                 continue;
             }
@@ -1826,8 +1897,6 @@ public:
     {
         // Make a clean wire with sorted, oriented, connected, etc edges
         TopoDS_Wire result;
-        ShapeFix_ShapeTolerance sTol;
-
         std::vector<TopoShape> inputEdges;
 
         if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_TRACE)) {
@@ -1841,8 +1910,8 @@ public:
         fixer.SetMaxTolerance(myTol);
         fixer.ClosedWireMode() = Standard_True;
         fixer.Perform();
-        fixer.FixReorder();
-        fixer.FixConnected();
+        // fixer.FixReorder();
+        // fixer.FixConnected();
         fixer.FixClosed();
 
         if (fixGap)
@@ -1872,7 +1941,8 @@ public:
         return result;
     }
 
-    void printHistory(Handle(BRepTools_History) hist, const std::vector<TopoShape> &input)
+    template<class T>
+    void printHistory(Handle(BRepTools_History) hist, const T &input)
     {
         FC_MSG("\nHistory:\n");
         for (const auto &s : input) {
@@ -1930,7 +2000,9 @@ public:
     void build()
     {
         clear();
-        for (const auto &e : sourceEdges)
+        sourceEdgeArray.clear();
+        sourceEdgeArray.insert(sourceEdgeArray.end(), sourceEdges.begin(), sourceEdges.end());
+        for (const auto &e : sourceEdgeArray)
             add(TopoDS::Edge(e.getShape()), true);
 
         if (doTightBound || doSplitEdge)
@@ -1992,7 +2064,7 @@ public:
             for (auto &info : edges) {
                 if (info.iteration == -2) {
                     if (!info.wireInfo) {
-                        builder.Add(compound, info.shape());
+                        builder.Add(compound, info.wire());
                         continue;
                     }
                     addWire(info.wireInfo);
@@ -2021,7 +2093,7 @@ public:
                     hasOpenEdge = true;
                     builder.MakeCompound(openEdgeCompound);
                 }
-                builder.Add(openEdgeCompound, info.shape());
+                builder.Add(openEdgeCompound, info.wire());
             }
         }
     }
@@ -2035,9 +2107,26 @@ public:
     }
 
     bool getOpenWires(TopoShape &shape, const char *op) {
-        if (openEdgeCompound.IsNull())
+        if (openEdgeCompound.IsNull()) {
+            shape.setShape(TopoShape());
             return false;
-        shape.makESHAPE(openEdgeCompound, MapperHistory(aHistory), sourceEdges, op);
+        }
+        shape.makESHAPE(openEdgeCompound,
+                        MapperHistory(aHistory),
+                        {sourceEdges.begin(), sourceEdges.end()},
+                        op);
+        return true;
+    }
+
+    bool getResultWires(TopoShape &shape, const char *op) {
+        if (compound.IsNull()) {
+            shape.setShape(TopoShape());
+            return false;
+        }
+        shape.makESHAPE(compound,
+                        MapperHistory(aHistory),
+                        {sourceEdges.begin(), sourceEdges.end()},
+                        op);
         return true;
     }
 };
@@ -2056,7 +2145,7 @@ void WireJoiner::addShape(const TopoShape &shape)
 {
     NotDone();
     for (auto &e : shape.getSubTopoShapes(TopAbs_EDGE))
-        pimpl->sourceEdges.push_back(e);
+        pimpl->sourceEdges.insert(e);
 }
 
 void WireJoiner::addShape(const std::vector<TopoShape> &shapes)
@@ -2064,7 +2153,7 @@ void WireJoiner::addShape(const std::vector<TopoShape> &shapes)
     NotDone();
     for (const auto &shape : shapes) {
         for (auto &e : shape.getSubTopoShapes(TopAbs_EDGE))
-            pimpl->sourceEdges.push_back(e);
+            pimpl->sourceEdges.insert(e);
     }
 }
 
@@ -2073,7 +2162,7 @@ void WireJoiner::addShape(const std::vector<TopoDS_Shape> &shapes)
     NotDone();
     for (const auto &shape : shapes) {
         for (TopExp_Explorer xp(shape,TopAbs_EDGE); xp.More(); xp.Next())
-            pimpl->sourceEdges.emplace_back(TopoDS::Edge(xp.Current()), -1);
+            pimpl->sourceEdges.emplace(TopoDS::Edge(xp.Current()), -1);
     }
 }
 
@@ -2142,6 +2231,12 @@ bool WireJoiner::getOpenWires(TopoShape &shape, const char *op)
 {
     Build();
     return pimpl->getOpenWires(shape, op);
+}
+
+bool WireJoiner::getResultWires(TopoShape &shape, const char *op)
+{
+    Build();
+    return pimpl->getResultWires(shape, op);
 }
 
 const TopTools_ListOfShape& WireJoiner::Generated (const TopoDS_Shape& S)

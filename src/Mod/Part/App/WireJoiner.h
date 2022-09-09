@@ -45,6 +45,7 @@ public:
     void setTolerance(double tolerance, double angularTol=0.0);
 
     bool getOpenWires(TopoShape &shape, const char *op="");
+    bool getResultWires(TopoShape &shape, const char *op="");
 
 #if OCC_VERSION_HEX < 0x070600
     void Build() override;
