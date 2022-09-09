@@ -457,7 +457,7 @@ ViewProviderSketch::ViewProviderSketch()
         float r = ((shcol >> 24) & 0xff) / 255.0;
         float g = ((shcol >> 16) & 0xff) / 255.0;
         float b = ((shcol >> 8) & 0xff) / 255.0;
-        int t = 100 * ((shcol & 8) & 0xff) / 255;
+        int t = 100 * (shcol & 0xff) / 255;
         this->ShapeColor.setValue(App::Color(r, g, b));
         this->Transparency.setValue(t);
     }
