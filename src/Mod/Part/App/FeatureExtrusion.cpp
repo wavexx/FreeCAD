@@ -85,8 +85,11 @@ Extrusion::Extrusion()
     ADD_PROPERTY_TYPE(Symmetric,(false), "Extrude", App::Prop_None, "If true, extrusion is done in both directions to a total of LengthFwd. LengthRev is ignored.");
     ADD_PROPERTY_TYPE(TaperAngle,(0.0), "Extrude", App::Prop_None, "Sets the angle of slope (draft) to apply to the sides. The angle is for outward taper; negative value yields inward tapering.");
     ADD_PROPERTY_TYPE(TaperAngleRev,(0.0), "Extrude", App::Prop_None, "Taper angle of reverse part of extrusion.");
-    ADD_PROPERTY_TYPE(InnerTaperAngle,(0.0), "Extrude", App::Prop_None, "Taper angle of inner holes.");
-    ADD_PROPERTY_TYPE(InnerTaperAngleRev,(0.0), "Extrude", App::Prop_None, "Taper angle of the reverse part for inner holes.");
+    ADD_PROPERTY_TYPE(TaperInnerAngle,(0.0), "Extrude", App::Prop_None, "Taper angle of inner holes.");
+    ADD_PROPERTY_TYPE(TaperInnerAngleRev,(0.0), "Extrude", App::Prop_None, "Taper angle of the reverse part for inner holes.");
+    ADD_PROPERTY_TYPE(AutoTaperInnerAngle,(true), "Extrude", App::Prop_None,
+            "Automatically set inner taper angle to the negative of (outer) taper angle.\n"
+            "If false, then inner taper angle can be set independent of taper angle.");
     ADD_PROPERTY_TYPE(UsePipeForDraft,(false), "Extrude", App::Prop_None, "Use pipe (i.e. sweep) operation to create draft angles.");
     ADD_PROPERTY_TYPE(Linearize,(false), "Extrude", App::Prop_None,
             "Linearize the resut shape by simplify linear edge and planar face into line and plane");
@@ -106,9 +109,48 @@ short Extrusion::mustExecute() const
         Symmetric.isTouched() ||
         TaperAngle.isTouched() ||
         TaperAngleRev.isTouched() ||
+        TaperInnerAngle.isTouched() ||
+        TaperInnerAngleRev.isTouched() ||
+        AutoTaperInnerAngle.isTouched() ||
         FaceMakerClass.isTouched())
         return 1;
     return 0;
+}
+
+void Extrusion::handleChangedPropertyName(Base::XMLReader &reader, const char * TypeName, const char *Name)
+{
+    if (strcmp(TypeName, App::PropertyAngle::getClassTypeId().getName()) == 0) {
+        // Deliberately change 'InnerTaperAngle' to TaperAngleInner to identify
+        // document from Link branch
+        if (strcmp(Name, "InnerTaperAngle")) {
+            AutoTaperInnerAngle.setValue(false);
+            TaperInnerAngle.Restore(reader);
+        } else if (strcmp(Name, "InnerTaperAngleRev")) {
+            AutoTaperInnerAngle.setValue(false);
+            TaperInnerAngleRev.Restore(reader);
+        }
+    }
+    Feature::handleChangedPropertyName(reader, TypeName, Name);
+}
+
+void Extrusion::onChanged(const App::Property *prop)
+{
+    if (prop == &TaperAngle
+            || prop == &TaperAngleRev
+            || prop == &AutoTaperInnerAngle)
+    {
+        if (AutoTaperInnerAngle.getValue()) {
+            TaperAngleRev.setStatus(App::Property::ReadOnly, true);
+            TaperAngle.setStatus(App::Property::ReadOnly, true);
+            TaperInnerAngle.setValue(-TaperAngle.getValue());
+            TaperInnerAngleRev.setValue(-TaperAngleRev.getValue());
+        }
+        else {
+            TaperAngleRev.setStatus(App::Property::ReadOnly, false);
+            TaperAngle.setStatus(App::Property::ReadOnly, false);
+        }
+    }
+    Feature::onChanged(prop);
 }
 
 bool Extrusion::fetchAxisLink(const App::PropertyLinkSub& axisLink, Base::Vector3d& basepoint, Base::Vector3d& dir)
@@ -199,10 +241,10 @@ Extrusion::ExtrusionParameters Extrusion::computeFinalParameters()
     result.taperAngleRev = this->TaperAngleRev.getValue() * M_PI / 180.0;
     if (fabs(result.taperAngleRev) > M_PI * 0.5 - Precision::Angular() )
         throw Base::ValueError("Magnitude of taper angle matches or exceeds 90 degrees. That is too much.");
-    result.innerTaperAngleFwd = this->InnerTaperAngle.getValue() * M_PI / 180.0;
+    result.innerTaperAngleFwd = this->TaperInnerAngle.getValue() * M_PI / 180.0;
     if (fabs(result.innerTaperAngleFwd) > M_PI * 0.5 - Precision::Angular() )
         throw Base::ValueError("Magnitude of inner taper angle matches or exceeds 90 degrees. That is too much.");
-    result.innerTaperAngleRev = this->InnerTaperAngleRev.getValue() * M_PI / 180.0;
+    result.innerTaperAngleRev = this->TaperInnerAngleRev.getValue() * M_PI / 180.0;
     if (fabs(result.innerTaperAngleRev) > M_PI * 0.5 - Precision::Angular() )
         throw Base::ValueError("Magnitude of inner taper angle matches or exceeds 90 degrees. That is too much.");
 
