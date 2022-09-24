@@ -34,7 +34,7 @@ import ViewParams
 ViewParams.declare_begin()
 ]]]*/
 
-// Auto generated code (Gui/ViewParams.py:451)
+// Auto generated code (Gui/ViewParams.py:452)
 #include <QString>
 
 // Auto generated code (Tools/params_utils.py:72)
@@ -998,6 +998,8 @@ public:
     // Auto generated code (Tools/params_utils.py:122)
     //@{
     /// Accessor for parameter HiddenLineShaded
+    ///
+    /// Whether to enable shading in hidden line draw style
     static const bool & getHiddenLineShaded();
     static const bool & defaultHiddenLineShaded();
     static void removeHiddenLineShaded();
@@ -2092,7 +2094,7 @@ public:
     static const char *docToolTipIconSize();
     //@}
 
-    // Auto generated code (Gui/ViewParams.py:457)
+    // Auto generated code (Gui/ViewParams.py:458)
     static const std::vector<QString> AnimationCurveTypes;
 //[[[end]]]
 
@@ -2118,7 +2120,7 @@ ViewParams.declare_end()
 }; // class ViewParams
 } // namespace Gui
 
-// Auto generated code (Gui/ViewParams.py:465)
+// Auto generated code (Gui/ViewParams.py:466)
 namespace Gui {
 /// Obtain draw style name from index. Returns nullptr if out of range.
 GuiExport const char *drawStyleNameFromIndex(int index);
