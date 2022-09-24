@@ -239,34 +239,54 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
     HiddenLinePerFaceOutline->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
+    HiddenLineSceneOutline = new Gui::PrefCheckBox(this);
+    layoutHiddenLines->addWidget(HiddenLineSceneOutline, 6, 0);
+    HiddenLineSceneOutline->setChecked(Gui::ViewParams::defaultHiddenLineSceneOutline());
+    HiddenLineSceneOutline->setEntryName("HiddenLineSceneOutline");
+    HiddenLineSceneOutline->setParamGrpPath("View");
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelHiddenLineOutlineWidth = new QLabel(this);
+    layoutHiddenLines->addWidget(labelHiddenLineOutlineWidth, 7, 0);
+    HiddenLineOutlineWidth = new Gui::PrefDoubleSpinBox(this);
+    layoutHiddenLines->addWidget(HiddenLineOutlineWidth, 7, 1);
+    HiddenLineOutlineWidth->setValue(Gui::ViewParams::defaultHiddenLineOutlineWidth());
+    HiddenLineOutlineWidth->setEntryName("HiddenLineOutlineWidth");
+    HiddenLineOutlineWidth->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    HiddenLineOutlineWidth->setMinimum(0.0);
+    HiddenLineOutlineWidth->setMaximum(100.0);
+    HiddenLineOutlineWidth->setSingleStep(0.5);
+
+    // Auto generated code (Tools/params_utils.py:353)
     HiddenLineHideFace = new Gui::PrefCheckBox(this);
-    layoutHiddenLines->addWidget(HiddenLineHideFace, 6, 0);
+    layoutHiddenLines->addWidget(HiddenLineHideFace, 8, 0);
     HiddenLineHideFace->setChecked(Gui::ViewParams::defaultHiddenLineHideFace());
     HiddenLineHideFace->setEntryName("HiddenLineHideFace");
     HiddenLineHideFace->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     HiddenLineHideSeam = new Gui::PrefCheckBox(this);
-    layoutHiddenLines->addWidget(HiddenLineHideSeam, 7, 0);
+    layoutHiddenLines->addWidget(HiddenLineHideSeam, 9, 0);
     HiddenLineHideSeam->setChecked(Gui::ViewParams::defaultHiddenLineHideSeam());
     HiddenLineHideSeam->setEntryName("HiddenLineHideSeam");
     HiddenLineHideSeam->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     HiddenLineHideVertex = new Gui::PrefCheckBox(this);
-    layoutHiddenLines->addWidget(HiddenLineHideVertex, 8, 0);
+    layoutHiddenLines->addWidget(HiddenLineHideVertex, 10, 0);
     HiddenLineHideVertex->setChecked(Gui::ViewParams::defaultHiddenLineHideVertex());
     HiddenLineHideVertex->setEntryName("HiddenLineHideVertex");
     HiddenLineHideVertex->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     HiddenLineTransparency = new Gui::PrefDoubleSpinBox(this);
-    layoutHiddenLines->addWidget(HiddenLineTransparency, 9, 1);
+    layoutHiddenLines->addWidget(HiddenLineTransparency, 11, 1);
     HiddenLineTransparency->setValue(Gui::ViewParams::defaultHiddenLineTransparency());
     HiddenLineTransparency->setEntryName("HiddenLineTransparency");
     HiddenLineTransparency->setParamGrpPath("View");
     HiddenLineOverrideTransparency = new Gui::PrefCheckBox(this);
-    layoutHiddenLines->addWidget(HiddenLineOverrideTransparency, 9, 0);
+    layoutHiddenLines->addWidget(HiddenLineOverrideTransparency, 11, 0);
     HiddenLineOverrideTransparency->setChecked(Gui::ViewParams::defaultHiddenLineOverrideTransparency());
     HiddenLineOverrideTransparency->setEntryName("HiddenLineOverrideTransparency");
     HiddenLineOverrideTransparency->setParamGrpPath("View");
@@ -275,18 +295,18 @@ DlgSettingsDrawStyles::DlgSettingsDrawStyles(QWidget* parent)
 
     // Auto generated code (Tools/params_utils.py:353)
     labelHiddenLineWidth = new QLabel(this);
-    layoutHiddenLines->addWidget(labelHiddenLineWidth, 10, 0);
+    layoutHiddenLines->addWidget(labelHiddenLineWidth, 12, 0);
     HiddenLineWidth = new Gui::PrefDoubleSpinBox(this);
-    layoutHiddenLines->addWidget(HiddenLineWidth, 10, 1);
+    layoutHiddenLines->addWidget(HiddenLineWidth, 12, 1);
     HiddenLineWidth->setValue(Gui::ViewParams::defaultHiddenLineWidth());
     HiddenLineWidth->setEntryName("HiddenLineWidth");
     HiddenLineWidth->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     labelHiddenLinePointSize = new QLabel(this);
-    layoutHiddenLines->addWidget(labelHiddenLinePointSize, 11, 0);
+    layoutHiddenLines->addWidget(labelHiddenLinePointSize, 13, 0);
     HiddenLinePointSize = new Gui::PrefDoubleSpinBox(this);
-    layoutHiddenLines->addWidget(HiddenLinePointSize, 11, 1);
+    layoutHiddenLines->addWidget(HiddenLinePointSize, 13, 1);
     HiddenLinePointSize->setValue(Gui::ViewParams::defaultHiddenLinePointSize());
     HiddenLinePointSize->setEntryName("HiddenLinePointSize");
     HiddenLinePointSize->setParamGrpPath("View");
@@ -569,6 +589,8 @@ void DlgSettingsDrawStyles::saveSettings()
     HiddenLineShaded->onSave();
     HiddenLineShowOutline->onSave();
     HiddenLinePerFaceOutline->onSave();
+    HiddenLineSceneOutline->onSave();
+    HiddenLineOutlineWidth->onSave();
     HiddenLineHideFace->onSave();
     HiddenLineHideSeam->onSave();
     HiddenLineHideVertex->onSave();
@@ -624,6 +646,8 @@ void DlgSettingsDrawStyles::loadSettings()
     HiddenLineShaded->onRestore();
     HiddenLineShowOutline->onRestore();
     HiddenLinePerFaceOutline->onRestore();
+    HiddenLineSceneOutline->onRestore();
+    HiddenLineOutlineWidth->onRestore();
     HiddenLineHideFace->onRestore();
     HiddenLineHideSeam->onRestore();
     HiddenLineHideVertex->onRestore();
@@ -726,6 +750,11 @@ void DlgSettingsDrawStyles::retranslateUi()
     HiddenLineShowOutline->setText(QObject::tr("Draw outline"));
     HiddenLinePerFaceOutline->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docHiddenLinePerFaceOutline()));
     HiddenLinePerFaceOutline->setText(QObject::tr("Draw per face outline"));
+    HiddenLineSceneOutline->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docHiddenLineSceneOutline()));
+    HiddenLineSceneOutline->setText(QObject::tr("Draw scene outline"));
+    HiddenLineOutlineWidth->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docHiddenLineOutlineWidth()));
+    labelHiddenLineOutlineWidth->setText(QObject::tr("Outline width"));
+    labelHiddenLineOutlineWidth->setToolTip(HiddenLineOutlineWidth->toolTip());
     HiddenLineHideFace->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docHiddenLineHideFace()));
     HiddenLineHideFace->setText(QObject::tr("Hide face"));
     HiddenLineHideSeam->setToolTip(QApplication::translate("ViewParams", Gui::ViewParams::docHiddenLineHideSeam()));

@@ -104,6 +104,9 @@ private:
     Gui::PrefCheckBox *HiddenLineShaded = nullptr;
     Gui::PrefCheckBox *HiddenLineShowOutline = nullptr;
     Gui::PrefCheckBox *HiddenLinePerFaceOutline = nullptr;
+    Gui::PrefCheckBox *HiddenLineSceneOutline = nullptr;
+    QLabel *labelHiddenLineOutlineWidth = nullptr;
+    Gui::PrefDoubleSpinBox *HiddenLineOutlineWidth = nullptr;
     Gui::PrefCheckBox *HiddenLineHideFace = nullptr;
     Gui::PrefCheckBox *HiddenLineHideSeam = nullptr;
     Gui::PrefCheckBox *HiddenLineHideVertex = nullptr;

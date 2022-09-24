@@ -34,7 +34,7 @@ import ViewParams
 ViewParams.declare_begin()
 ]]]*/
 
-// Auto generated code (Gui/ViewParams.py:452)
+// Auto generated code (Gui/ViewParams.py:456)
 #include <QString>
 
 // Auto generated code (Tools/params_utils.py:72)
@@ -1029,6 +1029,28 @@ public:
     static void removeHiddenLinePerFaceOutline();
     static void setHiddenLinePerFaceOutline(const bool &v);
     static const char *docHiddenLinePerFaceOutline();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter HiddenLineSceneOutline
+    ///
+    /// Render outline of the whole scene.
+    static const bool & getHiddenLineSceneOutline();
+    static const bool & defaultHiddenLineSceneOutline();
+    static void removeHiddenLineSceneOutline();
+    static void setHiddenLineSceneOutline(const bool &v);
+    static const char *docHiddenLineSceneOutline();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter HiddenLineOutlineWidth
+    static const double & getHiddenLineOutlineWidth();
+    static const double & defaultHiddenLineOutlineWidth();
+    static void removeHiddenLineOutlineWidth();
+    static void setHiddenLineOutlineWidth(const double &v);
+    static const char *docHiddenLineOutlineWidth();
     //@}
 
     // Auto generated code (Tools/params_utils.py:122)
@@ -2094,7 +2116,7 @@ public:
     static const char *docToolTipIconSize();
     //@}
 
-    // Auto generated code (Gui/ViewParams.py:458)
+    // Auto generated code (Gui/ViewParams.py:462)
     static const std::vector<QString> AnimationCurveTypes;
 //[[[end]]]
 
@@ -2120,7 +2142,7 @@ ViewParams.declare_end()
 }; // class ViewParams
 } // namespace Gui
 
-// Auto generated code (Gui/ViewParams.py:466)
+// Auto generated code (Gui/ViewParams.py:470)
 namespace Gui {
 /// Obtain draw style name from index. Returns nullptr if out of range.
 GuiExport const char *drawStyleNameFromIndex(int index);
