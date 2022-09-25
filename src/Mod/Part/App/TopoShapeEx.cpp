@@ -3252,21 +3252,20 @@ TopoShape &TopoShape::makEShell(bool silent, const char *op) {
             // TODO confirm the above won't change OCCT topological naming
         }
 
-        if (shape.IsNull()) {
+        tmp.setShape(shape, false);
+        if (tmp.isNull()) {
             if (silent)
                 return *this;
             FC_THROWM(NullShapeException, "Failed to make shell");
         }
 
-        if (shape.ShapeType() != TopAbs_SHELL) {
+        if (!tmp.hasSubShape(TopAbs_SHELL)) {
             if (silent)
                 return *this;
-            FC_THROWM(Base::CADKernelError, "Failed to make shell: unexpected output shape type "
-                    << shapeType(shape.ShapeType(), true));
+            FC_THROWM(Base::CADKernelError, "Failed to make shell");
         }
 
-        setShape(shape);
-        resetElementMap(tmp.elementMap());
+        *this = tmp;
     }
     catch (Standard_Failure &e) {
         if(!silent)
