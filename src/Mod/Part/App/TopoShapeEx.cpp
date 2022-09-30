@@ -2246,7 +2246,14 @@ TopoShape &TopoShape::makERevolve(const TopoShape &_base, const gp_Ax1& axis,
         base = base.makEFace(0,face_maker);
     }
     BRepPrimAPI_MakeRevol mkRevol(base.getShape(), axis,d);
-    return makEShape(mkRevol,base,op);
+
+    makEShape(mkRevol,base,op);
+
+    // BRepPrimAPI_MakeRevol sometimes produce invalid surface that has reversed
+    // parameter (e.g. VFirst > VLast, see https://github.com/realthunder/FreeCAD/issues/559).
+    // ShapeFix_Shape seems to be able to fix it.
+    fix();
+    return *this;
 }
 
 TopoShape &TopoShape::makEMirror(const TopoShape &shape, const gp_Ax2 &ax2, const char *op) {

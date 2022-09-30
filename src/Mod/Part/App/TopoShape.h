@@ -341,6 +341,7 @@ public:
     void sewShape(double tolerance = 1.0e-06);
     bool fix(double, double, double);
     bool fixSolidOrientation();
+    bool fix();
     bool removeInternalWires(double);
     TopoDS_Shape removeSplitter() const;
     TopoDS_Shape defeaturing(const std::vector<TopoDS_Shape>& s) const;
