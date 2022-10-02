@@ -6280,7 +6280,7 @@ void ViewParams::removeToolTipIconSize() {
     instance()->handle->RemoveInt("ToolTipIconSize");
 }
 
-// Auto generated code (Gui/ViewParams.py:484)
+// Auto generated code (Gui/ViewParams.py:486)
 const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("Linear"),
     QStringLiteral("InQuad"),
@@ -6325,7 +6325,7 @@ const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("OutInBounce"),
 };
 
-// Auto generated code (Gui/ViewParams.py:492)
+// Auto generated code (Gui/ViewParams.py:494)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -6336,9 +6336,10 @@ static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Flat Lines"),
     QT_TRANSLATE_NOOP("DrawStyle", "Tessellation"),
     QT_TRANSLATE_NOOP("DrawStyle", "Shadow"),
+    nullptr,
 };
 
-// Auto generated code (Gui/ViewParams.py:501)
+// Auto generated code (Gui/ViewParams.py:504)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -6352,7 +6353,13 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:510)
+// Auto generated code (Gui/ViewParams.py:514)
+const char **drawStyleNames()
+{
+    return DrawStyleNames;
+}
+
+// Auto generated code (Gui/ViewParams.py:521)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -6360,7 +6367,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:519)
+// Auto generated code (Gui/ViewParams.py:530)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -6372,7 +6379,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:532)
+// Auto generated code (Gui/ViewParams.py:543)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)

@@ -469,6 +469,8 @@ def declare_end():
     cog.out(f'''
 {auto_comment()}
 namespace {NameSpace} {{
+/// Obtain all draw style names, terminated by nullptr entry.
+{NameSpace}Export const char **drawStyleNames();
 /// Obtain draw style name from index. Returns nullptr if out of range.
 {NameSpace}Export const char *drawStyleNameFromIndex(int index);
 /// Obtain draw style index from name. Returns -1 for invalid name.
@@ -495,6 +497,7 @@ static const char *DrawStyleNames[] = {{''')
         cog.out(f'''
     QT_TRANSLATE_NOOP("DrawStyle", "{item[0]}"),''')
     cog.out(f'''
+    nullptr,
 }};
 ''')
     cog.out(f'''
@@ -505,8 +508,16 @@ static const char *DrawStyleDocs[] = {{''')
     QT_TRANSLATE_NOOP("DrawStyle", "{item[1]}"),''')
     cog.out(f'''
 }};
-
+''')
+    cog.out(f'''
 namespace Gui {{
+{auto_comment()}
+const char **drawStyleNames()
+{{
+    return DrawStyleNames;
+}}
+''')
+    cog.out(f'''
 {auto_comment()}
 const char *drawStyleNameFromIndex(int i)
 {{

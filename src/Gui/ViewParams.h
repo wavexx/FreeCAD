@@ -2144,6 +2144,8 @@ ViewParams.declare_end()
 
 // Auto generated code (Gui/ViewParams.py:470)
 namespace Gui {
+/// Obtain all draw style names, terminated by nullptr entry.
+GuiExport const char **drawStyleNames();
 /// Obtain draw style name from index. Returns nullptr if out of range.
 GuiExport const char *drawStyleNameFromIndex(int index);
 /// Obtain draw style index from name. Returns -1 for invalid name.
