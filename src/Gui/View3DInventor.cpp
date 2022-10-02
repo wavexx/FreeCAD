@@ -119,9 +119,8 @@ View3DInventor::View3DInventor(Gui::Document* pcDocument, QWidget* parent,
     : MDIView(pcDocument, parent, wflags), _viewer(nullptr),_viewerPy(nullptr)
 {
     ADD_PROPERTY(DrawStyle, ((long)0));
-    ADD_PROPERTY(ShowNaviCube, ((long)0));
-    ADD_PROPERTY(DrawStyle, ((long)0));
     DrawStyle.setEnums(drawStyleNames());
+    ADD_PROPERTY(ShowNaviCube, ((long)0));
 
     static std::atomic<int> _nextID;
     _id = ++_nextID;
