@@ -101,7 +101,7 @@ PyObject *View3DInventorPy::getCustomAttributes(const char* attr) const
         }
         if (auto obj = getView3DInventorPtr()->getActiveObject<App::DocumentObject*>(attr))
             return obj->getPyObject();
-        throw Py::AttributeError("Attribute not found");
+        return nullptr;
     } PY_CATCH
 }
 
