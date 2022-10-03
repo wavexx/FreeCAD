@@ -449,6 +449,7 @@ Params = [
             'will be shown in its original size. You can disable all images in\n'
             'the tooltip by setting this option to zero.',
         proxy=ParamSpinBox(0, 512, 10)),
+    ParamBool('ToolTipDisable', False),
 ]
 
 def declare_begin():
