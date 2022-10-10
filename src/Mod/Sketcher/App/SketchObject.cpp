@@ -9206,7 +9206,8 @@ void SketchObject::onChanged(const App::Property* prop)
                 }
             }
             ExternalGeometry.setValues(objs,subs);
-        }
+        } else
+            signalElementsChanged();
     } else if( prop == &ExternalGeometry ) {
 
         if(doc && doc->isPerformingTransaction())
@@ -9216,6 +9217,7 @@ void SketchObject::onChanged(const App::Property* prop)
             // must wait till onDocumentRestored() when shadow references are
             // fully restored
             updateGeometryRefs();
+            signalElementsChanged();
         }
     } else if (prop == &Placement) {
         if (ExternalGeometry.getSize() > 0)
