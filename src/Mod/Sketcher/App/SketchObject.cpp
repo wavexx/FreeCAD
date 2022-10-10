@@ -9824,9 +9824,13 @@ App::DocumentObject *SketchObject::getSubObject(
     Base::Vector3d point;
 
     if (auto realType = convertInternalName(indexedName.getType())) {
-        auto shapeType = Part::TopoShape::shapeType(realType, true);
-        if (shapeType != TopAbs_SHAPE)
-            subshape = InternalShape.getShape().getSubTopoShape(shapeType, indexedName.getIndex(), true);
+        if (realType[0] == '\0')
+            subshape = InternalShape.getShape();
+        else {
+            auto shapeType = Part::TopoShape::shapeType(realType, true);
+            if (shapeType != TopAbs_SHAPE)
+                subshape = InternalShape.getShape().getSubTopoShape(shapeType, indexedName.getIndex(), true);
+        }
         if (subshape.isNull())
             return nullptr;
     }
