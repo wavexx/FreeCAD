@@ -311,6 +311,7 @@ void SketchObject::buildShape() {
         shapes.push_back(getEdge(geo, convertSubName(
                         Data::IndexedName::fromConst("ExternalEdge", i-1), false).c_str()));
     }
+    InternalShape.setValue(Part::TopoShape());
     if(shapes.empty() && vertices.empty()) {
         Shape.setValue(Part::TopoShape());
         return;
