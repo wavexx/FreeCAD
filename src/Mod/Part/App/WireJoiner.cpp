@@ -1084,8 +1084,8 @@ public:
                     continue;
                 auto &newInfo = *it++;
                 aHistory->AddModified(v.intersectShape, newInfo.edge);
-                if (v.intersectShape != removedEdge)
-                    aHistory->AddModified(removedEdge, newInfo.edge);
+                // if (v.intersectShape != removedEdge)
+                //     aHistory->AddModified(removedEdge, newInfo.edge);
                 showShape(newInfo.edge, "split");
             }
         }
