@@ -1931,6 +1931,11 @@ void SoFCSeparator::GLRenderBelowPath(SoGLRenderAction * action) {
     inherited::GLRenderBelowPath(action);
 }
 
+void SoFCSeparator::GLRenderInPath(SoGLRenderAction *action)
+{
+    _GLRenderInPath(this, action);
+}
+
 void SoFCSeparator::initClass(void)
 {
     SO_NODE_INIT_CLASS(SoFCSeparator,SoSeparator,"FCSeparator");
@@ -2478,7 +2483,7 @@ struct SelectionRootPathCode {
     int &code;
 };
 
-static void _GLRenderInPath(SoNode *node, SoGLRenderAction * action)
+void SoFCSeparator::_GLRenderInPath(SoNode *node, SoGLRenderAction * action)
 {
     int numindices;
     const int * indices;
