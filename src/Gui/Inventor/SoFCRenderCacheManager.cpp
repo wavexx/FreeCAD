@@ -933,7 +933,7 @@ SoFCRenderCacheManager::removeSelection(const std::string & key,
     }
 
     itpath = paths.erase(itpath);
-    if (paths.size() > 1)
+    if (paths.size() != 1)
       continue;
 
     // Check if there is an implicit full selection, added because selection on
