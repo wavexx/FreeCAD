@@ -3029,7 +3029,7 @@ bool TopoShape::fix(double precision, double mintol, double maxtol)
     auto doFix = [precision, mintol, maxtol](TopoShape &s) {
         TopAbs_ShapeEnum type = s._Shape.ShapeType();
 
-        ShapeFix_Shape fix(BRepBuilderAPI_Copy(s._Shape).Shape());
+        ShapeFix_Shape fix(s._Shape);
         fix.SetPrecision(precision);
         fix.SetMinTolerance(mintol);
         fix.SetMaxTolerance(maxtol);
