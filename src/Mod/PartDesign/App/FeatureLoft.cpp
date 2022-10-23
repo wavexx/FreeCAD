@@ -171,7 +171,7 @@ App::DocumentObjectExecReturn *Loft::execute(void)
                 for(auto& wire : wires)
                     wire.move(invObjLoc);
                 shells.push_back(TopoShape(0, hasher).makELoft(
-                            wires, true, Ruled.getValue(), Closed.getValue()));
+                            wires, false, Ruled.getValue(), Closed.getValue()));
             }
 
             //build the top and bottom face, sew the shell and build the final solid
