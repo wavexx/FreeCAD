@@ -330,8 +330,11 @@ bool TaskLoftParameters::setProfile(const App::SubObjectT &obj)
             recomputeFeature();
             exitSelectionMode();
             ui->profileBaseEdit->setText(text);
-            if (auto o = ref.getSubObject())
-                o->Visibility.setValue(false);
+            ui->buttonProfileBase->setChecked(false);
+            if (auto o = ref.getSubObject()) {
+                if (!o->isDerivedFrom(PartDesign::Feature::getClassTypeId()))
+                    o->Visibility.setValue(false);
+            }
             return true;
         }
     } catch (Base::Exception &e) {
@@ -553,10 +556,8 @@ void TaskLoftParameters::onProfileButton(bool checked)
     if (checked) {
         auto sels = Gui::Selection().getSelectionT("*", 0);
         if (sels.size()) {
-            if (setProfile(sels.front())) {
-                ui->buttonProfileBase->setChecked(false);
+            if (setProfile(sels.front()))
                 return;
-            }
         }
         Gui::Selection().clearSelection();
         Gui::Selection().addSelectionGate(new LoftProfileSelectionGate(this, vp));
