@@ -74,50 +74,6 @@ using namespace Gui;
 
 static bool _Busy;
 
-class LoftProfileSelectionGate : public Gui::SelectionGate
-{
-public:
-    LoftProfileSelectionGate(TaskLoftParameters *master,
-                         const Gui::ViewProviderDocumentObject *vp)
-        :master(master)
-    {
-        if (!vp)
-            return;
-        objT = App::DocumentObjectT(vp->getObject());
-        inList = vp->getObject()->getInListEx(true);
-        inList.insert(vp->getObject());
-    }
-
-    ~LoftProfileSelectionGate()
-    {
-        master->exitSelectionMode();
-    }
-
-    bool allow(App::Document*, App::DocumentObject* pObj, const char *)
-    {
-        auto loft = static_cast<PartDesign::Loft*>(objT.getObject());
-        if (!loft) {
-            this->notAllowedReason = QT_TR_NOOP("Loft feature not found.");
-            return false;
-        }
-        if (inList.count(pObj)) {
-            this->notAllowedReason = QT_TR_NOOP("Selecting this will cause circular dependency.");
-            return false;
-        }
-        const auto &sections = loft->Sections.getValues();
-        if (std::find(sections.begin(), sections.end(), pObj) != sections.end()) {
-            this->notAllowedReason = QT_TR_NOOP("Section object cannot be used as profile.");
-            return false;
-        }
-        return true;
-    }
-
-private:
-    App::DocumentObjectT objT;
-    std::set<App::DocumentObject*> inList;
-    TaskLoftParameters *master;
-};
-
 class LoftSectionSelectionGate : public Gui::SelectionGate
 {
 public:
@@ -183,15 +139,9 @@ TaskLoftParameters::TaskLoftParameters(ViewProviderLoft *LoftView,bool /*newObj*
                     "Property", pcLoft->SplitProfile.getDocumentation()));
     }
 
-    ui->profileBaseEdit->installEventFilter(this);
-    ui->profileBaseEdit->setMouseTracking(true);
     ui->listWidgetReferences->installEventFilter(this);
     ui->listWidgetReferences->setMouseTracking(true);
 
-    ui->profileBaseEdit->setReadOnly(true);
-
-    connect(ui->buttonProfileBase, SIGNAL(clicked(bool)),
-            this, SLOT(onProfileButton(bool)));
     connect(ui->buttonRefAdd, SIGNAL(clicked(bool)),
             this, SLOT(onRefButtonAdd(bool)));
     connect(ui->checkBoxRuled, SIGNAL(toggled(bool)),
@@ -224,10 +174,8 @@ TaskLoftParameters::TaskLoftParameters(ViewProviderLoft *LoftView,bool /*newObj*
     refresh();
 
     PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
-    connProfile = loft->Profile.signalChanged.connect(
-        [this](const App::Property &) {toggleShowOnTop(vp, lastProfile, "Profile", true);});
     connSections = loft->Sections.signalChanged.connect(
-        [this](const App::Property &) {toggleShowOnTop(vp, lastSections, "Sections", true);});
+        [this](const App::Property &) {toggleShowOnTop(vp, lastSections, "Sections");});
 
     // call updateUI until Gui::Document::setEdit() finishes;
     QMetaObject::invokeMethod(this, "updateUI", Qt::QueuedConnection);
@@ -235,13 +183,23 @@ TaskLoftParameters::TaskLoftParameters(ViewProviderLoft *LoftView,bool /*newObj*
 
 TaskLoftParameters::~TaskLoftParameters()
 {
-    exitSelectionMode();
 }
 
 void TaskLoftParameters::updateUI()
 {
-    toggleShowOnTop(vp, lastProfile, "Profile", true);
-    toggleShowOnTop(vp, lastSections, "Sections", true);
+}
+
+void TaskLoftParameters::onSelectionModeChanged(SelectionMode)
+{
+    if (getSelectionMode() == SelectionMode::refAdd) {
+        ui->buttonRefAdd->setChecked(true);
+        toggleShowOnTop(vp, lastSections, "Sections", true);
+        addBlinkWidget(ui->buttonRefAdd);
+    } else {
+        removeBlinkWidget(ui->buttonRefAdd);
+        ui->buttonRefAdd->setChecked(false);
+        toggleShowOnTop(vp, lastSections, nullptr);
+    }
 }
 
 void TaskLoftParameters::addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select)
@@ -296,11 +254,6 @@ void TaskLoftParameters::refresh()
 
     //add the profiles
     PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
-    App::DocumentObject* profile = loft->Profile.getValue();
-    if (profile) {
-        QString label = QString::fromUtf8(profile->Label.getValue());
-        ui->profileBaseEdit->setText(label);
-    }
 
     for (const auto &v : loft->Sections.getSubListValues())
         addItem(v.first, v.second);
@@ -312,35 +265,6 @@ void TaskLoftParameters::refresh()
 
     for (QWidget* child : proxy->findChildren<QWidget*>())
         child->blockSignals(false);
-
-}
-
-bool TaskLoftParameters::setProfile(const App::SubObjectT &obj)
-{
-    if (!vp)
-        return false;
-    PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
-    try {
-        auto ref = PartDesignGui::importExternalElement(obj);
-        auto refObj = ref.getSubObject();
-        if (refObj) {
-            QString text = QString::fromUtf8(refObj->Label.getValue());
-            setupTransaction();
-            loft->Profile.setValue(refObj);
-            recomputeFeature();
-            exitSelectionMode();
-            ui->profileBaseEdit->setText(text);
-            ui->buttonProfileBase->setChecked(false);
-            if (auto o = ref.getSubObject()) {
-                if (!o->isDerivedFrom(PartDesign::Feature::getClassTypeId()))
-                    o->Visibility.setValue(false);
-            }
-            return true;
-        }
-    } catch (Base::Exception &e) {
-        e.ReportException();
-    }
-    return false;
 }
 
 bool TaskLoftParameters::addSections(const std::vector<App::SubObjectT> &objs)
@@ -413,7 +337,7 @@ bool TaskLoftParameters::addSections(const std::vector<App::SubObjectT> &objs)
     return false;
 }
 
-void TaskLoftParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
+void TaskLoftParameters::_onSelectionChanged(const Gui::SelectionChanges& msg)
 {
     if (!vp || _Busy)
         return;
@@ -431,13 +355,8 @@ void TaskLoftParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
     if (!obj)
         return;
 
-    switch(selectionMode) {
-    case refProfile: {
-        App::SubObjectT ref(msg.pOriginalMsg ? msg.pOriginalMsg->Object : msg.Object);
-        setProfile(ref);
-        break;
-    }
-    case refAdd: {
+    switch(getSelectionMode()) {
+    case SelectionMode::refAdd: {
         App::SubObjectT ref(msg.pOriginalMsg ? msg.pOriginalMsg->Object : msg.Object);
         addSections({ref});
         break;
@@ -500,17 +419,6 @@ void TaskLoftParameters::indexesMoved()
     }
 }
 
-void TaskLoftParameters::exitSelectionMode() {
-
-    if (selectionMode == none)
-        return;
-    selectionMode = none;
-    ui->buttonProfileBase->setChecked(false);
-    ui->buttonRefAdd->setChecked(false);
-    Gui::Selection().clearSelection();
-    Gui::Selection().rmvSelectionGate();
-}
-
 void TaskLoftParameters::changeEvent(QEvent * /*e*/)
 {
 }
@@ -551,37 +459,20 @@ void TaskLoftParameters::onSplitProfile(bool val) {
     }
 }
 
-void TaskLoftParameters::onProfileButton(bool checked)
-{
-    if (checked) {
-        auto sels = Gui::Selection().getSelectionT("*", 0);
-        if (sels.size()) {
-            if (setProfile(sels.front()))
-                return;
-        }
-        Gui::Selection().clearSelection();
-        Gui::Selection().addSelectionGate(new LoftProfileSelectionGate(this, vp));
-        selectionMode = refProfile;
-    }
-    else {
-        exitSelectionMode();
-    }
-}
-
 void TaskLoftParameters::onRefButtonAdd(bool checked) {
     if (!vp)
         return;
     if (checked) {
-        auto sels = Gui::Selection().getSelectionT("*", 0);
-        if (sels.size()) {
-            if (addSections(sels)) {
-                ui->buttonRefAdd->setChecked(false);
-                return;
+        if (getSelectionMode() == SelectionMode::none) {
+            auto sels = Gui::Selection().getSelectionT("*", 0);
+            if (sels.size()) {
+                if (addSections(sels)) {
+                    ui->buttonRefAdd->setChecked(false);
+                    return;
+                }
             }
         }
-        Gui::Selection().clearSelection();
-        Gui::Selection().addSelectionGate(new LoftSectionSelectionGate(this, vp));
-        selectionMode = refAdd;
+        setSelectionMode(SelectionMode::refAdd, new LoftSectionSelectionGate(this, vp));
     } else {
         exitSelectionMode();
     }
@@ -591,8 +482,8 @@ void TaskLoftParameters::onItemEntered(QListWidgetItem *item)
 {
     if (!vp)
         return;
-    auto objT = qvariant_cast<App::SubObjectT>(item->data(Qt::UserRole));
-    PartDesignGui::highlightObjectOnTop(objT);
+    PartDesignGui::highlightObjectOnTop(
+            qvariant_cast<SubInfo>(item->data(Qt::UserRole)).objT);
 }
 
 bool TaskLoftParameters::eventFilter(QObject *o, QEvent *ev)
@@ -600,14 +491,6 @@ bool TaskLoftParameters::eventFilter(QObject *o, QEvent *ev)
     switch(ev->type()) {
     case QEvent::Leave:
         Gui::Selection().rmvPreselect();
-        break;
-    case QEvent::Enter:
-        if (vp && o == ui->profileBaseEdit) {
-            auto loft = static_cast<PartDesign::Loft*>(vp->getObject());
-            auto obj = loft->Profile.getValue();
-            if (obj)
-                PartDesignGui::highlightObjectOnTop(obj);
-        }
         break;
     case QEvent::ShortcutOverride:
     case QEvent::KeyPress: {

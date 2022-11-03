@@ -56,10 +56,7 @@ public:
     TaskLoftParameters(ViewProviderLoft *LoftView,bool newObj=false,QWidget *parent = 0);
     ~TaskLoftParameters();
 
-    void exitSelectionMode();
-
 private Q_SLOTS:
-    void onProfileButton(bool);
     void onRefButtonAdd(bool);
     void onClosed(bool);
     void onRuled(bool);
@@ -75,10 +72,10 @@ protected:
     bool eventFilter(QObject *o, QEvent *e);
     void refresh();
     bool addSections(const std::vector<App::SubObjectT> &objs);
-    bool setProfile(const App::SubObjectT &obj);
+    void onSelectionModeChanged(SelectionMode);
 
 private:
-    void onSelectionChanged(const Gui::SelectionChanges& msg);
+    void _onSelectionChanged(const Gui::SelectionChanges& msg);
     void clearButtons();
     void addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select=false);
 
@@ -86,11 +83,6 @@ private:
     QWidget* proxy;
     std::unique_ptr<Ui_TaskLoftParameters> ui;
 
-    enum selectionModes { none, refAdd, refProfile };
-    selectionModes selectionMode = none;
-
-    App::SubObjectT lastProfile;
-    boost::signals2::scoped_connection connProfile;
     std::vector<App::SubObjectT> lastSections;
     boost::signals2::scoped_connection connSections;
 };

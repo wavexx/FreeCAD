@@ -26,8 +26,12 @@
 
 #ifndef _PreComp_
 # include <sstream>
+# include <QAction>
 # include <QRegExp>
 # include <QTextStream>
+# include <QListWidget>
+# include <QMessageBox>
+# include <QScrollBar>
 # include <Precision.hxx>
 #endif
 
@@ -47,6 +51,8 @@
 #include <Gui/WaitCursor.h>
 #include <Gui/Selection.h>
 #include <Gui/Command.h>
+#include <Gui/MainWindow.h>
+#include <Gui/MetaTypes.h>
 #include <Gui/PrefWidgets.h>
 
 #include <Mod/Part/App/DatumFeature.h>
@@ -66,11 +72,402 @@ using namespace Gui;
 
 /* TRANSLATOR PartDesignGui::TaskSketchBasedParameters */
 
+LinkSubWidgetDelegate::LinkSubWidgetDelegate(QObject *parent) : QItemDelegate(parent)
+{
+}
+
+QWidget *LinkSubWidgetDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &/* option */,
+                                             const QModelIndex & index) const
+{
+    auto owner = qobject_cast<LinkSubWidget*>(this->parent());
+    if (!owner)
+        return nullptr;
+    App::DocumentObject *obj;
+    auto prop = owner->getProperty(&obj);
+    if (!prop)
+        return nullptr;
+    App::ObjectIdentifier path(*prop);
+    if (obj->getExpression(path).expression && index.row() != 0)
+        return nullptr;
+    if (index.row() != 0)
+        return new QLineEdit(parent);
+    auto editor = new Gui::ExpLineEdit(parent);
+    editor->bind(path);
+    return editor;
+}
+
+void LinkSubWidgetDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    auto lineEdit = qobject_cast<QLineEdit*>(editor);
+    if (!lineEdit)
+        return;
+    auto owner = qobject_cast<LinkSubWidget*>(this->parent());
+    if (!owner)
+        return;
+    App::DocumentObject *obj;
+    auto prop = owner->getProperty(&obj);
+    if (!prop)
+        return;
+    auto link = prop->getValue();
+    if (!link)
+        return;
+
+    if (index.row() == 0) {
+        lineEdit->setText(QString::fromUtf8(link->getNameInDocument()));
+        return;
+    }
+    const auto &subs = prop->getSubValues(false);
+    if (index.row()-1 < (int)subs.size())
+        lineEdit->setText(QString::fromUtf8(subs[index.row()-1].c_str()));
+}
+
+void LinkSubWidgetDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
+                                        const QModelIndex &index) const
+{
+    (void)model;
+    auto lineEdit = qobject_cast<QLineEdit*>(editor);
+    if (!lineEdit)
+        return;
+    auto owner = qobject_cast<LinkSubWidget*>(this->parent());
+    if (!owner)
+        return;
+    App::DocumentObject *obj;
+    auto prop = owner->getProperty(&obj);
+    if (!prop)
+        return;
+    App::ObjectIdentifier path(*prop);
+    if (obj->getExpression(path).expression)
+        return;
+
+    auto item = owner->listWidget->item(0);
+    if (!item)
+        return;
+    App::DocumentObject *link = qvariant_cast<App::SubObjectT>(item->data(Qt::UserRole)).getSubObject();
+    std::vector<std::string> subs;
+    for (int i=1;;++i) {
+        auto item = owner->listWidget->item(i);
+        if (!item)
+            break;
+        subs.push_back(item->text().toUtf8().constData());
+    }
+    if (index.row() == 0) {
+        auto newLink = obj->getDocument()->getObject(lineEdit->text().toUtf8().constData());
+        if (!newLink)
+            QMessageBox::critical(Gui::getMainWindow(),
+                    QObject::tr("Error"), QObject::tr("Object not found"));
+        link = newLink;
+    } else if (index.row() - 1 < (int)subs.size())
+        subs[index.row()-1] = lineEdit->text().toUtf8().constData();
+
+    if (!link)
+        return;
+
+    owner->parentTask->setupTransaction();
+    prop->setValue(link, std::move(subs));
+    owner->refresh();
+    owner->parentTask->recomputeFeature();
+}
+
+LinkSubWidget::LinkSubWidget(TaskSketchBasedParameters *parent,
+                             const QString &title,
+                             App::PropertyLinkSub &prop)
+    :QWidget(parent)
+    ,parentTask(parent)
+    ,selectionMode(TaskSketchBasedParameters::SelectionMode::refAdd)
+    ,linkProp(&prop)
+{
+    selectionConf.edge = true;
+    selectionConf.plane = true;
+    selectionConf.planar = false;
+    selectionConf.whole = true;
+    selectionConf.wire = true;
+
+    QHBoxLayout *hlayout = new QHBoxLayout();
+    hlayout->setSpacing(2);
+    setLayout(hlayout);
+    hlayout->setContentsMargins(0,0,0,0);
+    setContentsMargins(0,0,0,0);
+    button = new QPushButton(this);
+    button->setToolTip(tr("Click to enter selection mode"));
+    button->setText(title);
+    button->setCheckable(true);
+    QObject::connect(button, &QPushButton::clicked, [this]() {onButton();});
+    hlayout->addWidget(button);
+
+    listWidget = new QListWidget(this);
+    listWidget->setViewMode(QListView::IconMode);
+    listWidget->setWrapping(false);
+    listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    listWidget->setMouseTracking(true);
+    listWidget->setSpacing(5);
+    listWidget->horizontalScrollBar()->installEventFilter(this);
+    hlayout->addWidget(listWidget);
+    QObject::connect(listWidget, &QListWidget::itemEntered, [this](QListWidgetItem *item) {
+        App::DocumentObject *obj;
+        auto prop = getProperty(&obj);
+        if (!prop)
+            return;
+        if (auto link = prop->getValue()) {
+            if (item == listWidget->item(0))
+                PartDesignGui::highlightObjectOnTop(link);
+            else
+                PartDesignGui::highlightObjectOnTop(App::SubObjectT(link, item->text().toUtf8().constData()));
+        }
+    });
+    listWidget->installEventFilter(this);
+    setListWidgetHeight(listWidget->horizontalScrollBar()->isVisible());
+
+    QAction* remove = new QAction(tr("Remove"), this);
+    remove->setShortcut(QKeySequence::Delete);
+    listWidget->addAction(remove);
+    listWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    QObject::connect(remove, &QAction::triggered, [this](){onDelete();});
+
+    clearButton = new QPushButton(this);
+    clearButton->setIcon(Gui::BitmapFactory().pixmap("edit-cleartext"));
+    clearButton->setToolTip(tr("Clear link references"));
+    // clearButton->setMinimumHeight(button->sizeHint().height());
+    hlayout->addWidget(clearButton);
+    QObject::connect(clearButton, &QPushButton::clicked, [this]() {onClear();});
+
+    if (auto prop = getProperty()) {
+        conn = prop->signalChanged.connect([this](const App::Property &) {toggleShowOnTop();});
+    }
+
+    connModeChange = parentTask->signalSelectionModeChanged.connect([this]() {
+        if (parentTask->getSelectionMode() == selectionMode) {
+            toggleShowOnTop(true);
+            button->setChecked(true);
+        } else {
+            disableShowOnTop();
+            button->setChecked(false);
+        }
+    });
+}
+
+void LinkSubWidget::onSelectionChanged(const Gui::SelectionChanges& msg)
+{
+    if (parentTask->getSelectionMode() != selectionMode)
+        return;
+    if (msg.Type == Gui::SelectionChanges::AddSelection) {
+        App::SubObjectT ref(msg.pOriginalMsg ? msg.pOriginalMsg->Object : msg.Object);
+        addLink(ref);
+    }
+}
+
+void LinkSubWidget::setSelectionConfig(const ReferenceSelection::Config &conf)
+{
+    selectionConf = conf;
+}
+
+void LinkSubWidget::onDelete()
+{
+    auto item = listWidget->currentItem();
+    if (!item)
+        return;
+    auto firstItem = listWidget->item(0);
+    if (item == firstItem) {
+        onClear();
+        return;
+    }
+    if (auto link = qvariant_cast<App::SubObjectT>(firstItem->data(Qt::UserRole)).getSubObject()) {
+        delete item;
+        std::vector<App::SubObjectT> sobjs;
+        for (int i=1;;++i) {
+            item = listWidget->item(i);
+            if (!item)
+                break;
+            sobjs.emplace_back(link, item->text().toUtf8().constData());
+        }
+        if (sobjs.empty())
+            sobjs.emplace_back(link, "");
+        setLinks(sobjs);
+    }
+}
+
+void LinkSubWidget::onButton()
+{
+    if (!button)
+        return;
+
+    if (parentTask->getSelectionMode() != selectionMode) {
+        if (parentTask->getSelectionMode() == TaskSketchBasedParameters::SelectionMode::none) {
+            auto sels = Gui::Selection().getSelectionT("*", 0);
+            if (sels.size()) {
+                if (setLinks(sels)) {
+                    button->setChecked(false);
+                    return;
+                }
+            }
+        }
+        parentTask->onSelectReference(button, selectionMode, selectionConf);
+    } else 
+        parentTask->exitSelectionMode();
+}
+
+void LinkSubWidget::toggleShowOnTop(bool init)
+{
+    auto vp = Base::freecad_dynamic_cast<Gui::ViewProviderDocumentObject>(
+                Gui::Application::Instance->getViewProvider(linkProp.getObject()));
+    PartDesignGui::toggleShowOnTop(vp, lastReference, linkProp.getPropertyName().c_str(), init);
+}
+
+void LinkSubWidget::disableShowOnTop()
+{
+    auto vp = Base::freecad_dynamic_cast<Gui::ViewProviderDocumentObject>(
+                Gui::Application::Instance->getViewProvider(linkProp.getObject()));
+    PartDesignGui::toggleShowOnTop(vp, lastReference, nullptr);
+}
+
+void LinkSubWidget::onClear()
+{
+    if (!listWidget)
+        return;
+
+    Gui::Selection().clearSelection();
+    listWidget->clear();
+    if (parentTask->getSelectionMode() != selectionMode)
+        onButton();
+}
+
+void LinkSubWidget::setListWidgetHeight(bool expand)
+{
+    auto scrollbar = listWidget->horizontalScrollBar();
+    listWidget->setMinimumHeight(button->sizeHint().height()
+            + listWidget->frameWidth()
+            + (expand?scrollbar->height():0));
+}
+
+bool LinkSubWidget::eventFilter(QObject *o, QEvent *ev)
+{
+    switch(ev->type()) {
+    case QEvent::Show:
+    case QEvent::Hide:
+        if (listWidget && o == listWidget->horizontalScrollBar())
+            setListWidgetHeight(ev->type() == QEvent::Show);
+        break;
+    case QEvent::Leave:
+        if (o == listWidget)
+            Gui::Selection().rmvPreselect();
+        break;
+    case QEvent::ShortcutOverride:
+    case QEvent::KeyPress: {
+        QKeyEvent * kevent = static_cast<QKeyEvent*>(ev);
+        if (o == listWidget && kevent->modifiers() == Qt::NoModifier) {
+            if (kevent->key() == Qt::Key_Delete) {
+                kevent->accept();
+                if (ev->type() == QEvent::KeyPress)
+                    onDelete();
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return false;
+}
+
+void LinkSubWidget::refresh()
+{
+    App::DocumentObject *obj;
+    auto prop = getProperty(&obj);
+    if (!prop)
+        return;
+    QSignalBlocker guard(listWidget);
+    listWidget->clear();
+    App::ObjectIdentifier path(*prop);
+    bool hasExpression = !!obj->getExpression(path).expression;
+    auto linkColor = QVariant::fromValue(QApplication::palette().color(QPalette::Link));
+    if (auto link = prop->getValue()) {
+        App::SubObjectT linkT(link);
+        auto item = new QListWidgetItem(QString::fromUtf8(
+                    linkT.getObjectFullName(obj->getDocument()->getName()).c_str()));
+        listWidget->addItem(item);
+        item->setFlags(item->flags() | Qt::ItemIsEditable);
+        if (hasExpression)
+            item->setData(Qt::ForegroundRole, linkColor);
+        item->setData(Qt::UserRole, QVariant::fromValue(linkT));
+
+        const auto &subs = prop->getSubValues(false);
+        if (subs.size() != 1 || !subs.front().empty()) {
+            for (const auto &sub : subs) {
+                auto item = new QListWidgetItem(QString::fromUtf8(sub.c_str()));
+                listWidget->addItem(item);
+                item->setFlags(item->flags() | Qt::ItemIsEditable);
+                if (hasExpression)
+                    item->setData(Qt::ForegroundRole, linkColor);
+            }
+        }
+    }
+}
+bool LinkSubWidget::setLinks(const std::vector<App::SubObjectT> &objs)
+{
+    App::DocumentObject *obj;
+    auto prop = getProperty(&obj);
+    if (!prop || objs.empty())
+        return false;
+    try {
+        parentTask->setupTransaction();
+        if (!PartDesignGui::importExternalElements(*prop, objs))
+            return false;
+        parentTask->recomputeFeature();
+        if (auto o = prop->getValue()) {
+            if (!o->isDerivedFrom(PartDesign::Feature::getClassTypeId()))
+                o->Visibility.setValue(false);
+        }
+        refresh();
+        return true;
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    }
+    return false;
+}
+
+bool LinkSubWidget::addLink(const App::SubObjectT &objT)
+{
+    if (!listWidget)
+        return false;
+    App::DocumentObject *obj;
+    auto prop = getProperty(&obj);
+    std::vector<App::SubObjectT> links;
+    if (listWidget->count() == 0 || !prop->getValue())
+        links.push_back(objT);
+    else {
+        auto obj = prop->getValue();
+        for (const auto &sub : prop->getSubValues())
+            links.emplace_back(obj, sub.c_str());
+        if (links.empty())
+            links.emplace_back(obj, "");
+        links.push_back(objT);
+    }
+    if (!setLinks(links))
+        return false;
+    listWidget->setCurrentItem(listWidget->item(listWidget->count()-1));
+    return true;
+}
+
+void LinkSubWidget::setSelectionMode(TaskSketchBasedParameters::SelectionMode mode)
+{
+    selectionMode = mode;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 TaskSketchBasedParameters::TaskSketchBasedParameters(PartDesignGui::ViewProvider *vp, QWidget *parent,
                                                      const std::string& pixmapname, const QString& parname)
     : TaskFeatureParameters(vp, parent, pixmapname, parname)
 {
+}
 
+void TaskSketchBasedParameters::addProfileEdit(QBoxLayout *boxLayout)
+{
+    if (!vp)
+        return;
+    PartDesign::ProfileBased* pcSketchBased = static_cast<PartDesign::ProfileBased*>(vp->getObject());
+    profileWidget = new LinkSubWidget(this, tr("Profile"), pcSketchBased->Profile);
+    profileWidget->setSelectionMode(SelectionMode::refProfile);
+    boxLayout->insertWidget(0, profileWidget);
 }
 
 void TaskSketchBasedParameters::initUI(QWidget *widget) {
@@ -81,65 +478,77 @@ void TaskSketchBasedParameters::initUI(QWidget *widget) {
     if (!boxLayout)
         return;
 
+    addProfileEdit(boxLayout);
     PartDesignGui::addTaskCheckBox(widget);
     addOperationCombo(boxLayout);
     addUpdateViewCheckBox(boxLayout);
-
-    PartDesign::ProfileBased* pcSketchBased = static_cast<PartDesign::ProfileBased*>(vp->getObject());
-    if (!pcSketchBased->Fit.testStatus(App::Property::Hidden)) {
-        QHBoxLayout *layout = new QHBoxLayout();
-        layout->addWidget(new QLabel(tr("Fit tolerance"), this));
-        fitEdit = new Gui::PrefQuantitySpinBox(this);
-        fitEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/ProfileFit"));
-        fitEdit->bind(pcSketchBased->Fit);
-        fitEdit->setUnit(Base::Unit::Length);
-        fitEdit->setKeyboardTracking(false);
-        fitEdit->setToolTip(QApplication::translate("Property", pcSketchBased->Fit.getDocumentation()));
-        layout->addWidget(fitEdit);
-        connect(fitEdit, SIGNAL(valueChanged(double)), this, SLOT(onFitChanged(double)));
-        boxLayout->addLayout(layout);
-
-        layout = new QHBoxLayout();
-        layout->addWidget(new QLabel(tr("Fit join type")));
-        fitJoinType = new QComboBox(this);
-        for (int i=0;;++i) {
-            const char * type = Part::Offset::JoinEnums[i];
-            if (!type)
-                break;
-            fitJoinType->addItem(tr(type));
-        }
-        connect(fitJoinType, SIGNAL(currentIndexChanged(int)), this, SLOT(onFitJoinChanged(int)));
-        layout->addWidget(fitJoinType);
-        boxLayout->addLayout(layout);
-
-        layout = new QHBoxLayout();
-        layout->addWidget(new QLabel(tr("Inner fit"), this));
-        innerFitEdit = new Gui::PrefQuantitySpinBox(this);
-        innerFitEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/ProfileInnerFit"));
-        innerFitEdit->bind(pcSketchBased->InnerFit);
-        innerFitEdit->setUnit(Base::Unit::Length);
-        innerFitEdit->setKeyboardTracking(false);
-        innerFitEdit->setToolTip(QApplication::translate(
-                    "Property", pcSketchBased->InnerFit.getDocumentation()));
-        layout->addWidget(innerFitEdit);
-        connect(innerFitEdit, SIGNAL(valueChanged(double)), this, SLOT(onInnerFitChanged(double)));
-        boxLayout->addLayout(layout);
-
-        layout = new QHBoxLayout();
-        layout->addWidget(new QLabel(tr("Inner fit join type")));
-        innerFitJoinType = new QComboBox(this);
-        for (int i=0;;++i) {
-            const char * type = Part::Offset::JoinEnums[i];
-            if (!type)
-                break;
-            innerFitJoinType->addItem(tr(type));
-        }
-        connect(innerFitJoinType, SIGNAL(currentIndexChanged(int)), this, SLOT(onInnerFitJoinChanged(int)));
-        layout->addWidget(innerFitJoinType);
-        boxLayout->addLayout(layout);
-    }
-
+    addFittingWidgets(boxLayout);
     _refresh();
+}
+
+void TaskSketchBasedParameters::addFittingWidgets(QBoxLayout *parentLayout)
+{
+    if (!vp)
+        return;
+    PartDesign::ProfileBased* pcSketchBased = static_cast<PartDesign::ProfileBased*>(vp->getObject());
+    if (pcSketchBased->Fit.testStatus(App::Property::Hidden))
+        return;
+    auto groupBox = new QGroupBox(tr("Fitting"));
+    auto boxLayout = new QVBoxLayout();
+    groupBox->setLayout(boxLayout);
+
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(new QLabel(tr("Tolerance"), this));
+    fitEdit = new Gui::PrefQuantitySpinBox(this);
+    fitEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/ProfileFit"));
+    fitEdit->bind(pcSketchBased->Fit);
+    fitEdit->setUnit(Base::Unit::Length);
+    fitEdit->setKeyboardTracking(false);
+    fitEdit->setToolTip(QApplication::translate("Property", pcSketchBased->Fit.getDocumentation()));
+    layout->addWidget(fitEdit);
+    connect(fitEdit, SIGNAL(valueChanged(double)), this, SLOT(onFitChanged(double)));
+    boxLayout->addLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->addWidget(new QLabel(tr("Join type")));
+    fitJoinType = new QComboBox(this);
+    for (int i=0;;++i) {
+        const char * type = Part::Offset::JoinEnums[i];
+        if (!type)
+            break;
+        fitJoinType->addItem(tr(type));
+    }
+    connect(fitJoinType, SIGNAL(currentIndexChanged(int)), this, SLOT(onFitJoinChanged(int)));
+    layout->addWidget(fitJoinType);
+    boxLayout->addLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->addWidget(new QLabel(tr("Inner fit"), this));
+    innerFitEdit = new Gui::PrefQuantitySpinBox(this);
+    innerFitEdit->setParamGrpPath(QByteArray("User parameter:BaseApp/History/ProfileInnerFit"));
+    innerFitEdit->bind(pcSketchBased->InnerFit);
+    innerFitEdit->setUnit(Base::Unit::Length);
+    innerFitEdit->setKeyboardTracking(false);
+    innerFitEdit->setToolTip(QApplication::translate(
+                "Property", pcSketchBased->InnerFit.getDocumentation()));
+    layout->addWidget(innerFitEdit);
+    connect(innerFitEdit, SIGNAL(valueChanged(double)), this, SLOT(onInnerFitChanged(double)));
+    boxLayout->addLayout(layout);
+
+    layout = new QHBoxLayout();
+    layout->addWidget(new QLabel(tr("Inner join type")));
+    innerFitJoinType = new QComboBox(this);
+    for (int i=0;;++i) {
+        const char * type = Part::Offset::JoinEnums[i];
+        if (!type)
+            break;
+        innerFitJoinType->addItem(tr(type));
+    }
+    connect(innerFitJoinType, SIGNAL(currentIndexChanged(int)), this, SLOT(onInnerFitJoinChanged(int)));
+    layout->addWidget(innerFitJoinType);
+    boxLayout->addLayout(layout);
+
+    parentLayout->addWidget(groupBox);
 }
 
 void TaskSketchBasedParameters::_refresh()
@@ -167,6 +576,10 @@ void TaskSketchBasedParameters::_refresh()
         QSignalBlocker guard(innerFitJoinType);
         innerFitJoinType->setCurrentIndex(pcSketchBased->InnerFitJoin.getValue());
     }
+
+    if (profileWidget)
+        profileWidget->refresh();
+
     TaskFeatureParameters::_refresh();
 }
 
@@ -207,7 +620,7 @@ void TaskSketchBasedParameters::onInnerFitJoinChanged(int v)
     recomputeFeature();
 }
 
-const QString TaskSketchBasedParameters::onAddSelection(const Gui::SelectionChanges& msg)
+const QString TaskSketchBasedParameters::onSelectUpToFace(const Gui::SelectionChanges& msg)
 {
     // Note: The validity checking has already been done in ReferenceSelection.cpp
     PartDesign::ProfileBased* pcSketchBased = static_cast<PartDesign::ProfileBased*>(vp->getObject());
@@ -282,30 +695,85 @@ const QString TaskSketchBasedParameters::onAddSelection(const Gui::SelectionChan
     return QString();
 }
 
-void TaskSketchBasedParameters::onSelectReference(const bool pressed, const bool edge, const bool face, const bool planar, const bool circle) {
-    // Note: Even if there is no solid, App::Plane and Part::Datum can still be selected
-
-    selectingReference = false;
+void TaskSketchBasedParameters::onSelectReference(QWidget *blinkWidget,
+                                                  SelectionMode mode,
+                                                  const ReferenceSelection::Config &conf)
+{
+    exitSelectionMode();
+    if (!vp || mode == SelectionMode::none)
+        return;
     PartDesign::ProfileBased* pcSketchBased = dynamic_cast<PartDesign::ProfileBased*>(vp->getObject());
-    if (pcSketchBased) {
-        // The solid this feature will be fused to
-        App::DocumentObject* prevSolid = pcSketchBased->getBaseObject( /* silent =*/ true );
-
-        if (pressed) {
-            selectingReference = true;
-            Gui::Selection().clearSelection();
-            Gui::Selection().addSelectionGate
-                (new ReferenceSelection(prevSolid, edge, face, planar, false, false, circle));
-        } else {
-            Gui::Selection().rmvSelectionGate();
-        }
+    // The solid this feature will be fused to
+    App::DocumentObject* prevSolid = pcSketchBased->getBaseObject( /* silent =*/ true );
+    if (blinkWidget) {
+        QString altText = tr("Selecting");
+        auto prop = blinkWidget->property("blinkText");
+        if (prop.isValid())
+            altText = prop.toString();
+        addBlinkWidget(blinkWidget, altText);
+        this->blinkWidget = blinkWidget;
     }
+    std::unique_ptr<Gui::SelectionFilterGate> gateRefPtr(new ReferenceSelection(prevSolid, conf));
+    std::unique_ptr<Gui::SelectionFilterGate> gateDepPtr(new NoDependentsSelection(pcSketchBased));
+    setSelectionMode(mode, new CombineSelectionFilterGates(gateRefPtr, gateDepPtr));
 }
 
 
+void TaskSketchBasedParameters::_exitSelectionMode()
+{
+    if (selectionMode == SelectionMode::none)
+        return;
+
+    if (blinkWidget) {
+        removeBlinkWidget(this->blinkWidget);
+        blinkWidget = nullptr;
+    }
+    if (Gui::Selection().currentSelectionGate() == selectionGate)
+        Gui::Selection().rmvSelectionGate();
+    selectionMode = SelectionMode::none;
+    selectionGate = nullptr;
+}
+
 void TaskSketchBasedParameters::exitSelectionMode()
 {
-    onSelectReference(false, false, false, false);
+    if (selectionMode != SelectionMode::none) {
+        auto oldMode = selectionMode;
+        _exitSelectionMode();
+        onSelectionModeChanged(oldMode);
+        signalSelectionModeChanged();
+    }
+}
+
+void TaskSketchBasedParameters::setSelectionMode(SelectionMode mode, Gui::SelectionGate *gate)
+{
+    if (mode == selectionMode)
+        return;
+
+    exitSelectionMode();
+    if (mode == SelectionMode::none)
+        return;
+
+    auto oldMode = selectionMode;
+    selectionMode = mode;
+    selectionGate = gate;
+    Gui::Selection().clearSelection();
+    if (gate)
+        Gui::Selection().addSelectionGate(gate);
+    onSelectionModeChanged(oldMode);
+    signalSelectionModeChanged();
+}
+
+TaskSketchBasedParameters::SelectionMode TaskSketchBasedParameters::getSelectionMode() const
+{
+    return selectionMode;
+}
+
+void TaskSketchBasedParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
+{
+    if (selectionGate && Gui::Selection().currentSelectionGate() != selectionGate)
+        exitSelectionMode();
+    else if (vp && selectionMode != SelectionMode::none)
+        _onSelectionChanged(msg);
 }
 
 QVariant TaskSketchBasedParameters::setUpToFace(const QString& text)
@@ -394,7 +862,7 @@ QString TaskSketchBasedParameters::getFaceReference(const QString& obj, const QS
 
 TaskSketchBasedParameters::~TaskSketchBasedParameters()
 {
-    Gui::Selection().rmvSelectionGate();
+    _exitSelectionMode();
 }
 
 

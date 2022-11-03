@@ -63,38 +63,19 @@ public:
 private Q_SLOTS:
     void onTangentChanged(bool checked);
     void onTransitionChanged(int);
-    void onButtonRefAdd(bool checked);
-    void onBaseButton(bool checked);
-    void onProfileButton(bool checked);
-    void onDeleteEdge();
-    void onItemEntered(QTreeWidgetItem *, int);
-    void onItemSelectionChanged();
     void updateUI();
 
 protected:
-    enum selectionModes { none, refAdd, refObjAdd, refProfile };
-    selectionModes selectionMode = none;
-    
     void refresh();
-    bool eventFilter(QObject *o, QEvent *e);
-
-private:
-    void onSelectionChanged(const Gui::SelectionChanges& msg);
 
 public:
-    void exitSelectionMode();
-
     ViewProviderPipe* getPipeView() const
     { return static_cast<ViewProviderPipe*>(vp); }
 
 private:
     QWidget* proxy;
-    bool initing = false;
-    App::SubObjectT lastProfile;
-    App::SubObjectT lastSpine;
-    boost::signals2::scoped_connection connProfile;
-    boost::signals2::scoped_connection connSpine;
     std::unique_ptr<Ui_TaskPipeParameters> ui;
+    LinkSubWidget *spineWidget = nullptr;
 };
 
 class TaskPipeOrientation : public TaskSketchBasedParameters
@@ -107,35 +88,17 @@ public:
 
 private Q_SLOTS:
     void onOrientationChanged(int);
-    void onButtonRefAdd(bool checked);
     void updateUI(int idx);
-    void onBaseButton(bool checked);
-    void onClearButton();
     void onCurvelinearChanged(bool checked);
     void onBinormalChanged(double);
-    void onDeleteItem();
-    void onItemEntered(QTreeWidgetItem *, int);
-    void onItemSelectionChanged();
   
 protected:
-    enum selectionModes { none, refAdd, refObjAdd };
-    selectionModes selectionMode = none;
-    
     void refresh();
-    bool eventFilter(QObject *o, QEvent *e);
 
-private:
-    void onSelectionChanged(const Gui::SelectionChanges& msg);
-
-public:
-    void exitSelectionMode();
-    
 private:
     QWidget* proxy;
-    bool initing = false;
-    App::SubObjectT lastAuxSpine;
-    boost::signals2::scoped_connection connAuxSpine;
     std::unique_ptr<Ui_TaskPipeOrientation> ui;
+    LinkSubWidget *auxSpineWidget = nullptr;
 };
 
 
@@ -147,6 +110,8 @@ public:
     TaskPipeScaling(ViewProviderPipe *PipeView,bool newObj=false,QWidget *parent = 0);
     virtual ~TaskPipeScaling();
 
+    void onSelectionModeChanged(SelectionMode);
+
 private Q_SLOTS:
     void onScalingChanged(int);
     void onButtonRefAdd(bool checked);
@@ -155,19 +120,12 @@ private Q_SLOTS:
     void onItemEntered(QListWidgetItem *);
     void onItemSelectionChanged();
   
-protected:
-    enum selectionModes { none, refAdd };
-    selectionModes selectionMode = none;
-    
     bool eventFilter(QObject *o, QEvent *e);
     void refresh();
 
 private:
-    void onSelectionChanged(const Gui::SelectionChanges& msg);
+    void _onSelectionChanged(const Gui::SelectionChanges& msg);
     void addItem(App::DocumentObject *obj, bool select=false);
-
-public:
-    void exitSelectionMode();
 
 private:
     QWidget* proxy;
@@ -195,10 +153,15 @@ public:
     virtual bool accept();
     /// is called by the framework if the dialog is rejected (Cancel)
 
+    void onSelectionModeChanged(TaskSketchBasedParameters *);
+
 protected:
     TaskPipeParameters  *parameter;
     TaskPipeOrientation *orientation;
     TaskPipeScaling     *scaling;
+
+private:
+    bool _busy = false;
 };
 
 } //namespace PartDesignGui

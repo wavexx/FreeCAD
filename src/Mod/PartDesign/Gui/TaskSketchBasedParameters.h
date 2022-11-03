@@ -25,13 +25,19 @@
 #ifndef GUI_TASKVIEW_TaskSketchBasedParameters_H
 #define GUI_TASKVIEW_TaskSketchBasedParameters_H
 
+#include <QStandardItemModel>
+#include <QItemDelegate>
+
 #include <Gui/Selection.h>
+#include <boost/signals2/connection.hpp>
 #include "ViewProvider.h"
 
+#include "ReferenceSelection.h"
 #include "TaskFeatureParameters.h"
 
 class QComboBox;
 class QCheckBox;
+class QListWidget;
 
 namespace App {
 class Property;
@@ -43,6 +49,7 @@ class PrefQuantitySpinBox;
 
 namespace PartDesignGui {
 
+class LinkSubWidget;
 
 /// Convenience class to collect common methods for all SketchBased features
 class TaskSketchBasedParameters : public PartDesignGui::TaskFeatureParameters,
@@ -55,11 +62,36 @@ public:
                               const std::string& pixmapname, const QString& parname);
     ~TaskSketchBasedParameters();
 
-protected:
-    void onSelectionChanged(const Gui::SelectionChanges& msg)=0;
-    const QString onAddSelection(const Gui::SelectionChanges& msg);
-    void onSelectReference(const bool pressed, const bool edge, const bool face, const bool planar, const bool circle = false);
+    enum class SelectionMode {
+        none,
+        refAdd,
+        refProfile,
+        refAxis,
+        refSpine,
+        refAuxSpine,
+    };
+
+    virtual void _onSelectionChanged(const Gui::SelectionChanges&) {}
+
+    const QString onSelectUpToFace(const Gui::SelectionChanges& msg);
+
+    void onSelectReference(QWidget *blinkWidget,
+                           const ReferenceSelection::Config &conf = ReferenceSelection::Config())
+    {
+        onSelectReference(blinkWidget, SelectionMode::refAdd, conf);
+    }
+
+    void onSelectReference(QWidget *blinkWidget,
+                           SelectionMode mode,
+                           const ReferenceSelection::Config &conf = ReferenceSelection::Config());
     void exitSelectionMode();
+
+    SelectionMode getSelectionMode() const;
+
+    void setSelectionMode(SelectionMode mode, Gui::SelectionGate *gate);
+
+    virtual void onSelectionModeChanged(SelectionMode oldMode) {(void)oldMode;}
+
     QVariant setUpToFace(const QString& text);
     /// Try to find the name of a feature with the given label.
     /// For faster access a suggested name can be tested, first.
@@ -70,7 +102,11 @@ protected:
     void saveHistory();
 
     void initUI(QWidget *);
+    void addProfileEdit(QBoxLayout *boxLayout);
+    void addFittingWidgets(QBoxLayout *parentLayout);
     void _refresh();
+
+    boost::signals2::signal<void ()> signalSelectionModeChanged;
 
 protected Q_SLOTS:
     void onFitChanged(double);
@@ -78,13 +114,92 @@ protected Q_SLOTS:
     void onInnerFitChanged(double);
     void onInnerFitJoinChanged(int);
 
+private:
+    virtual void onSelectionChanged(const Gui::SelectionChanges& msg) final;
+    void _exitSelectionMode();
+
 protected:
     Gui::PrefQuantitySpinBox * fitEdit = nullptr;
     QComboBox *fitJoinType = nullptr;
     Gui::PrefQuantitySpinBox * innerFitEdit = nullptr;
     QComboBox *innerFitJoinType = nullptr;
-    bool selectingReference = false;
+    QWidget *blinkWidget = nullptr;
+
+    LinkSubWidget *profileWidget = nullptr;
+
+private:
+    SelectionMode selectionMode = SelectionMode::none;
+    Gui::SelectionGate *selectionGate = nullptr;
 };
+
+class LinkSubWidgetDelegate : public QItemDelegate
+{
+    Q_OBJECT
+
+public:
+    LinkSubWidgetDelegate(QObject *parent);
+
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const;
+
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const;
+};
+
+class LinkSubWidget: public QWidget
+                   , public Gui::SelectionObserver
+{
+    Q_OBJECT
+
+public:
+    LinkSubWidget(TaskSketchBasedParameters *parent,
+                  const QString &title,
+                  App::PropertyLinkSub &prop);
+
+    void onSelectionChanged(const Gui::SelectionChanges& msg) override;
+
+    void onButton();
+    void onClear();
+    void onDelete();
+    void refresh();
+
+    bool setLinks(const std::vector<App::SubObjectT> &objs);
+    bool addLink(const App::SubObjectT &obj);
+
+    App::PropertyLinkSub *getProperty(App::DocumentObject **pObj = nullptr) const {
+        if (auto obj = linkProp.getObject()) {
+            if (pObj)
+                *pObj = obj;
+            return Base::freecad_dynamic_cast<App::PropertyLinkSub>(
+                    obj->getPropertyByName(linkProp.getPropertyName().c_str()));
+        }
+        return nullptr;
+    }
+
+    void setSelectionConfig(const ReferenceSelection::Config &conf);
+    void setSelectionMode(TaskSketchBasedParameters::SelectionMode mode);
+
+protected:
+    bool eventFilter(QObject *, QEvent *) override;
+    void setListWidgetHeight(bool expand);
+    void toggleShowOnTop(bool init=false);
+    void disableShowOnTop();
+
+protected:
+    friend class LinkSubWidgetDelegate;
+    TaskSketchBasedParameters *parentTask;
+    TaskSketchBasedParameters::SelectionMode selectionMode;
+    QListWidget *listWidget;
+    QPushButton *button;
+    QPushButton *clearButton;
+    boost::signals2::scoped_connection conn;
+    App::SubObjectT lastReference;
+    App::DocumentObjectT linkProp;
+    ReferenceSelection::Config selectionConf;
+    boost::signals2::scoped_connection connModeChange;
+};
+
 
 class TaskDlgSketchBasedParameters : public PartDesignGui::TaskDlgFeatureParameters
 {
