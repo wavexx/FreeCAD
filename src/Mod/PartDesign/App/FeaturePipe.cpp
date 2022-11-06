@@ -72,6 +72,7 @@ FC_LOG_LEVEL_INIT("PartDesign",true,true);
 
 
 using namespace PartDesign;
+using namespace Part;
 
 const char* Pipe::TypeEnums[] = {"FullPath","UpToFace",NULL};
 const char* Pipe::TransitionEnums[] = {"Transformed","Right corner", "Round corner",NULL};
@@ -291,16 +292,21 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
         TopoShape result(0,feat->getDocument()->getStringHasher());
 
         if (!frontwires.empty()) {
-            if (frontface.shapeType(true) == TopAbs_FACE && !frontface.isPlanarFace())
-                frontface.makEBSplineFace(TopoShape().makECompound(frontwires, nullptr, false));
+            gp_Pln pln;
+            if (!TopoShape(-1).makECompound(frontwires).findPlane(pln))
+                frontface.makEBSplineFace(frontwires);
             else
-                frontface = TopoShape().makEFace(frontwires);
+                frontface.makEFace(frontwires);
 
-            if (backface.shapeType(true) == TopAbs_FACE && !backface.isPlanarFace())
-                backface.makEBSplineFace(TopoShape().makECompound(backwires, nullptr, false));
+            // Explicitly set op code when making face to generate different
+            // topo name than the front face.
+            if (!TopoShape(-1).makECompound(backwires).findPlane(pln))
+                backface.makEBSplineFace(backwires,
+                                         /*style*/TopoShape::FillingStyle::FillingStyle_Strech,
+                                         /*keepBezier*/false,
+                                         /*op*/OpCodes::Sewing);
             else
-                backface = TopoShape().makEFace(backwires);
-
+                backface.makEFace(backwires,/*op*/OpCodes::Sewing);
 
             BRepBuilderAPI_Sewing sewer;
             sewer.SetTolerance(Precision::Confusion());
