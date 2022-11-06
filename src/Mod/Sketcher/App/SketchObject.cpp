@@ -10062,18 +10062,24 @@ std::pair<std::string,std::string> SketchObject::getElementName(
         Data::MappedElement mappedElement;
         if (mapped)
             mappedElement = InternalShape.getShape().getElementName(name);
+        else if (type == ElementNameType::Export)
+            ret.first = getExportElementName(InternalShape.getShape(), realName).first;
         else
             mappedElement = InternalShape.getShape().getElementName(realName);
-        if (mappedElement.index) {
-            ret.second = internalPrefix();
-            mappedElement.index.toString(ret.second);
+
+        if (mapped || type != ElementNameType::Export) {
+            if (mappedElement.index) {
+                ret.second = internalPrefix();
+                mappedElement.index.toString(ret.second);
+            }
+            if (mappedElement.name) {
+                ret.first = Data::ComplexGeoData::elementMapPrefix();
+                mappedElement.name.toString(ret.first);
+            }
+            else if (mapped)
+                ret.first = name;
         }
-        if (mappedElement.name) {
-            ret.first = Data::ComplexGeoData::elementMapPrefix();
-            mappedElement.name.toString(ret.first);
-        }
-        else if (mapped)
-            ret.first = name;
+
         if (ret.first.size()) {
             if (auto dot = strrchr(ret.first.c_str(), '.'))
                 ret.first.resize(dot+1-ret.first.c_str());
@@ -10081,7 +10087,7 @@ std::pair<std::string,std::string> SketchObject::getElementName(
                 ret.first += ".";
             ret.first += ret.second;
         }
-        if (!mappedElement.index || !mappedElement.name)
+        if (mapped && (!mappedElement.index || !mappedElement.name))
             ret.second.insert(0, Data::ComplexGeoData::missingPrefix());
         return ret;
     }
