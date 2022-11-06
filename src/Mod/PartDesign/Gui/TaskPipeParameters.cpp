@@ -224,9 +224,10 @@ TaskPipeParameters::TaskPipeParameters(ViewProviderPipe *PipeView, bool /*newObj
     ui->setupUi(proxy);
     QMetaObject::connectSlotsByName(this);
 
+    PartDesign::Pipe* pcPipe = static_cast<PartDesign::Pipe*>(PipeView->getObject());
+
     QBoxLayout * boxLayout = qobject_cast<QBoxLayout*>(proxy->layout());
     if (boxLayout) {
-        PartDesign::Pipe* pcPipe = static_cast<PartDesign::Pipe*>(PipeView->getObject());
         spineWidget = new LinkSubWidget(this, tr("Sweep Path"), pcPipe->Spine);
         spineWidget->setSelectionMode(SelectionMode::refSpine);
         boxLayout->addWidget(spineWidget);
@@ -234,6 +235,27 @@ TaskPipeParameters::TaskPipeParameters(ViewProviderPipe *PipeView, bool /*newObj
 
     connect(ui->comboBoxTransition, SIGNAL(currentIndexChanged(int)),
             this, SLOT(onTransitionChanged(int)));
+
+    if (auto doc = pcPipe->MoveProfile.getDocumentation())
+        ui->checkBoxMoveProfile->setToolTip(QString::fromUtf8(doc));
+    if (auto doc = pcPipe->RotateProfile.getDocumentation())
+        ui->checkBoxRotateProfile->setToolTip(QString::fromUtf8(doc));
+
+    auto onChange = [this]() {
+        if (!vp)
+            return;
+        try {
+            setupTransaction();
+            auto pcPipe = static_cast<PartDesign::Pipe*>(vp->getObject());
+            pcPipe->MoveProfile.setValue(ui->checkBoxMoveProfile->isChecked());
+            pcPipe->RotateProfile.setValue(ui->checkBoxRotateProfile->isChecked());
+            recomputeFeature();
+        } catch (Base::Exception &e) {
+            e.ReportException();
+        }
+    };
+    QObject::connect(ui->checkBoxMoveProfile, &QCheckBox::toggled, onChange);
+    QObject::connect(ui->checkBoxRotateProfile, &QCheckBox::toggled, onChange);
 
     this->initUI(proxy);
     this->groupLayout()->addWidget(proxy);
@@ -260,12 +282,15 @@ void TaskPipeParameters::refresh()
     QSignalBlocker guard(ui->comboBoxTransition);
     PartDesign::Pipe* pipe = static_cast<PartDesign::Pipe*>(vp->getObject());
     ui->comboBoxTransition->setCurrentIndex(pipe->Transition.getValue());
+    ui->checkBoxMoveProfile->setChecked(pipe->MoveProfile.getValue());
+    ui->checkBoxRotateProfile->setChecked(pipe->RotateProfile.getValue());
 
     spineWidget->refresh();
 }
 
 void TaskPipeParameters::onTransitionChanged(int idx) {
-
+    if (!vp)
+        return;
     try {
         setupTransaction();
         static_cast<PartDesign::Pipe*>(vp->getObject())->Transition.setValue(idx);

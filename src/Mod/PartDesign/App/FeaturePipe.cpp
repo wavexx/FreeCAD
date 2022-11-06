@@ -95,6 +95,8 @@ Pipe::Pipe()
     ADD_PROPERTY_TYPE(Binormal,(Base::Vector3d()),"Sweep",App::Prop_None,"Binormal vector for corresponding orientation mode");
     ADD_PROPERTY_TYPE(Transition,(long(0)),"Sweep",App::Prop_None,"Transition mode");
     ADD_PROPERTY_TYPE(Transformation,(long(0)),"Sweep",App::Prop_None,"Section transformation mode");
+    ADD_PROPERTY_TYPE(MoveProfile, (false), "Sweep", App::Prop_None,"Auto move profile to be in contact with sweep path");
+    ADD_PROPERTY_TYPE(RotateProfile, (false), "Sweep", App::Prop_None,"Auto rotate profile to be orthogonal to sweep path");
     Mode.setEnums(ModeEnums);
     Transition.setEnums(TransitionEnums);
     Transition.setValue(1);
@@ -156,7 +158,9 @@ App::DocumentObjectExecReturn *Pipe::execute()
                     Mode.getValue(),
                     Binormal.getValue(),
                     Transformation.getValue(),
-                    Sections.getValues());
+                    Sections.getValues(),
+                    MoveProfile.getValue(),
+                    RotateProfile.getValue());
 }
 
 App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
@@ -168,7 +172,9 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
                                               int mode,
                                               const Base::Vector3d &binormalVector,
                                               int transformation,
-                                              const std::vector<App::DocumentObject*> &multisections)
+                                              const std::vector<App::DocumentObject*> &multisections,
+                                              bool moveProfile,
+                                              bool rotateProfile)
 {
     // if the Base property has a valid shape, fuse the pipe into it
     TopoShape base;
@@ -249,13 +255,17 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
             if(!scalinglaw) {
                 for(TopoShape& wire : wires) {
                     wire.move(invObjLoc);
-                    mkPS.Add(TopoDS::Wire(wire.getShape()));
+                    mkPS.Add(TopoDS::Wire(wire.getShape()),
+                             moveProfile?Standard_True:Standard_False,
+                             rotateProfile?Standard_True:Standard_False);
                 }
             }
             else {
                 for(TopoShape& wire : wires)  {
                     wire.move(invObjLoc);
-                    mkPS.SetLaw(TopoDS::Wire(wire.getShape()), scalinglaw);
+                    mkPS.SetLaw(TopoDS::Wire(wire.getShape()), scalinglaw,
+                                moveProfile?Standard_True:Standard_False,
+                                rotateProfile?Standard_True:Standard_False);
                 }
             }
 
