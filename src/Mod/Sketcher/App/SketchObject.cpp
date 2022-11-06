@@ -387,7 +387,12 @@ Part::TopoShape SketchObject::buildInternals(const Part::TopoShape &edges) const
                                      /*op*/"",
                                      /*maker*/"Part::FaceMakerRing",
                                      /*pln*/nullptr,
-                                     /*minElementNames*/2);
+#if 1
+                                     /*minElementNames (revert to 1 for now, see how it fairs)*/1
+#else
+                                     /*minElementNames*/2
+#endif
+                                    );
         }
         Part::TopoShape openWires(getID(), getDocument()->getStringHasher());
         joiner.getOpenWires(openWires, "SKF");

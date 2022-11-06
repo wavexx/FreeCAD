@@ -3089,7 +3089,7 @@ TopoShape &TopoShape::makEFace(const std::vector<TopoShape> &shapes,
     std::unique_ptr<FaceMaker> mkFace = FaceMaker::ConstructFromType(maker);
     mkFace->MyHasher = Hasher;
     mkFace->MyOp = op;
-    // mkFace->setMinimumElementName(minElementNames);
+    mkFace->setMinimumElementName(minElementNames);
     if (pln)
         mkFace->setPlane(*pln);
 
