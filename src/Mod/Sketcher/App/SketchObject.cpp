@@ -304,11 +304,13 @@ void SketchObject::buildShape() {
         if(GeometryFacade::getConstruction(geo))
             continue;
         if (geo->isDerivedFrom(Part::GeomPoint::getClassTypeId())) {
-            vertices.emplace_back(TopoDS::Vertex(geo->toShape()));
+            Part::TopoShape vertex(TopoDS::Vertex(geo->toShape()));
             int idx = getVertexIndexGeoPos(i-1, Sketcher::start);
             std::string name = convertSubName(Data::IndexedName::fromConst("Vertex", idx+1), false);
-            vertices.back().setElementName(Data::IndexedName::fromConst("Vertex", 1), 
-                                           Data::MappedName::fromRawData(name.c_str()));
+            vertex.setElementName(Data::IndexedName::fromConst("Vertex", 1), 
+                                  Data::MappedName::fromRawData(name.c_str()));
+            vertices.push_back(vertex);
+            vertices.back().copyElementMap(vertex, Part::OpCodes::Sketch);
         } else {
             auto indexedName = Data::IndexedName::fromConst("Edge", i);
             shapes.push_back(getEdge(geo,convertSubName(indexedName, false).c_str()));
@@ -336,26 +338,21 @@ void SketchObject::buildShape() {
     }
     Part::TopoShape result(0, getDocument()->getStringHasher());
     if (vertices.empty()) {
-        // Notice here we supply op code Part::OpCodes::Sketch to makEWires().
         result.makEWires(shapes,Part::OpCodes::Sketch);
     } else {
         std::vector<Part::TopoShape> results;
         if (!shapes.empty()) {
-            // This call of makEWires() does not have the op code, in order to
-            // avoid duplication. Because we'll going to make a compound (to
-            // include the vertices) below with the same op code.
-            //
-            // Note, that we HAVE TO add the Part::OpCodes::Sketch op code to all
-            // geometry exposed through the Shape property, because
+            // Note, that we HAVE TO add the Part::OpCodes::Sketch op code to
+            // all geometry exposed through the Shape property, because
             // SketchObject::getElementName() relies on this op code to
             // differentiate geometries that are exposed with those in edit
             // mode.
-            auto wires = Part::TopoShape().makEWires(shapes);
+            auto wires = Part::TopoShape().makEWires(shapes, Part::OpCodes::Sketch);
             for (const auto &wire : wires.getSubTopoShapes(TopAbs_WIRE))
                 results.push_back(wire);
         }
         results.insert(results.end(), vertices.begin(), vertices.end());
-        result.makECompound(results, Part::OpCodes::Sketch);
+        result.makECompound(results);
     }
     result.Tag = getID();
     InternalShape.setValue(buildInternals(result.located()));
