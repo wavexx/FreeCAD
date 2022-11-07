@@ -110,28 +110,15 @@ public:
     TaskPipeScaling(ViewProviderPipe *PipeView,bool newObj=false,QWidget *parent = 0);
     virtual ~TaskPipeScaling();
 
-    void onSelectionModeChanged(SelectionMode);
-
 private Q_SLOTS:
     void onScalingChanged(int);
-    void onButtonRefAdd(bool checked);
     void updateUI(int idx);
-    void onDeleteSection();
-    void onItemEntered(QListWidgetItem *);
-    void onItemSelectionChanged();
-  
-    bool eventFilter(QObject *o, QEvent *e);
     void refresh();
 
 private:
-    void _onSelectionChanged(const Gui::SelectionChanges& msg);
-    void addItem(App::DocumentObject *obj, bool select=false);
-
-private:
     QWidget* proxy;
-    std::vector<App::SubObjectT> lastSections;
-    boost::signals2::scoped_connection connSections;
     std::unique_ptr<Ui_TaskPipeScaling> ui;
+    LinkSubListWidget *sectionWidget;
 };
 
 

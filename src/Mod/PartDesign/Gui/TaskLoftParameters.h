@@ -57,34 +57,19 @@ public:
     ~TaskLoftParameters();
 
 private Q_SLOTS:
-    void onRefButtonAdd(bool);
     void onClosed(bool);
     void onRuled(bool);
     void onSplitProfile(bool);
-    void onDeleteSection();
-    void indexesMoved();
-    void onItemEntered(QListWidgetItem *);
-    void onItemSelectionChanged();
     void updateUI();
 
 protected:
-    void changeEvent(QEvent *e);
-    bool eventFilter(QObject *o, QEvent *e);
     void refresh();
-    bool addSections(const std::vector<App::SubObjectT> &objs);
-    void onSelectionModeChanged(SelectionMode);
-
-private:
-    void _onSelectionChanged(const Gui::SelectionChanges& msg);
-    void clearButtons();
-    void addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select=false);
 
 private:
     QWidget* proxy;
     std::unique_ptr<Ui_TaskLoftParameters> ui;
-
-    std::vector<App::SubObjectT> lastSections;
     boost::signals2::scoped_connection connSections;
+    LinkSubListWidget *sectionWidget;
 };
 
 /// simulation dialog for the TaskView

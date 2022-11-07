@@ -27,6 +27,7 @@
 
 #include <QStandardItemModel>
 #include <QItemDelegate>
+#include <QGroupBox>
 
 #include <Gui/Selection.h>
 #include <boost/signals2/connection.hpp>
@@ -69,6 +70,7 @@ public:
         refAxis,
         refSpine,
         refAuxSpine,
+        refSection,
     };
 
     virtual void _onSelectionChanged(const Gui::SelectionChanges&) {}
@@ -159,7 +161,7 @@ public:
 
     void onSelectionChanged(const Gui::SelectionChanges& msg) override;
 
-    void onButton();
+    void onButton(bool checked);
     void onClear();
     void onDelete();
     void refresh();
@@ -195,6 +197,62 @@ protected:
     QPushButton *clearButton;
     boost::signals2::scoped_connection conn;
     App::SubObjectT lastReference;
+    App::DocumentObjectT linkProp;
+    ReferenceSelection::Config selectionConf;
+    boost::signals2::scoped_connection connModeChange;
+};
+
+class LinkSubListWidget: public QGroupBox
+                       , public Gui::SelectionObserver
+{
+    Q_OBJECT
+
+public:
+    LinkSubListWidget(TaskSketchBasedParameters *parent,
+                      const QString &groupTitle,
+                      const QString &title,
+                      App::PropertyLinkSubList &prop);
+
+    void onSelectionChanged(const Gui::SelectionChanges& msg) override;
+
+    void onButton(bool checked);
+    void onDelete();
+    void onItemMoved();
+    void refresh();
+    void addItem(App::DocumentObject *obj, const std::vector<std::string> &subs, bool select=false);
+
+    bool addLinks(const std::vector<App::SubObjectT> &objs);
+
+    App::PropertyLinkSubList *getProperty(App::DocumentObject **pObj = nullptr) const {
+        if (auto obj = linkProp.getObject()) {
+            if (pObj)
+                *pObj = obj;
+            return Base::freecad_dynamic_cast<App::PropertyLinkSubList>(
+                    obj->getPropertyByName(linkProp.getPropertyName().c_str()));
+        }
+        return nullptr;
+    }
+
+    void setSelectionConfig(const ReferenceSelection::Config &conf);
+    void setSelectionMode(TaskSketchBasedParameters::SelectionMode mode);
+
+protected:
+    bool eventFilter(QObject *, QEvent *) override;
+    void toggleShowOnTop(bool init=false);
+    void disableShowOnTop();
+
+    bool addSections(const std::vector<App::SubObjectT> &objs);
+    void addSectionItem(App::DocumentObject *obj,
+                        const std::vector<std::string> &subs,
+                        bool select);
+
+protected:
+    TaskSketchBasedParameters *parentTask;
+    TaskSketchBasedParameters::SelectionMode selectionMode;
+    QListWidget *listWidget;
+    QPushButton *button;
+    boost::signals2::scoped_connection conn;
+    std::vector<App::SubObjectT> lastReferences;
     App::DocumentObjectT linkProp;
     ReferenceSelection::Config selectionConf;
     boost::signals2::scoped_connection connModeChange;

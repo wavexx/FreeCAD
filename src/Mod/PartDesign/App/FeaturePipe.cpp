@@ -64,6 +64,7 @@
 #include <Base/Reader.h>
 #include <App/Document.h>
 #include <Mod/Part/App/TopoShapeOpCode.h>
+#include "FeatureLoft.h"
 
 FC_LOG_LEVEL_INIT("PartDesign",true,true);
 
@@ -158,7 +159,7 @@ App::DocumentObjectExecReturn *Pipe::execute()
                     Mode.getValue(),
                     Binormal.getValue(),
                     Transformation.getValue(),
-                    Sections.getValues(),
+                    Sections.getSubListValues(),
                     MoveProfile.getValue(),
                     RotateProfile.getValue());
 }
@@ -172,7 +173,7 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
                                               int mode,
                                               const Base::Vector3d &binormalVector,
                                               int transformation,
-                                              const std::vector<App::DocumentObject*> &multisections,
+                                              const std::vector<App::PropertyLinkSubList::SubSet> &multisections,
                                               bool moveProfile,
                                               bool rotateProfile)
 {
@@ -183,15 +184,13 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
     } catch (const Base::Exception&) {
     }
 
-    // If base is null, it means we are creating a new shape, and we shall
-    // allow non closed wire to create face from sweeping wire.
-    TopoShape sketchshape = feat->getVerifiedFace(false, true, base.isNull());
-    if (sketchshape.isNull())
-        return new App::DocumentObjectExecReturn("No valid sketch or face as section");
-    auto wires = sketchshape.getSubTopoShapes(TopAbs_WIRE);
-    bool closed = sketchshape.shapeType(true) == TopAbs_FACE;
-
     try {
+        auto wires = Loft::getSectionShape("Profile", feat->Profile.getValue(), feat->Profile.getSubValues());
+
+        // If base is null, it means we are creating a new shape, and we shall
+        // allow non closed wire to create face from sweeping wire.
+        bool closed = wires.size()>0 && wires.front().isClosed();
+
         //setup the location
         if(!base.isNull())
             base.move(invObjLoc);
@@ -204,24 +203,14 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
         //maybe we need a sacling law
         Handle(Law_Function) scalinglaw;
 
-        TopoShape frontface = sketchshape;
-        TopoShape backface = frontface;
-
         //see if we shall use multiple sections
         if(transformation == 1) {
-
             //TODO: we need to order the sections to prevent occ from crahsing, as makepieshell connects
             //the sections in the order of adding
-
-            for(App::DocumentObject* obj : multisections) {
-                backface = feat->getVerifiedFace(false, true, base.isNull(), obj);
-                if(backface.countSubShapes(TopAbs_WIRE) != wiresections.size())
-                    return new App::DocumentObjectExecReturn(
-                            "Multisections need to have the same amount of inner wires as the base section");
-
+            for (auto &subSet : multisections) {
                 int i=0;
-                for(auto &wire : backface.getSubTopoShapes(TopAbs_WIRE))
-                    wiresections[i++].push_back(wire);
+                for (const auto &s : Loft::getSectionShape("Section", subSet.first, subSet.second, wiresections.size()))
+                    wiresections[i++].push_back(s);
             }
         }
         /*//build the law functions instead
@@ -255,7 +244,7 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
             if(!scalinglaw) {
                 for(TopoShape& wire : wires) {
                     wire.move(invObjLoc);
-                    mkPS.Add(TopoDS::Wire(wire.getShape()),
+                    mkPS.Add(wire.getShape(),
                              moveProfile?Standard_True:Standard_False,
                              rotateProfile?Standard_True:Standard_False);
                 }
@@ -263,7 +252,7 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
             else {
                 for(TopoShape& wire : wires)  {
                     wire.move(invObjLoc);
-                    mkPS.SetLaw(TopoDS::Wire(wire.getShape()), scalinglaw,
+                    mkPS.SetLaw(wire.getShape(), scalinglaw,
                                 moveProfile?Standard_True:Standard_False,
                                 rotateProfile?Standard_True:Standard_False);
                 }
@@ -281,53 +270,71 @@ App::DocumentObjectExecReturn *Pipe::_execute(ProfileBased *feat,
                 TopTools_ListOfShape sim;
                 mkPS.Simulate(2, sim);
 
-                TopoShape front(sim.First());
-                if(front.countSubShapes(TopAbs_EDGE)==wires.front().countSubShapes(TopAbs_EDGE)) {
-                    front = wires.front();
-                    front.setShape(sim.First(),false);
-                }else
-                    front.Tag = -wires.front().Tag;
-                TopoShape back(sim.Last());
-                if(back.countSubShapes(TopAbs_EDGE)==wires.back().countSubShapes(TopAbs_EDGE)) {
-                    back = wires.back();
-                    back.setShape(sim.Last(),false);
-                }else
-                    back.Tag = -wires.back().Tag;
+                if (wires.front().shapeType() != TopAbs_VERTEX) {
+                    TopoShape front(sim.First());
+                    if(front.countSubShapes(TopAbs_EDGE)==wires.front().countSubShapes(TopAbs_EDGE)) {
+                        front = wires.front();
+                        front.setShape(sim.First(),false);
+                    }else
+                        front.Tag = -wires.front().Tag;
+                    frontwires.push_back(front);
+                }
 
-                frontwires.push_back(front);
-                backwires.push_back(back);
+                if (wires.back().shapeType() != TopAbs_VERTEX) {
+                    TopoShape back(sim.Last());
+                    if(back.countSubShapes(TopAbs_EDGE)==wires.back().countSubShapes(TopAbs_EDGE)) {
+                        back = wires.back();
+                        back.setShape(sim.Last(),false);
+                    }else
+                        back.Tag = -wires.back().Tag;
+                    backwires.push_back(back);
+                }
             }
         }
 
         TopoShape result(0,feat->getDocument()->getStringHasher());
 
-        if (!frontwires.empty()) {
-            gp_Pln pln;
-            if (!TopoShape(-1).makECompound(frontwires).findPlane(pln))
-                frontface.makEBSplineFace(frontwires);
-            else
-                frontface.makEFace(frontwires);
-
-            // Explicitly set op code when making face to generate different
-            // topo name than the front face.
-            if (!TopoShape(-1).makECompound(backwires).findPlane(pln))
-                backface.makEBSplineFace(backwires,
-                                         /*style*/TopoShape::FillingStyle::FillingStyle_Strech,
-                                         /*keepBezier*/false,
-                                         /*op*/OpCodes::Sewing);
-            else
-                backface.makEFace(backwires,/*op*/OpCodes::Sewing);
-
+        if (!frontwires.empty() || !backwires.empty()) {
             BRepBuilderAPI_Sewing sewer;
             sewer.SetTolerance(Precision::Confusion());
-            sewer.Add(frontface.getShape());
-            sewer.Add(backface.getShape());
-
             for(auto& s : shells)
                 sewer.Add(s.getShape());
 
-            shells.push_back(frontface);
-            shells.push_back(backface);
+            TopoShape frontface, backface;
+            gp_Pln pln;
+
+            if (!frontwires.empty() && frontwires.front().hasSubShape(TopAbs_EDGE)) {
+                if (!TopoShape(-1).makECompound(frontwires).findPlane(pln)) {
+                    try {
+                        frontface.makEBSplineFace(frontwires);
+                    } catch (Base::Exception &) {
+                        frontface.makEFilledFace(frontwires, TopoShape::BRepFillingParams());
+                    }
+                }
+                else
+                    frontface.makEFace(frontwires);
+                sewer.Add(frontface.getShape());
+            }
+
+            if (!backwires.empty() && backwires.front().hasSubShape(TopAbs_EDGE)) {
+                // Explicitly set op code when making face to generate different
+                // topo name than the front face.
+                if (!TopoShape(-1).makECompound(backwires).findPlane(pln)) {
+                    try {
+                        backface.makEBSplineFace(backwires,
+                                                /*style*/TopoShape::FillingStyle::FillingStyle_Strech,
+                                                /*keepBezier*/false,
+                                                /*op*/OpCodes::Sewing);
+                    } catch (Base::Exception &) {
+                        backface.makEFilledFace(backwires,
+                                                TopoShape::BRepFillingParams(),
+                                                /*op*/OpCodes::Sewing);
+                    }
+                }
+                else
+                    backface.makEFace(backwires,/*op*/OpCodes::Sewing);
+                sewer.Add(backface.getShape());
+            }
 
             sewer.Perform();
             result = result.makEShape(sewer,shells).makESolid();
@@ -523,6 +530,16 @@ TopoShape Pipe::buildPipePath(const App::PropertyLinkSub &link, const TopLoc_Loc
     return result;
 }
 
+void Pipe::handleChangedPropertyType(Base::XMLReader& reader, const char* TypeName, App::Property* prop)
+{
+    // property Sections had the App::PropertyLinkList and was changed to App::PropertyLinkSubList
+    if (prop == &Sections && strcmp(TypeName, "App::PropertyLinkList") == 0) {
+        Sections.upgrade(reader, TypeName);
+    }
+    else {
+        ProfileBased::handleChangedPropertyType(reader, TypeName, prop);
+    }
+}
 
 PROPERTY_SOURCE(PartDesign::AdditivePipe, PartDesign::Pipe)
 AdditivePipe::AdditivePipe() {

@@ -70,6 +70,21 @@
 using namespace PartDesignGui;
 using namespace Gui;
 
+namespace {
+struct SubInfo
+{
+    App::SubObjectT objT;
+    std::vector<std::string> subs;
+    SubInfo(){}
+    SubInfo(const App::SubObjectT &objT,
+            const std::vector<std::string> &subs)
+        :objT(objT)
+        ,subs(subs)
+    {}
+};
+} //anonymous namespace
+Q_DECLARE_METATYPE(SubInfo)
+
 /* TRANSLATOR PartDesignGui::TaskSketchBasedParameters */
 
 LinkSubWidgetDelegate::LinkSubWidgetDelegate(QObject *parent) : QItemDelegate(parent)
@@ -181,6 +196,7 @@ LinkSubWidget::LinkSubWidget(TaskSketchBasedParameters *parent,
     selectionConf.planar = false;
     selectionConf.whole = true;
     selectionConf.wire = true;
+    selectionConf.point = true;
 
     QHBoxLayout *hlayout = new QHBoxLayout();
     hlayout->setSpacing(2);
@@ -191,7 +207,7 @@ LinkSubWidget::LinkSubWidget(TaskSketchBasedParameters *parent,
     button->setToolTip(tr("Click to enter selection mode"));
     button->setText(title);
     button->setCheckable(true);
-    QObject::connect(button, &QPushButton::clicked, [this]() {onButton();});
+    QObject::connect(button, &QPushButton::clicked, [this](bool checked) {onButton(checked);});
     hlayout->addWidget(button);
 
     listWidget = new QListWidget(this);
@@ -285,12 +301,9 @@ void LinkSubWidget::onDelete()
     }
 }
 
-void LinkSubWidget::onButton()
+void LinkSubWidget::onButton(bool checked)
 {
-    if (!button)
-        return;
-
-    if (parentTask->getSelectionMode() != selectionMode) {
+    if (checked) {
         if (parentTask->getSelectionMode() == TaskSketchBasedParameters::SelectionMode::none) {
             auto sels = Gui::Selection().getSelectionT("*", 0);
             if (sels.size()) {
@@ -327,7 +340,7 @@ void LinkSubWidget::onClear()
     Gui::Selection().clearSelection();
     listWidget->clear();
     if (parentTask->getSelectionMode() != selectionMode)
-        onButton();
+        onButton(true);
 }
 
 void LinkSubWidget::setListWidgetHeight(bool expand)
@@ -451,6 +464,320 @@ void LinkSubWidget::setSelectionMode(TaskSketchBasedParameters::SelectionMode mo
 {
     selectionMode = mode;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+LinkSubListWidget::LinkSubListWidget(TaskSketchBasedParameters *parent,
+                                     const QString &groupTitle,
+                                     const QString &title,
+                                     App::PropertyLinkSubList &prop)
+    :QGroupBox(groupTitle, parent)
+    ,parentTask(parent)
+    ,selectionMode(TaskSketchBasedParameters::SelectionMode::refSection)
+    ,linkProp(&prop)
+{
+    selectionConf.edge = true;
+    selectionConf.plane = true;
+    selectionConf.planar = false;
+    selectionConf.whole = true;
+    selectionConf.wire = true;
+    selectionConf.point = true;
+
+    auto layout = new QVBoxLayout();
+    setLayout(layout);
+    button = new QPushButton(this);
+    button->setToolTip(tr("Click to enter selection mode"));
+    button->setText(title);
+    button->setCheckable(true);
+    QObject::connect(button, &QPushButton::clicked, [this](bool checked) {onButton(checked);});
+    layout->addWidget(button);
+
+    listWidget = new QListWidget(this);
+    listWidget->setMinimumHeight(200);
+    listWidget->setMouseTracking(true);
+    listWidget->installEventFilter(this);
+    layout->addWidget(listWidget);
+    QObject::connect(listWidget, &QListWidget::itemEntered, [this](QListWidgetItem *item) {
+        PartDesignGui::highlightObjectOnTop(qvariant_cast<SubInfo>(item->data(Qt::UserRole)).objT);
+    });
+    QObject::connect(listWidget->model(), &QAbstractItemModel::rowsMoved, [this](){onItemMoved();});
+
+    QAction* remove = new QAction(tr("Remove"), this);
+    remove->setShortcut(QKeySequence::Delete);
+    listWidget->addAction(remove);
+    listWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+    QObject::connect(remove, &QAction::triggered, [this](){onDelete();});
+
+    if (auto prop = getProperty()) {
+        conn = prop->signalChanged.connect([this](const App::Property &) {toggleShowOnTop();});
+    }
+
+    connModeChange = parentTask->signalSelectionModeChanged.connect([this]() {
+        if (parentTask->getSelectionMode() == selectionMode) {
+            toggleShowOnTop(true);
+            button->setChecked(true);
+        } else {
+            disableShowOnTop();
+            button->setChecked(false);
+        }
+    });
+}
+
+void LinkSubListWidget::onSelectionChanged(const Gui::SelectionChanges& msg)
+{
+    if (parentTask->getSelectionMode() != selectionMode)
+        return;
+    if (msg.Type == Gui::SelectionChanges::AddSelection) {
+        App::SubObjectT ref(msg.pOriginalMsg ? msg.pOriginalMsg->Object : msg.Object);
+        addLinks({ref});
+    }
+}
+
+void LinkSubListWidget::setSelectionConfig(const ReferenceSelection::Config &conf)
+{
+    selectionConf = conf;
+}
+
+void LinkSubListWidget::setSelectionMode(TaskSketchBasedParameters::SelectionMode mode)
+{
+    selectionMode = mode;
+}
+
+bool LinkSubListWidget::addLinks(const std::vector<App::SubObjectT> &objs)
+{
+    auto prop = getProperty();
+    if (!prop)
+        return false;
+    try {
+        auto links = prop->getSubListValues();
+        bool touched = false;
+        std::set<App::DocumentObjectT> newSections;
+        for (auto ref : objs) {
+            ref = PartDesignGui::importExternalObject(ref);
+            auto refObj = ref.getObject();
+            if (!refObj)
+                continue;
+            bool found = false;
+            for (auto &v : links) {
+                if (v.first != refObj)
+                    continue;
+                if (ref.getSubName().empty()) {
+                    if (v.second.size() != 1 || v.second.front().size()) {
+                        v.second.clear();
+                        v.second.emplace_back();
+                        touched = true;
+                    }
+                    found = true;
+                    break;
+                }
+                for (auto it=v.second.begin(); it!=v.second.end();) {
+                    if (it->empty()) {
+                        it = v.second.erase(it);
+                        touched = true;
+                    }
+                    else if (*it == ref.getSubName()) {
+                        found = true;
+                        break;
+                    } else
+                        ++it;
+                }
+                if (!found) {
+                    v.second.push_back(ref.getSubName());
+                    touched = found = true;
+                }
+                break;
+            }
+            if (!found) {
+                newSections.emplace(refObj);
+                std::vector<std::string> subs;
+                if (!ref.getSubName().empty())
+                    subs.push_back(ref.getSubName());
+                links.emplace_back(refObj, std::move(subs));
+                touched = true;
+            }
+        }
+        if (!touched)
+            return false;
+        parentTask->setupTransaction();
+        prop->setSubListValues(links);
+        parentTask->recomputeFeature();
+        for (const auto &o : newSections) {
+            if (auto obj = o.getObject())
+                obj->Visibility.setValue(false);
+        }
+        refresh();
+        return true;
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    }
+    return false;
+}
+
+void LinkSubListWidget::addItem(App::DocumentObject *obj,
+                                const std::vector<std::string> &subs,
+                                bool select)
+{
+    auto prop = getProperty();
+    if (!prop)
+        return;
+
+    App::SubObjectT objT(obj);
+    QString label = QString::fromUtf8(objT.getObjectFullName(objT.getDocumentName().c_str()).c_str());
+    if (subs.size() && !subs[0].empty()) {
+        bool first = true;
+        for (const auto &sub : subs) {
+            if (first) {
+                first = false;
+                label += QStringLiteral("(");
+            }
+            else
+                label += QStringLiteral(", ");
+            label += QString::fromUtf8(sub.c_str());
+        }
+        label += QStringLiteral(")");
+    }
+
+    QListWidgetItem *item = nullptr;
+    for (int i=0; i<listWidget->count(); ++i) {
+        auto listItem = listWidget->item(i);
+        if (qvariant_cast<SubInfo>(listItem->data(Qt::UserRole)).objT == objT) {
+            item = listItem;
+            break;
+        }
+    }
+    if (!item) {
+        item = new QListWidgetItem(listWidget);
+        auto vp = Gui::Application::Instance->getViewProvider(obj);
+        if (vp)
+            item->setIcon(vp->getIcon());
+    }
+    item->setData(Qt::UserRole, QVariant::fromValue(SubInfo(objT, subs)));
+    item->setText(label);
+    if (select) {
+        QSignalBlocker blocker(listWidget);
+        item->setSelected(true);
+        listWidget->scrollToItem(item);
+    }
+}
+
+void LinkSubListWidget::onDelete()
+{
+    auto prop = getProperty();
+    if (!prop)
+        return;
+
+    // Delete the selected profile
+    for(auto item : listWidget->selectedItems())
+        delete item;
+
+    std::vector<App::PropertyLinkSubList::SubSet> subset;
+    for (int i=0; i<listWidget->count(); ++i) {
+        auto data = qvariant_cast<SubInfo>(listWidget->item(i)->data(Qt::UserRole));
+        if (auto obj = data.objT.getObject())
+            subset.emplace_back(obj, data.subs);
+    }
+    try {
+        parentTask->setupTransaction();
+        prop->setSubListValues(subset);
+        parentTask->recomputeFeature();
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    }
+}
+
+void LinkSubListWidget::onItemMoved()
+{
+    QAbstractItemModel* model = qobject_cast<QAbstractItemModel*>(sender());
+    if (!model)
+        return;
+
+    auto prop = getProperty();
+    if (!prop)
+        return;
+
+    std::vector<App::PropertyLinkSubList::SubSet> subset;
+    int rows = model->rowCount();
+    for (int i = 0; i < rows; i++) {
+        QModelIndex index = model->index(i, 0);
+        auto data = qvariant_cast<SubInfo>(index.data(Qt::UserRole));
+        if (auto obj = data.objT.getObject())
+            subset.emplace_back(obj, data.subs);
+    }
+    try {
+        parentTask->setupTransaction();
+        prop->setSubListValues(subset);
+        parentTask->recomputeFeature();
+    } catch (Base::Exception &e) {
+        e.ReportException();
+    }
+}
+
+void LinkSubListWidget::onButton(bool checked) {
+    if (checked) {
+        if (parentTask->getSelectionMode() == TaskSketchBasedParameters::SelectionMode::none) {
+            auto sels = Gui::Selection().getSelectionT("*", 0);
+            if (sels.size()) {
+                if (addLinks(sels)) {
+                    button->setChecked(false);
+                    return;
+                }
+            }
+        }
+        parentTask->onSelectReference(button, selectionMode, selectionConf);
+    } else {
+        parentTask->exitSelectionMode();
+    }
+}
+
+bool LinkSubListWidget::eventFilter(QObject *o, QEvent *ev)
+{
+    switch(ev->type()) {
+    case QEvent::Leave:
+        Gui::Selection().rmvPreselect();
+        break;
+    case QEvent::ShortcutOverride:
+    case QEvent::KeyPress: {
+        QKeyEvent * kevent = static_cast<QKeyEvent*>(ev);
+        if (o == listWidget && kevent->modifiers() == Qt::NoModifier) {
+            if (kevent->key() == Qt::Key_Delete) {
+                kevent->accept();
+                if (ev->type() == QEvent::KeyPress)
+                    onDelete();
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return false;
+}
+
+void LinkSubListWidget::toggleShowOnTop(bool init)
+{
+    auto vp = Base::freecad_dynamic_cast<Gui::ViewProviderDocumentObject>(
+                Gui::Application::Instance->getViewProvider(linkProp.getObject()));
+    PartDesignGui::toggleShowOnTop(vp, lastReferences, linkProp.getPropertyName().c_str(), init);
+}
+
+void LinkSubListWidget::disableShowOnTop()
+{
+    auto vp = Base::freecad_dynamic_cast<Gui::ViewProviderDocumentObject>(
+                Gui::Application::Instance->getViewProvider(linkProp.getObject()));
+    PartDesignGui::toggleShowOnTop(vp, lastReferences, nullptr);
+}
+
+void LinkSubListWidget::refresh()
+{
+    auto prop = getProperty();
+    if (!prop)
+        return;
+
+    QSignalBlocker guard(listWidget);
+    for (const auto &v : prop->getSubListValues())
+        addItem(v.first, v.second);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
