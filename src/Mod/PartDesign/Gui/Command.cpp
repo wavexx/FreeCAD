@@ -847,14 +847,15 @@ unsigned validateSketches(std::vector<App::DocumentObject*>& sketches,
 }
 
 void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, const std::string& which,
-                        boost::function<void (Part::Feature*, App::DocumentObject*)> func,
-                        bool needSubElement = false)
+                        boost::function<void (Part::Feature*, App::DocumentObject*)> func)
 {
-    //if a profile is selected we can make our life easy and fast
-    auto sels = Gui::Selection().getSelectionT("*", 0);
+    auto base_worker = [=](const std::vector<App::SubObjectT> &profile,
+                           const std::vector<App::SubObjectT> &sels)
+    {
+        if (profile.empty())
+            return;
 
-    auto base_worker = [=](App::DocumentObject* feature, const std::vector<string> &subs) mutable {
-
+        auto feature = profile.front().getSubObject();
         if (!feature || !feature->isDerivedFrom(Part::Feature::getClassTypeId()))
             return;
 
@@ -878,36 +879,12 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
         Gui::cmdAppObject(pcActiveBody, std::ostringstream()
                 << "newObjectAt('PartDesign::" << which << "','" << FeatName << "', "
                             <<  "FreeCADGui.Selection.getSelection())");
-        auto Feat = pcActiveBody->getDocument()->getObject(FeatName.c_str());
+        auto Feat = Base::freecad_dynamic_cast<PartDesign::ProfileBased>(
+                pcActiveBody->getDocument()->getObject(FeatName.c_str()));
+        if (!Feat)
+            return;
 
-        auto objCmd = Gui::Command::getObjectCmd(feature);
-        bool profileSet = false;
-        if (subs.size() && !needSubElement
-                        && feature->isDerivedFrom(Part::Part2DObject::getClassTypeId()))
-        {
-            for (const auto &sub : subs) {
-                auto name = Data::ComplexGeoData::oldElementName(sub.c_str());
-                if (boost::starts_with(name, Sketcher::SketchObject::internalPrefix())) {
-                    needSubElement = true;
-                    break;
-                }
-            }
-        }
-
-        if (!profileSet) {
-            if (subs.empty()
-                    || (!needSubElement
-                        && feature->isDerivedFrom(Part::Part2DObject::getClassTypeId())))
-            {
-                Gui::cmdAppObject(Feat, std::ostringstream() <<"Profile = " << objCmd);
-            } else {
-                std::ostringstream ss;
-                for (auto &s : subs)
-                    ss << "'" << s << "',";
-                Gui::cmdAppObject(Feat, std::ostringstream() <<"Profile = (" << objCmd
-                        << ", [" << ss.str() << "])");
-            }
-        }
+        PartDesignGui::importExternalElements(Feat->Profile, profile);
 
         //for additive and subtractive lofts allow the user to preselect the sections
         if (which.compare("AdditiveLoft") == 0 || which.compare("SubtractiveLoft") == 0) {
@@ -915,10 +892,10 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
             int count = 0;
             ss << "Sections = [";
             std::set<App::DocumentObject*> objSet;
-            for (unsigned i=1; i<sels.size(); ++i) {
-                if (!objSet.insert(sels[i].getSubObject()).second)
+            for (const auto &sel : sels) {
+                if (!objSet.insert(sel.getSubObject()).second)
                     continue;
-                auto objT = PartDesignGui::importExternalObject(sels[i]);
+                auto objT = PartDesignGui::importExternalObject(sel);
                 if (objT.getObjectName().empty())
                     continue;
                 ss << objT.getSubObjectPython() << ", ";
@@ -1008,50 +985,40 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
         func(static_cast<Part::Feature*>(feature), Feat);
     };
 
-#if 0
-    // in case of subtractive types, check that there is something to subtract from
-    if ((which.find("Subtractive") != std::string::npos)  ||
-        (which.compare("Groove") == 0) ||
-        (which.compare("Pocket") == 0)) {
-
-        if (!pcActiveBody->isSolid()) {
-            QMessageBox msgBox;
-            msgBox.setText(QObject::tr("Cannot use this command as there is no solid to subtract from."));
-            msgBox.setInformativeText(QObject::tr("Ensure that the body contains a feature before attempting a subtractive command."));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            msgBox.exec();
-            return;
-        }
-    }
-#endif
+    //if a profile is selected we can make our life easy and fast
+    auto sels = Gui::Selection().getSelectionT("*", 0);
 
     if (!sels.empty()) {
         App::SubObjectT ref;
         auto inList = pcActiveBody->getInListEx(true);
         inList.insert(pcActiveBody);
-        for (unsigned i=0; i<sels.size(); ++i) {
-            auto sobj = sels[i].getSubObject();
-            if (!sobj)
+        for (auto it=sels.begin(); it!=sels.end();) {
+            const auto &selT = *it;
+            auto sobj = selT.getSubObject();
+            if (!sobj) {
+                it = sels.erase(it);
                 continue;
+            }
             if (inList.count(sobj)) {
                 FC_WARN("ignore selection of " << sobj->getFullName() << " to avoid dependency loop");
+                it = sels.erase(it);
                 continue;
             }
-            ref = PartDesignGui::importExternalObject(sels[i], false);
-            if (auto obj = ref.getSubObject()) {
-                std::vector<std::string> subs;
-                if (sels[i].hasSubElement())
-                    subs.push_back(sels[i].getOldElementName());
-                for (unsigned j=i+1; j<sels.size(); ++j) {
-                    if (sels[j].getSubObject() == sobj && sels[j].hasSubElement())
-                        subs.push_back(sels[j].getOldElementName());
+
+            std::vector<App::SubObjectT> profile;
+            for (; it!=sels.end();) {
+                const auto &sobjT = *it;
+                if (sobjT.getSubObject() == sobj) {
+                    profile.push_back(sobjT);
+                    it = sels.erase(it);
                 }
-                base_worker(obj, subs);
-                if (PartGui::PartParams::getAdjustCameraForNewFeature())
-                    cmd->adjustCameraPosition();
-                return;
+                else 
+                    ++it;
             }
+            base_worker(profile, sels);
+            if (PartGui::PartParams::getAdjustCameraForNewFeature())
+                cmd->adjustCameraPosition();
+            return;
         }
     }
 
@@ -1078,8 +1045,10 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
         return true;
     };
 
-    auto sketch_worker = [&, base_worker](std::vector<App::DocumentObject*> features) mutable {
-        base_worker(features.front(), {});
+    auto sketch_worker = [=](std::vector<App::DocumentObject*> features) mutable {
+        std::vector<App::SubObjectT> profile;
+        profile.emplace_back(features.front());
+        base_worker(profile, {});
     };
 
     // Show sketch choose dialog and let user pick sketch if no sketch was selected and no free one available or
@@ -1208,7 +1177,7 @@ void CmdPartDesignExtrusion::activated(int iMsg)
         finishFeature(cmd, Feat, nullptr, false, false);
     };
 
-    prepareProfileBased(pcActiveBody, this, "Extrusion", worker, true);
+    prepareProfileBased(pcActiveBody, this, "Extrusion", worker);
 }
 
 bool CmdPartDesignExtrusion::isActive(void)
