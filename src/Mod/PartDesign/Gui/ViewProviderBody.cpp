@@ -711,6 +711,13 @@ bool ViewProviderBody::canDragAndDropObject(App::DocumentObject * obj) const
                 && group->getGroupType() == PartDesign::AuxGroup::OtherGroup)
             return true;
     }
+
+    auto type = obj->getTypeId();
+    if (type.isDerivedFrom(Part::Datum::getClassTypeId())   ||
+        type.isDerivedFrom(Part::Part2DObject::getClassTypeId()) ||
+        type.isDerivedFrom(PartDesign::ShapeBinder::getClassTypeId()) ||
+        type.isDerivedFrom(Part::SubShapeBinder::getClassTypeId()))
+        return true;
     
     if (!body->getPrevSolidFeature()
              && !body->BaseFeature.getValue()
