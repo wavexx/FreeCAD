@@ -244,7 +244,6 @@ void TaskRevolutionParameters::_onSelectionChanged(const Gui::SelectionChanges& 
 {
     if (msg.Type == Gui::SelectionChanges::AddSelection) {
         if (getSelectionMode() == SelectionMode::refAdd) {
-            exitSelectionMode();
             std::vector<std::string> axis;
             App::DocumentObject* selObj;
             if (getReferencedSelection(vp->getObject(), msg, selObj, axis) && selObj) {
@@ -253,6 +252,7 @@ void TaskRevolutionParameters::_onSelectionChanged(const Gui::SelectionChanges& 
                 recomputeFeature();
                 updateUI();
             }
+            exitSelectionMode();
         }
     }
 }

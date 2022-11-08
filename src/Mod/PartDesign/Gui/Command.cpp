@@ -853,7 +853,7 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
     //if a profile is selected we can make our life easy and fast
     auto sels = Gui::Selection().getSelectionT("*", 0);
 
-    auto base_worker = [&](App::DocumentObject* feature, const std::vector<string> &subs) {
+    auto base_worker = [=](App::DocumentObject* feature, const std::vector<string> &subs) mutable {
 
         if (!feature || !feature->isDerivedFrom(Part::Feature::getClassTypeId()))
             return;
@@ -892,33 +892,6 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
                     break;
                 }
             }
-            if (!needSubElement) {
-                auto shape = Part::Feature::getTopoShape(feature);
-                if (subs.size() < shape.countSubShapes(TopAbs_EDGE)) {
-                    std::vector<Part::TopoShape> shapes;
-                    for (auto &sub : subs) {
-                        auto subshape = shape.getSubShape(sub.c_str(), true);
-                        if (subshape.IsNull() || subshape.ShapeType() != TopAbs_EDGE)
-                            break;
-                        shapes.push_back(subshape);
-                    }
-                    if (subs.size() == shapes.size()) {
-                        std::string BinderName = cmd->getUniqueObjectName(
-                                "Binder", pcActiveBody);
-                        Gui::cmdAppObject(pcActiveBody, std::ostringstream()
-                                << "newObject('PartDesign::SubShapeBinder', '" << BinderName << "')");
-                        auto binder = pcActiveBody->getDocument()->getObject(BinderName.c_str());
-                        std::ostringstream ss;
-                        for (auto &s : subs)
-                            ss << "'" << s << "',";
-                        Gui::cmdAppObject(binder, std::ostringstream() << "Support = (" << objCmd
-                                << ", [" << ss.str() << "])");
-                        Gui::cmdAppObject(Feat, std::ostringstream() << "Profile = "
-                                << Gui::Command::getObjectCmd(binder));
-                        profileSet = true;
-                    }
-                }
-            }
         }
 
         if (!profileSet) {
@@ -954,13 +927,51 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
             if (count)
                 Gui::cmdAppObject(Feat, ss << "]");
         }
-        // for additive and subtractive pipes allow the user to preselect the spines
         if (which.compare("AdditivePipe") == 0 || which.compare("SubtractivePipe") == 0) {
             if (sels.size() > 1) {
-                //treat additional selected object as spine
-                auto pcPipe = Base::freecad_dynamic_cast<PartDesign::Pipe>(Feat);
-                sels.erase(sels.begin());
-                PartDesignGui::importExternalElements(pcPipe->Spine, sels);
+                // for additive and subtractive pipes, treat the first extra
+                // selection as spine, and the remaining selection as multi
+                // sections
+                App::DocumentObject *spine = nullptr;
+                App::SubObjectT spineT;
+                std::vector<std::string> subs;
+                std::vector<App::SubObjectT> sections;
+                for (unsigned i=1; i<sels.size(); ++i) {
+                    if (!spine) {
+                        spineT = PartDesignGui::importExternalObject(sels[i], false);
+                        if (spineT.getObjectName().empty())
+                            continue;
+                        spine = sels[i].getSubObject();
+                        if (!spine)
+                            continue;
+                    } else if (spine != sels[i].getSubObject()) {
+                        auto ref = PartDesignGui::importExternalObject(sels[i], false);
+                        if (ref.getObjectName().size())
+                            sections.push_back(ref);
+                        continue;
+                    }
+                    auto sub = sels[i].getOldElementName();
+                    if (sub.size())
+                        subs.push_back(std::move(sub));
+                }
+                if (spine) {
+                    std::ostringstream ss;
+                    for(const auto &s : subs)
+                        ss << "'" << s << "',";
+                    Gui::cmdAppObject(Feat, std::ostringstream()
+                            << "Spine = (" << spineT.getObjectPython() << ", [" << ss.str() << "])");
+                }
+
+                if (sections.size()) {
+                    std::ostringstream ss;
+                    ss << "Sections = [";
+                    for(const auto &sobjT : sections)
+                        ss << sobjT.getSubObjectPython() << ",";
+                    ss << "]";
+                    Gui::cmdAppObject(Feat, ss);
+                    Gui::cmdAppObject(Feat, std::ostringstream() << "Transition = 'Transformed'");
+                    Gui::cmdAppObject(Feat, std::ostringstream() << "Transformation = 'Multisection'");
+                }
             }
         }
         // for Revolution and Groove allow the user to preselect the axis
@@ -1067,7 +1078,7 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
         return true;
     };
 
-    auto sketch_worker = [&, base_worker](std::vector<App::DocumentObject*> features) {
+    auto sketch_worker = [&, base_worker](std::vector<App::DocumentObject*> features) mutable {
         base_worker(features.front(), {});
     };
 
