@@ -6638,12 +6638,12 @@ public:
         Gui::Selection().rmvSelectionGate();
         Gui::Selection().addSelectionGate(new ExternalSelection(sketchgui->getObject(), intersection));
         setCrosshairColor();
-        if(defining)
+        if (intersection)
+            cursor_external[2] = cursor_intersection_color;
+        else if(defining)
             cursor_external[2] = cursor_defining_color;
         else if(attaching.size())
             cursor_external[2] = cursor_attaching_color;
-        else if (intersection)
-            cursor_external[2] = cursor_intersection_color;
         else
             cursor_external[2] = cursor_external_color;
         setCursor(QPixmap(cursor_external),7,7);
@@ -6716,13 +6716,20 @@ public:
                     } else {
                         Gui::Command::openCommand(
                                 QT_TRANSLATE_NOOP("Command", "Add external geometry"));
+                        std::ostringstream ss;
+                        ss << "[";
+                        if (defining)
+                            ss << "'defining',";
+                        if (intersection)
+                            ss << "'intersection',";
+                        ss << "]";
                         Gui::cmdAppObjectArgs(sketchgui->getObject(),
-                                "addExternal(Part.importExternalObject(%s, %s), '%s')",
+                                "addExternal(Part.importExternalObject(%s, %s), %s)",
                                 msg.pOriginalMsg ?
                                     msg.pOriginalMsg->Object.getSubObjectPython() :
                                     msg.Object.getSubObjectPython(),
                                 sketchgui->getEditingContext().getSubObjectPython(false),
-                                defining?"defining":(intersection?"intersection":""));
+                                ss.str());
                     }
 
                     Gui::Selection().clearSelection();
@@ -6877,6 +6884,44 @@ void CmdSketcherIntersection::activated(int iMsg)
 }
 
 bool CmdSketcherIntersection::isActive(void)
+{
+    return isCreateGeoActive(getActiveGuiDocument());
+}
+
+DEF_STD_CMD_A(CmdSketcherIntersectionDefining)
+
+CmdSketcherIntersectionDefining::CmdSketcherIntersectionDefining()
+  : Command("Sketcher_IntersectionDefining")
+{
+    sAppModule      = "Sketcher";
+    sGroup          = "Sketcher";
+    sMenuText       = QT_TR_NOOP("Add/toggle intersection defining");
+    sToolTipText    = QT_TR_NOOP("Import as an defining external geometry with intersection to the sketch plane.\n"
+                                 "Or toggle the intersection of an already imported external geometry and make it defining.");
+    sWhatsThis      = "Sketcher_IntersectionDefining";
+    sStatusTip      = sToolTipText;
+    sPixmap         = "Sketcher_IntersectionDefining";
+    sAccel          = "G, 5";
+    eType           = ForEdit;
+}
+
+void CmdSketcherIntersectionDefining::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    std::vector<int> sels;
+    auto sketch = getExternalSelection(&sels);
+    if(!sketch)
+        ActivateHandler(getActiveGuiDocument(), new DrawSketchHandlerExternal(true, true));
+    else {
+        Gui::Selection().clearSelection();
+        openCommand("Toggle intersection defining");
+        sketch->toggleIntersection(sels, true);
+        tryAutoRecomputeIfNotSolve(sketch);
+        commitCommand();
+    }
+}
+
+bool CmdSketcherIntersectionDefining::isActive(void)
 {
     return isCreateGeoActive(getActiveGuiDocument());
 }
@@ -7079,8 +7124,9 @@ public:
         bCanLog       = false;
 
         addCommand(new CmdSketcherExternal());
-        addCommand(new CmdSketcherIntersection());
         addCommand(new CmdSketcherDefining());
+        addCommand(new CmdSketcherIntersection());
+        addCommand(new CmdSketcherIntersectionDefining());
         addCommand(new CmdSketcherDetach());
         addCommand(new CmdSketcherAttach());
         addCommand(new CmdSketcherToggleFreeze());
