@@ -40,6 +40,7 @@
 #include <Base/Exception.h>
 #include <Base/Tools.h>
 
+#include <App/MappedElement.h>
 #include <App/OriginFeature.h>
 #include <Gui/Action.h>
 #include <Gui/Application.h>
@@ -6688,14 +6689,14 @@ public:
             if (obj == NULL)
                 throw Base::ValueError("Sketcher: External geometry: Invalid object in selection");
 
-            std::string subName = msg.Object.getOldElementName();
+            auto indexedName = Data::IndexedName(msg.Object.getOldElementName().c_str());
             if (intersection ||
                 obj->getTypeId().isDerivedFrom(App::Plane::getClassTypeId()) ||
                 obj->getTypeId().isDerivedFrom(Part::Datum::getClassTypeId()) ||
-                boost::starts_with(subName, "Edge") ||
-                boost::starts_with(subName, "Vertex") ||
-                boost::starts_with(subName, "Face") ||
-                boost::starts_with(subName, "Wire")) {
+                boost::iends_with(indexedName.getType(), "edge") ||
+                boost::iends_with(indexedName.getType(), "vertex") ||
+                boost::iends_with(indexedName.getType(), "face") ||
+                boost::iends_with(indexedName.getType(), "wire")) {
                 try {
                     if(attaching.size()) {
                         Gui::Command::openCommand(
