@@ -636,12 +636,15 @@ Feature::getElementFromSource(App::DocumentObject *obj,
 
     // Use the old style name to obtain the shape type
     auto type = TopoShape::shapeType(
-            Data::ComplexGeoData::findElementName(objElement.second.c_str()));
+            Data::ComplexGeoData::findElementName(objElement.second.c_str()), true);
+
     // If the given shape has the same number of sub shapes as the source (e.g.
     // a compound operation), then take a shortcut and assume the element index
     // remains the same. But we still need to trace the shape history to
     // confirm.
-    if (element.name && shape.countSubShapes(type) == srcShape.countSubShapes(type)) {
+    if (type != TopAbs_SHAPE
+            && element.name
+            && shape.countSubShapes(type) == srcShape.countSubShapes(type)) {
         tagChanges = 0;
         checkingSubname = element.index;
         auto mapped = shape.getMappedName(element.index);
@@ -651,7 +654,7 @@ Feature::getElementFromSource(App::DocumentObject *obj,
     }
 
     // Try geometry search first
-    auto subShape = srcShape.getSubShape(objElement.second.c_str());
+    auto subShape = getTopoShape(src, srcSub, /*needSubElement*/true);
     std::vector<std::string> names;
     shape.searchSubShape(subShape, &names);
     if (names.size()) {
@@ -666,7 +669,7 @@ Feature::getElementFromSource(App::DocumentObject *obj,
         return res;
     }
 
-    if (!element.name)
+    if (!element.name || type == TopAbs_SHAPE)
         return res;
 
     // No shortcut, need to search every element of the same type. This may
