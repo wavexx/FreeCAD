@@ -938,6 +938,9 @@ bool ViewProviderBody::_reorderObject(PartDesign::Body *body,
             || !body->Group.find(newObj->getNameInDocument(), &j))
         return false;
 
+    if (i-1 == j)
+        return true;
+
     auto secondFeat = Base::freecad_dynamic_cast<PartDesign::Feature>(oldObj);
     auto firstFeat = Base::freecad_dynamic_cast<PartDesign::Feature>(newObj);
 
