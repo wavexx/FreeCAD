@@ -79,6 +79,7 @@
 #include "Tools.h"
 #include "Utilities.h"
 #include "NavigationStyle.h"
+#include "OverlayParams.h"
 #include "OverlayWidgets.h"
 #include "SelectionView.h"
 #include "MouseSelection.h"
@@ -4339,8 +4340,6 @@ public:
     virtual const char* className() const {return "StdCmdSelOptions";}
 };
 
-#ifdef FC_HAS_DOCK_OVERLAY
-
 //===========================================================================
 // Std_DockOverlayAll
 //===========================================================================
@@ -4439,156 +4438,8 @@ void StdCmdDockOverlayToggleTransparent::activated(int iMsg)
     OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleTransparent);
 }
 
-//===========================================================================
-// Std_DockOverlayIncrease
-//===========================================================================
 
-DEF_STD_CMD(StdCmdDockOverlayIncrease)
 
-StdCmdDockOverlayIncrease::StdCmdDockOverlayIncrease()
-  :Command("Std_DockOverlayIncrease")
-{
-  sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("Increase overlay size");
-  sToolTipText  = QT_TR_NOOP("Increase the overlayed widget size under cursor");
-  sWhatsThis    = "Std_DockOverlayIncrease";
-  sStatusTip    = sToolTipText;
-  sAccel        = "ALT+F3";
-  eType         = 0;
-}
-
-void StdCmdDockOverlayIncrease::activated(int iMsg)
-{
-    Q_UNUSED(iMsg); 
-    OverlayManager::instance()->changeOverlaySize(5);
-}
-
-//===========================================================================
-// Std_DockOverlayDecrease
-//===========================================================================
-
-DEF_STD_CMD(StdCmdDockOverlayDecrease)
-
-StdCmdDockOverlayDecrease::StdCmdDockOverlayDecrease()
-  :Command("Std_DockOverlayDecrease")
-{
-  sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("Decrease overlay size");
-  sToolTipText  = QT_TR_NOOP("Decrease the overlayed widget size under cursor");
-  sWhatsThis    = "Std_DockOverlayDecrease";
-  sStatusTip    = sToolTipText;
-  sAccel        = "ALT+F2";
-  eType         = 0;
-}
-
-void StdCmdDockOverlayDecrease::activated(int iMsg)
-{
-    Q_UNUSED(iMsg); 
-    OverlayManager::instance()->changeOverlaySize(-5);
-}
-
-//===========================================================================
-// Std_DockOverlayAutoView
-//===========================================================================
-
-VIEW_CMD_DEF(DockOverlayAutoView, DockOverlayAutoView)
-{
-    sGroup        = "Standard-View";
-    sMenuText     = QT_TR_NOOP("Auto hide non 3D view");
-    sToolTipText  = QT_TR_NOOP("Activate auto hide for non 3D view");
-    sWhatsThis    = "Std_DockOverlayAutoView";
-    sStatusTip    = sToolTipText;
-    eType         = 0;
-}
-
-//===========================================================================
-// Std_DockOverlayActivateOnHover
-//===========================================================================
-
-VIEW_CMD_DEF(DockOverlayActivateOnHover, DockOverlayActivateOnHover)
-{
-    sGroup        = "Standard-View";
-    sMenuText     = QT_TR_NOOP("Activate on hover");
-    sToolTipText  = QT_TR_NOOP("Activate auto hidden overlay on mouse hover.\n"
-                               "If disabled, then activate on mouse click");
-    sWhatsThis    = "Std_DockOverlayActivateOnHover";
-    sStatusTip    = sToolTipText;
-    eType         = 0;
-}
-
-//===========================================================================
-// Std_DockOverlayAutoMouseThrough
-//===========================================================================
-
-VIEW_CMD_DEF(DockOverlayAutoMouseThrough, DockOverlayAutoMouseThrough)
-{
-    sGroup        = "Standard-View";
-    sMenuText     = QT_TR_NOOP("Auto mouse event pass through");
-    sToolTipText  = QT_TR_NOOP("Auto pass through mouse event on completely transparent background");
-    sWhatsThis    = "Std_DockOverlayAutoMouseThrough";
-    sStatusTip    = sToolTipText;
-    eType         = 0;
-}
-
-//===========================================================================
-// Std_DockOverlayCheckNaviCube
-//===========================================================================
-
-VIEW_CMD_DEF(DockOverlayCheckNaviCube, DockOverlayCheckNaviCube)
-{
-    sGroup        = "Standard-View";
-    sMenuText     = QT_TR_NOOP("Make space for NaviCube");
-    sToolTipText  = QT_TR_NOOP("Adjust overlay size to make space for Navigation Cube\n"
-                               "Note that it only respects the cube position setting in\n"
-                               "the preference dialog, and will not work for custom\n"
-                               "position obtained through dragging the cube.");
-    sWhatsThis    = "Std_DockOverlayCheckNaviCube";
-    sStatusTip    = sToolTipText;
-    eType         = 0;
-}
-
-//===========================================================================
-// Std_DockOverlayMouseTransparent
-//===========================================================================
-
-DEF_STD_CMD_AC(StdCmdDockOverlayMouseTransparent)
-
-StdCmdDockOverlayMouseTransparent::StdCmdDockOverlayMouseTransparent()
-  :Command("Std_DockOverlayMouseTransparent")
-{
-  sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("Bypass mouse event in dock overlay");
-  sToolTipText  = QT_TR_NOOP("Bypass all mouse event in dock overlay");
-  sWhatsThis    = "Std_DockOverlayMouseTransparent";
-  sStatusTip    = sToolTipText;
-  sAccel        = "T, T";
-  eType         = NoTransaction;
-}
-
-void StdCmdDockOverlayMouseTransparent::activated(int iMsg)
-{
-    (void)iMsg;
-    bool checked = !OverlayManager::instance()->isMouseTransparent();
-    OverlayManager::instance()->setMouseTransparent(checked);
-    if(_pcAction)
-        _pcAction->setChecked(checked,true);
-}
-
-Action * StdCmdDockOverlayMouseTransparent::createAction(void) {
-    Action *pcAction = Command::createAction();
-    pcAction->setCheckable(true);
-    pcAction->setIcon(QIcon());
-    _pcAction = pcAction;
-    isActive();
-    return pcAction;
-}
-
-bool StdCmdDockOverlayMouseTransparent::isActive() {
-    bool checked = OverlayManager::instance()->isMouseTransparent();
-    if(_pcAction && _pcAction->isChecked()!=checked)
-        _pcAction->setChecked(checked,true);
-    return true;
-}
 
 // ============================================================================
 
@@ -4612,19 +4463,9 @@ public:
         addCommand(new StdCmdDockOverlayToggle());
         addCommand(new StdCmdDockOverlayToggleTransparent());
         addCommand();
-        addCommand(new StdCmdDockOverlayIncrease());
-        addCommand(new StdCmdDockOverlayDecrease());
-        addCommand();
-        addCommand(new StdCmdDockOverlayAutoView());
-        addCommand(new StdCmdDockOverlayActivateOnHover());
-        addCommand(new StdCmdDockOverlayAutoMouseThrough());
-        addCommand(new StdCmdDockOverlayCheckNaviCube());
-        addCommand();
-        addCommand(new StdCmdDockOverlayMouseTransparent());
     };
     virtual const char* className() const {return "StdCmdDockOverlay";}
 };
-#endif // FC_HAS_DOCK_OVERLAY
 
 //===========================================================================
 // Std_BindViewCamera
@@ -4802,9 +4643,7 @@ void CreateViewStdCommands(void)
     rcCmdMgr.addCommand(new StdCmdItemMenu());
     rcCmdMgr.addCommand(new StdCmdToolTipDisable());
 
-#ifdef FC_HAS_DOCK_OVERLAY
     rcCmdMgr.addCommand(new StdCmdDockOverlay());
-#endif
 
     auto hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
     if(hGrp->GetASCII("GestureRollFwdCommand").empty())

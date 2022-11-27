@@ -129,11 +129,6 @@ private:
     Private * d;
 };
 
-#if QT_VERSION  >= 0x050000
-#   define FC_HAS_DOCK_OVERLAY
-#endif
-
-#ifdef FC_HAS_DOCK_OVERLAY
 
 class OverlayTitleBar;
 class OverlayProxyWidget;
@@ -516,8 +511,6 @@ private:
     QColor _color;
     QPointF _offset;
 };
-
-#endif // FC_HAS_DOCK_OVERLAY
 
 } // namespace Gui
 
