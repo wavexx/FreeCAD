@@ -426,17 +426,121 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
     DockOverlayHintSize->setSingleStep(1);
 
     // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintLeftOffset = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintLeftOffset, 10, 0);
+    DockOverlayHintLeftOffset = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintLeftOffset, 10, 1);
+    DockOverlayHintLeftOffset->setValue(Gui::OverlayParams::defaultDockOverlayHintLeftOffset());
+    DockOverlayHintLeftOffset->setEntryName("DockOverlayHintLeftOffset");
+    DockOverlayHintLeftOffset->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintLeftOffset->setMinimum(0);
+    DockOverlayHintLeftOffset->setMaximum(10000);
+    DockOverlayHintLeftOffset->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintLeftLength = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintLeftLength, 11, 0);
+    DockOverlayHintLeftLength = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintLeftLength, 11, 1);
+    DockOverlayHintLeftLength->setValue(Gui::OverlayParams::defaultDockOverlayHintLeftLength());
+    DockOverlayHintLeftLength->setEntryName("DockOverlayHintLeftLength");
+    DockOverlayHintLeftLength->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintLeftLength->setMinimum(0);
+    DockOverlayHintLeftLength->setMaximum(10000);
+    DockOverlayHintLeftLength->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintRightOffset = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintRightOffset, 12, 0);
+    DockOverlayHintRightOffset = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintRightOffset, 12, 1);
+    DockOverlayHintRightOffset->setValue(Gui::OverlayParams::defaultDockOverlayHintRightOffset());
+    DockOverlayHintRightOffset->setEntryName("DockOverlayHintRightOffset");
+    DockOverlayHintRightOffset->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintRightOffset->setMinimum(0);
+    DockOverlayHintRightOffset->setMaximum(10000);
+    DockOverlayHintRightOffset->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintRightLength = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintRightLength, 13, 0);
+    DockOverlayHintRightLength = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintRightLength, 13, 1);
+    DockOverlayHintRightLength->setValue(Gui::OverlayParams::defaultDockOverlayHintRightLength());
+    DockOverlayHintRightLength->setEntryName("DockOverlayHintRightLength");
+    DockOverlayHintRightLength->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintRightLength->setMinimum(0);
+    DockOverlayHintRightLength->setMaximum(10000);
+    DockOverlayHintRightLength->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintTopOffset = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintTopOffset, 14, 0);
+    DockOverlayHintTopOffset = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintTopOffset, 14, 1);
+    DockOverlayHintTopOffset->setValue(Gui::OverlayParams::defaultDockOverlayHintTopOffset());
+    DockOverlayHintTopOffset->setEntryName("DockOverlayHintTopOffset");
+    DockOverlayHintTopOffset->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintTopOffset->setMinimum(0);
+    DockOverlayHintTopOffset->setMaximum(10000);
+    DockOverlayHintTopOffset->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintTopLength = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintTopLength, 15, 0);
+    DockOverlayHintTopLength = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintTopLength, 15, 1);
+    DockOverlayHintTopLength->setValue(Gui::OverlayParams::defaultDockOverlayHintTopLength());
+    DockOverlayHintTopLength->setEntryName("DockOverlayHintTopLength");
+    DockOverlayHintTopLength->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintTopLength->setMinimum(0);
+    DockOverlayHintTopLength->setMaximum(10000);
+    DockOverlayHintTopLength->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintBottomOffset = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintBottomOffset, 16, 0);
+    DockOverlayHintBottomOffset = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintBottomOffset, 16, 1);
+    DockOverlayHintBottomOffset->setValue(Gui::OverlayParams::defaultDockOverlayHintBottomOffset());
+    DockOverlayHintBottomOffset->setEntryName("DockOverlayHintBottomOffset");
+    DockOverlayHintBottomOffset->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintBottomOffset->setMinimum(0);
+    DockOverlayHintBottomOffset->setMaximum(10000);
+    DockOverlayHintBottomOffset->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
+    labelDockOverlayHintBottomLength = new QLabel(this);
+    layoutOverlay->addWidget(labelDockOverlayHintBottomLength, 17, 0);
+    DockOverlayHintBottomLength = new Gui::PrefSpinBox(this);
+    layoutOverlay->addWidget(DockOverlayHintBottomLength, 17, 1);
+    DockOverlayHintBottomLength->setValue(Gui::OverlayParams::defaultDockOverlayHintBottomLength());
+    DockOverlayHintBottomLength->setEntryName("DockOverlayHintBottomLength");
+    DockOverlayHintBottomLength->setParamGrpPath("View");
+    // Auto generated code (Tools/params_utils.py:948)
+    DockOverlayHintBottomLength->setMinimum(0);
+    DockOverlayHintBottomLength->setMaximum(10000);
+    DockOverlayHintBottomLength->setSingleStep(10);
+
+    // Auto generated code (Tools/params_utils.py:353)
     DockOverlayHintTabBar = new Gui::PrefCheckBox(this);
-    layoutOverlay->addWidget(DockOverlayHintTabBar, 10, 0);
+    layoutOverlay->addWidget(DockOverlayHintTabBar, 18, 0);
     DockOverlayHintTabBar->setChecked(Gui::OverlayParams::defaultDockOverlayHintTabBar());
     DockOverlayHintTabBar->setEntryName("DockOverlayHintTabBar");
     DockOverlayHintTabBar->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     labelDockOverlayHintDelay = new QLabel(this);
-    layoutOverlay->addWidget(labelDockOverlayHintDelay, 11, 0);
+    layoutOverlay->addWidget(labelDockOverlayHintDelay, 19, 0);
     DockOverlayHintDelay = new Gui::PrefSpinBox(this);
-    layoutOverlay->addWidget(DockOverlayHintDelay, 11, 1);
+    layoutOverlay->addWidget(DockOverlayHintDelay, 19, 1);
     DockOverlayHintDelay->setValue(Gui::OverlayParams::defaultDockOverlayHintDelay());
     DockOverlayHintDelay->setEntryName("DockOverlayHintDelay");
     DockOverlayHintDelay->setParamGrpPath("View");
@@ -447,9 +551,9 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
 
     // Auto generated code (Tools/params_utils.py:353)
     labelDockOverlaySplitterHandleTimeout = new QLabel(this);
-    layoutOverlay->addWidget(labelDockOverlaySplitterHandleTimeout, 12, 0);
+    layoutOverlay->addWidget(labelDockOverlaySplitterHandleTimeout, 20, 0);
     DockOverlaySplitterHandleTimeout = new Gui::PrefSpinBox(this);
-    layoutOverlay->addWidget(DockOverlaySplitterHandleTimeout, 12, 1);
+    layoutOverlay->addWidget(DockOverlaySplitterHandleTimeout, 20, 1);
     DockOverlaySplitterHandleTimeout->setValue(Gui::OverlayParams::defaultDockOverlaySplitterHandleTimeout());
     DockOverlaySplitterHandleTimeout->setEntryName("DockOverlaySplitterHandleTimeout");
     DockOverlaySplitterHandleTimeout->setParamGrpPath("View");
@@ -460,16 +564,16 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
 
     // Auto generated code (Tools/params_utils.py:353)
     DockOverlayActivateOnHover = new Gui::PrefCheckBox(this);
-    layoutOverlay->addWidget(DockOverlayActivateOnHover, 13, 0);
+    layoutOverlay->addWidget(DockOverlayActivateOnHover, 21, 0);
     DockOverlayActivateOnHover->setChecked(Gui::OverlayParams::defaultDockOverlayActivateOnHover());
     DockOverlayActivateOnHover->setEntryName("DockOverlayActivateOnHover");
     DockOverlayActivateOnHover->setParamGrpPath("View");
 
     // Auto generated code (Tools/params_utils.py:353)
     labelDockOverlayDelay = new QLabel(this);
-    layoutOverlay->addWidget(labelDockOverlayDelay, 14, 0);
+    layoutOverlay->addWidget(labelDockOverlayDelay, 22, 0);
     DockOverlayDelay = new Gui::PrefSpinBox(this);
-    layoutOverlay->addWidget(DockOverlayDelay, 14, 1);
+    layoutOverlay->addWidget(DockOverlayDelay, 22, 1);
     DockOverlayDelay->setValue(Gui::OverlayParams::defaultDockOverlayDelay());
     DockOverlayDelay->setEntryName("DockOverlayDelay");
     DockOverlayDelay->setParamGrpPath("View");
@@ -480,9 +584,9 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
 
     // Auto generated code (Tools/params_utils.py:353)
     labelDockOverlayAnimationDuration = new QLabel(this);
-    layoutOverlay->addWidget(labelDockOverlayAnimationDuration, 15, 0);
+    layoutOverlay->addWidget(labelDockOverlayAnimationDuration, 23, 0);
     DockOverlayAnimationDuration = new Gui::PrefSpinBox(this);
-    layoutOverlay->addWidget(DockOverlayAnimationDuration, 15, 1);
+    layoutOverlay->addWidget(DockOverlayAnimationDuration, 23, 1);
     DockOverlayAnimationDuration->setValue(Gui::OverlayParams::defaultDockOverlayAnimationDuration());
     DockOverlayAnimationDuration->setEntryName("DockOverlayAnimationDuration");
     DockOverlayAnimationDuration->setParamGrpPath("View");
@@ -493,9 +597,9 @@ DlgSettingsUI::DlgSettingsUI(QWidget* parent)
 
     // Auto generated code (Tools/params_utils.py:353)
     labelDockOverlayAnimationCurve = new QLabel(this);
-    layoutOverlay->addWidget(labelDockOverlayAnimationCurve, 16, 0);
+    layoutOverlay->addWidget(labelDockOverlayAnimationCurve, 24, 0);
     DockOverlayAnimationCurve = new Gui::PrefComboBox(this);
-    layoutOverlay->addWidget(DockOverlayAnimationCurve, 16, 1);
+    layoutOverlay->addWidget(DockOverlayAnimationCurve, 24, 1);
     DockOverlayAnimationCurve->setEntryName("DockOverlayAnimationCurve");
     DockOverlayAnimationCurve->setParamGrpPath("View");
     // Auto generated code (Gui/OverlayParams.py:94)
@@ -550,6 +654,14 @@ void DlgSettingsUI::saveSettings()
     DockOverlayCheckNaviCube->onSave();
     DockOverlayHintTriggerSize->onSave();
     DockOverlayHintSize->onSave();
+    DockOverlayHintLeftOffset->onSave();
+    DockOverlayHintLeftLength->onSave();
+    DockOverlayHintRightOffset->onSave();
+    DockOverlayHintRightLength->onSave();
+    DockOverlayHintTopOffset->onSave();
+    DockOverlayHintTopLength->onSave();
+    DockOverlayHintBottomOffset->onSave();
+    DockOverlayHintBottomLength->onSave();
     DockOverlayHintTabBar->onSave();
     DockOverlayHintDelay->onSave();
     DockOverlaySplitterHandleTimeout->onSave();
@@ -596,6 +708,14 @@ void DlgSettingsUI::loadSettings()
     DockOverlayCheckNaviCube->onRestore();
     DockOverlayHintTriggerSize->onRestore();
     DockOverlayHintSize->onRestore();
+    DockOverlayHintLeftOffset->onRestore();
+    DockOverlayHintLeftLength->onRestore();
+    DockOverlayHintRightOffset->onRestore();
+    DockOverlayHintRightLength->onRestore();
+    DockOverlayHintTopOffset->onRestore();
+    DockOverlayHintTopLength->onRestore();
+    DockOverlayHintBottomOffset->onRestore();
+    DockOverlayHintBottomLength->onRestore();
     DockOverlayHintTabBar->onRestore();
     DockOverlayHintDelay->onRestore();
     DockOverlaySplitterHandleTimeout->onRestore();
@@ -697,6 +817,30 @@ void DlgSettingsUI::retranslateUi()
     DockOverlayHintSize->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintSize()));
     labelDockOverlayHintSize->setText(QObject::tr("Hint width"));
     labelDockOverlayHintSize->setToolTip(DockOverlayHintSize->toolTip());
+    DockOverlayHintLeftOffset->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintLeftOffset()));
+    labelDockOverlayHintLeftOffset->setText(QObject::tr("Left panel hint offset"));
+    labelDockOverlayHintLeftOffset->setToolTip(DockOverlayHintLeftOffset->toolTip());
+    DockOverlayHintLeftLength->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintLeftLength()));
+    labelDockOverlayHintLeftLength->setText(QObject::tr("Left panel hint length"));
+    labelDockOverlayHintLeftLength->setToolTip(DockOverlayHintLeftLength->toolTip());
+    DockOverlayHintRightOffset->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintRightOffset()));
+    labelDockOverlayHintRightOffset->setText(QObject::tr("Right panel hint offset"));
+    labelDockOverlayHintRightOffset->setToolTip(DockOverlayHintRightOffset->toolTip());
+    DockOverlayHintRightLength->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintRightLength()));
+    labelDockOverlayHintRightLength->setText(QObject::tr("Right panel hint length"));
+    labelDockOverlayHintRightLength->setToolTip(DockOverlayHintRightLength->toolTip());
+    DockOverlayHintTopOffset->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintTopOffset()));
+    labelDockOverlayHintTopOffset->setText(QObject::tr("Top panel hint offset"));
+    labelDockOverlayHintTopOffset->setToolTip(DockOverlayHintTopOffset->toolTip());
+    DockOverlayHintTopLength->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintTopLength()));
+    labelDockOverlayHintTopLength->setText(QObject::tr("Top panel hint length"));
+    labelDockOverlayHintTopLength->setToolTip(DockOverlayHintTopLength->toolTip());
+    DockOverlayHintBottomOffset->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintBottomOffset()));
+    labelDockOverlayHintBottomOffset->setText(QObject::tr("Bottom panel hint offset"));
+    labelDockOverlayHintBottomOffset->setToolTip(DockOverlayHintBottomOffset->toolTip());
+    DockOverlayHintBottomLength->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintBottomLength()));
+    labelDockOverlayHintBottomLength->setText(QObject::tr("Bottom panel hint length"));
+    labelDockOverlayHintBottomLength->setToolTip(DockOverlayHintBottomLength->toolTip());
     DockOverlayHintTabBar->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintTabBar()));
     DockOverlayHintTabBar->setText(QObject::tr("Hint show tab bar"));
     DockOverlayHintDelay->setToolTip(QApplication::translate("OverlayParams", Gui::OverlayParams::docDockOverlayHintDelay()));

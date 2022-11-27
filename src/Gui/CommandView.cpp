@@ -4438,8 +4438,105 @@ void StdCmdDockOverlayToggleTransparent::activated(int iMsg)
     OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleTransparent);
 }
 
+//===========================================================================
+// Std_DockOverlayToggleLeft
+//===========================================================================
 
+DEF_STD_CMD(StdCmdDockOverlayToggleLeft)
 
+StdCmdDockOverlayToggleLeft::StdCmdDockOverlayToggleLeft()
+  :Command("Std_DockOverlayToggleLeft")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle left");
+    sToolTipText  = QT_TR_NOOP("Show/hide left overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleLeft";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Left";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleLeft::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleLeft);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleRight
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleRight)
+
+StdCmdDockOverlayToggleRight::StdCmdDockOverlayToggleRight()
+  :Command("Std_DockOverlayToggleRight")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle right");
+    sToolTipText  = QT_TR_NOOP("Show/hide right overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleRight";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Right";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleRight::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleRight);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleTop
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleTop)
+
+StdCmdDockOverlayToggleTop::StdCmdDockOverlayToggleTop()
+  :Command("Std_DockOverlayToggleTop")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle top");
+    sToolTipText  = QT_TR_NOOP("Show/hide top overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleTop";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Up";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleTop::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleTop);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleBottom
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleBottom)
+
+StdCmdDockOverlayToggleBottom::StdCmdDockOverlayToggleBottom()
+  :Command("Std_DockOverlayToggleBottom")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle bottom");
+    sToolTipText  = QT_TR_NOOP("Show/hide bottom overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleBottom";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Down";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleBottom::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleBottom);
+}
 
 // ============================================================================
 
@@ -4463,6 +4560,10 @@ public:
         addCommand(new StdCmdDockOverlayToggle());
         addCommand(new StdCmdDockOverlayToggleTransparent());
         addCommand();
+        addCommand(new StdCmdDockOverlayToggleLeft());
+        addCommand(new StdCmdDockOverlayToggleRight());
+        addCommand(new StdCmdDockOverlayToggleTop());
+        addCommand(new StdCmdDockOverlayToggleBottom());
     };
     virtual const char* className() const {return "StdCmdDockOverlay";}
 };

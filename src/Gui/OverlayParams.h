@@ -28,7 +28,7 @@ import OverlayParams
 OverlayParams.declare()
 ]]]*/
 
-// Auto generated code (Gui/OverlayParams.py:139)
+// Auto generated code (Gui/OverlayParams.py:155)
 #include <QString>
 
 // Auto generated code (Tools/params_utils.py:72)
@@ -221,12 +221,108 @@ public:
     //@{
     /// Accessor for parameter DockOverlayHintSize
     ///
-    /// Auto hide hint visual display size
+    /// Auto hide hint visual display width
     static const long & getDockOverlayHintSize();
     static const long & defaultDockOverlayHintSize();
     static void removeDockOverlayHintSize();
     static void setDockOverlayHintSize(const long &v);
     static const char *docDockOverlayHintSize();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintLeftLength
+    ///
+    /// Auto hide hint visual display length for left panel. Set to zero to fill the space.
+    static const long & getDockOverlayHintLeftLength();
+    static const long & defaultDockOverlayHintLeftLength();
+    static void removeDockOverlayHintLeftLength();
+    static void setDockOverlayHintLeftLength(const long &v);
+    static const char *docDockOverlayHintLeftLength();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintRightLength
+    ///
+    /// Auto hide hint visual display length for right panel. Set to zero to fill the space.
+    static const long & getDockOverlayHintRightLength();
+    static const long & defaultDockOverlayHintRightLength();
+    static void removeDockOverlayHintRightLength();
+    static void setDockOverlayHintRightLength(const long &v);
+    static const char *docDockOverlayHintRightLength();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintTopLength
+    ///
+    /// Auto hide hint visual display length for top panel. Set to zero to fill the space.
+    static const long & getDockOverlayHintTopLength();
+    static const long & defaultDockOverlayHintTopLength();
+    static void removeDockOverlayHintTopLength();
+    static void setDockOverlayHintTopLength(const long &v);
+    static const char *docDockOverlayHintTopLength();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintBottomLength
+    ///
+    /// Auto hide hint visual display length for bottom panel. Set to zero to fill the space.
+    static const long & getDockOverlayHintBottomLength();
+    static const long & defaultDockOverlayHintBottomLength();
+    static void removeDockOverlayHintBottomLength();
+    static void setDockOverlayHintBottomLength(const long &v);
+    static const char *docDockOverlayHintBottomLength();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintLeftOffset
+    ///
+    /// Auto hide hint visual display offset for left panel
+    static const long & getDockOverlayHintLeftOffset();
+    static const long & defaultDockOverlayHintLeftOffset();
+    static void removeDockOverlayHintLeftOffset();
+    static void setDockOverlayHintLeftOffset(const long &v);
+    static const char *docDockOverlayHintLeftOffset();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintRightOffset
+    ///
+    /// Auto hide hint visual display offset for right panel
+    static const long & getDockOverlayHintRightOffset();
+    static const long & defaultDockOverlayHintRightOffset();
+    static void removeDockOverlayHintRightOffset();
+    static void setDockOverlayHintRightOffset(const long &v);
+    static const char *docDockOverlayHintRightOffset();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintTopOffset
+    ///
+    /// Auto hide hint visual display offset for top panel
+    static const long & getDockOverlayHintTopOffset();
+    static const long & defaultDockOverlayHintTopOffset();
+    static void removeDockOverlayHintTopOffset();
+    static void setDockOverlayHintTopOffset(const long &v);
+    static const char *docDockOverlayHintTopOffset();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DockOverlayHintBottomOffset
+    ///
+    /// Auto hide hint visual display offset for bottom panel
+    static const long & getDockOverlayHintBottomOffset();
+    static const long & defaultDockOverlayHintBottomOffset();
+    static void removeDockOverlayHintBottomOffset();
+    static void setDockOverlayHintBottomOffset(const long &v);
+    static const char *docDockOverlayHintBottomOffset();
     //@}
 
     // Auto generated code (Tools/params_utils.py:122)
@@ -302,7 +398,7 @@ public:
     static const char *docDockOverlayHidePropertyViewScrollBar();
     //@}
 
-    // Auto generated code (Gui/OverlayParams.py:145)
+    // Auto generated code (Gui/OverlayParams.py:161)
     static const std::vector<QString> AnimationCurveTypes;
 
 // Auto generated code (Tools/params_utils.py:150)

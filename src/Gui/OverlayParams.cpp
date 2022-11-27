@@ -55,6 +55,14 @@ public:
     bool DockOverlayCheckNaviCube;
     long DockOverlayHintTriggerSize;
     long DockOverlayHintSize;
+    long DockOverlayHintLeftLength;
+    long DockOverlayHintRightLength;
+    long DockOverlayHintTopLength;
+    long DockOverlayHintBottomLength;
+    long DockOverlayHintLeftOffset;
+    long DockOverlayHintRightOffset;
+    long DockOverlayHintTopOffset;
+    long DockOverlayHintBottomOffset;
     bool DockOverlayHintTabBar;
     bool DockOverlayHideTabBar;
     long DockOverlayHintDelay;
@@ -93,6 +101,22 @@ public:
         funcs["DockOverlayHintTriggerSize"] = &OverlayParamsP::updateDockOverlayHintTriggerSize;
         DockOverlayHintSize = handle->GetInt("DockOverlayHintSize", 8);
         funcs["DockOverlayHintSize"] = &OverlayParamsP::updateDockOverlayHintSize;
+        DockOverlayHintLeftLength = handle->GetInt("DockOverlayHintLeftLength", 0);
+        funcs["DockOverlayHintLeftLength"] = &OverlayParamsP::updateDockOverlayHintLeftLength;
+        DockOverlayHintRightLength = handle->GetInt("DockOverlayHintRightLength", 0);
+        funcs["DockOverlayHintRightLength"] = &OverlayParamsP::updateDockOverlayHintRightLength;
+        DockOverlayHintTopLength = handle->GetInt("DockOverlayHintTopLength", 0);
+        funcs["DockOverlayHintTopLength"] = &OverlayParamsP::updateDockOverlayHintTopLength;
+        DockOverlayHintBottomLength = handle->GetInt("DockOverlayHintBottomLength", 0);
+        funcs["DockOverlayHintBottomLength"] = &OverlayParamsP::updateDockOverlayHintBottomLength;
+        DockOverlayHintLeftOffset = handle->GetInt("DockOverlayHintLeftOffset", 0);
+        funcs["DockOverlayHintLeftOffset"] = &OverlayParamsP::updateDockOverlayHintLeftOffset;
+        DockOverlayHintRightOffset = handle->GetInt("DockOverlayHintRightOffset", 0);
+        funcs["DockOverlayHintRightOffset"] = &OverlayParamsP::updateDockOverlayHintRightOffset;
+        DockOverlayHintTopOffset = handle->GetInt("DockOverlayHintTopOffset", 0);
+        funcs["DockOverlayHintTopOffset"] = &OverlayParamsP::updateDockOverlayHintTopOffset;
+        DockOverlayHintBottomOffset = handle->GetInt("DockOverlayHintBottomOffset", 0);
+        funcs["DockOverlayHintBottomOffset"] = &OverlayParamsP::updateDockOverlayHintBottomOffset;
         DockOverlayHintTabBar = handle->GetBool("DockOverlayHintTabBar", true);
         funcs["DockOverlayHintTabBar"] = &OverlayParamsP::updateDockOverlayHintTabBar;
         DockOverlayHideTabBar = handle->GetBool("DockOverlayHideTabBar", true);
@@ -186,6 +210,38 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintSize(OverlayParamsP *self) {
         self->DockOverlayHintSize = self->handle->GetInt("DockOverlayHintSize", 8);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintLeftLength(OverlayParamsP *self) {
+        self->DockOverlayHintLeftLength = self->handle->GetInt("DockOverlayHintLeftLength", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintRightLength(OverlayParamsP *self) {
+        self->DockOverlayHintRightLength = self->handle->GetInt("DockOverlayHintRightLength", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintTopLength(OverlayParamsP *self) {
+        self->DockOverlayHintTopLength = self->handle->GetInt("DockOverlayHintTopLength", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintBottomLength(OverlayParamsP *self) {
+        self->DockOverlayHintBottomLength = self->handle->GetInt("DockOverlayHintBottomLength", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintLeftOffset(OverlayParamsP *self) {
+        self->DockOverlayHintLeftOffset = self->handle->GetInt("DockOverlayHintLeftOffset", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintRightOffset(OverlayParamsP *self) {
+        self->DockOverlayHintRightOffset = self->handle->GetInt("DockOverlayHintRightOffset", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintTopOffset(OverlayParamsP *self) {
+        self->DockOverlayHintTopOffset = self->handle->GetInt("DockOverlayHintTopOffset", 0);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDockOverlayHintBottomOffset(OverlayParamsP *self) {
+        self->DockOverlayHintBottomOffset = self->handle->GetInt("DockOverlayHintBottomOffset", 0);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintTabBar(OverlayParamsP *self) {
@@ -571,7 +627,7 @@ void OverlayParams::removeDockOverlayHintTriggerSize() {
 // Auto generated code (Tools/params_utils.py:288)
 const char *OverlayParams::docDockOverlayHintSize() {
     return QT_TRANSLATE_NOOP("OverlayParams",
-"Auto hide hint visual display size");
+"Auto hide hint visual display width");
 }
 
 // Auto generated code (Tools/params_utils.py:294)
@@ -594,6 +650,230 @@ void OverlayParams::setDockOverlayHintSize(const long &v) {
 // Auto generated code (Tools/params_utils.py:314)
 void OverlayParams::removeDockOverlayHintSize() {
     instance()->handle->RemoveInt("DockOverlayHintSize");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintLeftLength() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display length for left panel. Set to zero to fill the space.");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintLeftLength() {
+    return instance()->DockOverlayHintLeftLength;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintLeftLength() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintLeftLength(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintLeftLength",v);
+    instance()->DockOverlayHintLeftLength = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintLeftLength() {
+    instance()->handle->RemoveInt("DockOverlayHintLeftLength");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintRightLength() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display length for right panel. Set to zero to fill the space.");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintRightLength() {
+    return instance()->DockOverlayHintRightLength;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintRightLength() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintRightLength(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintRightLength",v);
+    instance()->DockOverlayHintRightLength = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintRightLength() {
+    instance()->handle->RemoveInt("DockOverlayHintRightLength");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintTopLength() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display length for top panel. Set to zero to fill the space.");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintTopLength() {
+    return instance()->DockOverlayHintTopLength;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintTopLength() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintTopLength(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintTopLength",v);
+    instance()->DockOverlayHintTopLength = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintTopLength() {
+    instance()->handle->RemoveInt("DockOverlayHintTopLength");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintBottomLength() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display length for bottom panel. Set to zero to fill the space.");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintBottomLength() {
+    return instance()->DockOverlayHintBottomLength;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintBottomLength() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintBottomLength(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintBottomLength",v);
+    instance()->DockOverlayHintBottomLength = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintBottomLength() {
+    instance()->handle->RemoveInt("DockOverlayHintBottomLength");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintLeftOffset() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display offset for left panel");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintLeftOffset() {
+    return instance()->DockOverlayHintLeftOffset;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintLeftOffset() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintLeftOffset(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintLeftOffset",v);
+    instance()->DockOverlayHintLeftOffset = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintLeftOffset() {
+    instance()->handle->RemoveInt("DockOverlayHintLeftOffset");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintRightOffset() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display offset for right panel");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintRightOffset() {
+    return instance()->DockOverlayHintRightOffset;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintRightOffset() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintRightOffset(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintRightOffset",v);
+    instance()->DockOverlayHintRightOffset = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintRightOffset() {
+    instance()->handle->RemoveInt("DockOverlayHintRightOffset");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintTopOffset() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display offset for top panel");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintTopOffset() {
+    return instance()->DockOverlayHintTopOffset;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintTopOffset() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintTopOffset(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintTopOffset",v);
+    instance()->DockOverlayHintTopOffset = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintTopOffset() {
+    instance()->handle->RemoveInt("DockOverlayHintTopOffset");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *OverlayParams::docDockOverlayHintBottomOffset() {
+    return QT_TRANSLATE_NOOP("OverlayParams",
+"Auto hide hint visual display offset for bottom panel");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & OverlayParams::getDockOverlayHintBottomOffset() {
+    return instance()->DockOverlayHintBottomOffset;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & OverlayParams::defaultDockOverlayHintBottomOffset() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void OverlayParams::setDockOverlayHintBottomOffset(const long &v) {
+    instance()->handle->SetInt("DockOverlayHintBottomOffset",v);
+    instance()->DockOverlayHintBottomOffset = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void OverlayParams::removeDockOverlayHintBottomOffset() {
+    instance()->handle->RemoveInt("DockOverlayHintBottomOffset");
 }
 
 // Auto generated code (Tools/params_utils.py:288)
@@ -764,7 +1044,7 @@ void OverlayParams::removeDockOverlayHidePropertyViewScrollBar() {
     instance()->handle->RemoveBool("DockOverlayHidePropertyViewScrollBar");
 }
 
-// Auto generated code (Gui/OverlayParams.py:153)
+// Auto generated code (Gui/OverlayParams.py:169)
 const std::vector<QString> OverlayParams::AnimationCurveTypes = {
     QStringLiteral("Linear"),
     QStringLiteral("InQuad"),
