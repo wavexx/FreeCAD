@@ -1412,7 +1412,8 @@ void OverlayTabWidget::updateSplitterHandles()
 
 bool OverlayTabWidget::onEscape()
 {
-    if (getState() == OverlayTabWidget::State_Hint) {
+    if (getState() == OverlayTabWidget::State_Hint
+            || getState() == OverlayTabWidget::State_Hidden) {
         setState(OverlayTabWidget::State_HintHidden);
         return true;
     }
