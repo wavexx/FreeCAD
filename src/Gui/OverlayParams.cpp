@@ -101,13 +101,13 @@ public:
         funcs["DockOverlayHintTriggerSize"] = &OverlayParamsP::updateDockOverlayHintTriggerSize;
         DockOverlayHintSize = handle->GetInt("DockOverlayHintSize", 8);
         funcs["DockOverlayHintSize"] = &OverlayParamsP::updateDockOverlayHintSize;
-        DockOverlayHintLeftLength = handle->GetInt("DockOverlayHintLeftLength", 0);
+        DockOverlayHintLeftLength = handle->GetInt("DockOverlayHintLeftLength", 100);
         funcs["DockOverlayHintLeftLength"] = &OverlayParamsP::updateDockOverlayHintLeftLength;
-        DockOverlayHintRightLength = handle->GetInt("DockOverlayHintRightLength", 0);
+        DockOverlayHintRightLength = handle->GetInt("DockOverlayHintRightLength", 100);
         funcs["DockOverlayHintRightLength"] = &OverlayParamsP::updateDockOverlayHintRightLength;
-        DockOverlayHintTopLength = handle->GetInt("DockOverlayHintTopLength", 0);
+        DockOverlayHintTopLength = handle->GetInt("DockOverlayHintTopLength", 100);
         funcs["DockOverlayHintTopLength"] = &OverlayParamsP::updateDockOverlayHintTopLength;
-        DockOverlayHintBottomLength = handle->GetInt("DockOverlayHintBottomLength", 0);
+        DockOverlayHintBottomLength = handle->GetInt("DockOverlayHintBottomLength", 100);
         funcs["DockOverlayHintBottomLength"] = &OverlayParamsP::updateDockOverlayHintBottomLength;
         DockOverlayHintLeftOffset = handle->GetInt("DockOverlayHintLeftOffset", 0);
         funcs["DockOverlayHintLeftOffset"] = &OverlayParamsP::updateDockOverlayHintLeftOffset;
@@ -117,7 +117,7 @@ public:
         funcs["DockOverlayHintTopOffset"] = &OverlayParamsP::updateDockOverlayHintTopOffset;
         DockOverlayHintBottomOffset = handle->GetInt("DockOverlayHintBottomOffset", 0);
         funcs["DockOverlayHintBottomOffset"] = &OverlayParamsP::updateDockOverlayHintBottomOffset;
-        DockOverlayHintTabBar = handle->GetBool("DockOverlayHintTabBar", true);
+        DockOverlayHintTabBar = handle->GetBool("DockOverlayHintTabBar", false);
         funcs["DockOverlayHintTabBar"] = &OverlayParamsP::updateDockOverlayHintTabBar;
         DockOverlayHideTabBar = handle->GetBool("DockOverlayHideTabBar", true);
         funcs["DockOverlayHideTabBar"] = &OverlayParamsP::updateDockOverlayHideTabBar;
@@ -213,19 +213,19 @@ public:
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintLeftLength(OverlayParamsP *self) {
-        self->DockOverlayHintLeftLength = self->handle->GetInt("DockOverlayHintLeftLength", 0);
+        self->DockOverlayHintLeftLength = self->handle->GetInt("DockOverlayHintLeftLength", 100);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintRightLength(OverlayParamsP *self) {
-        self->DockOverlayHintRightLength = self->handle->GetInt("DockOverlayHintRightLength", 0);
+        self->DockOverlayHintRightLength = self->handle->GetInt("DockOverlayHintRightLength", 100);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintTopLength(OverlayParamsP *self) {
-        self->DockOverlayHintTopLength = self->handle->GetInt("DockOverlayHintTopLength", 0);
+        self->DockOverlayHintTopLength = self->handle->GetInt("DockOverlayHintTopLength", 100);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintBottomLength(OverlayParamsP *self) {
-        self->DockOverlayHintBottomLength = self->handle->GetInt("DockOverlayHintBottomLength", 0);
+        self->DockOverlayHintBottomLength = self->handle->GetInt("DockOverlayHintBottomLength", 100);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintLeftOffset(OverlayParamsP *self) {
@@ -245,7 +245,7 @@ public:
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDockOverlayHintTabBar(OverlayParamsP *self) {
-        self->DockOverlayHintTabBar = self->handle->GetBool("DockOverlayHintTabBar", true);
+        self->DockOverlayHintTabBar = self->handle->GetBool("DockOverlayHintTabBar", false);
     }
     // Auto generated code (Tools/params_utils.py:244)
     static void updateDockOverlayHideTabBar(OverlayParamsP *self) {
@@ -665,7 +665,7 @@ const long & OverlayParams::getDockOverlayHintLeftLength() {
 
 // Auto generated code (Tools/params_utils.py:300)
 const long & OverlayParams::defaultDockOverlayHintLeftLength() {
-    const static long def = 0;
+    const static long def = 100;
     return def;
 }
 
@@ -693,7 +693,7 @@ const long & OverlayParams::getDockOverlayHintRightLength() {
 
 // Auto generated code (Tools/params_utils.py:300)
 const long & OverlayParams::defaultDockOverlayHintRightLength() {
-    const static long def = 0;
+    const static long def = 100;
     return def;
 }
 
@@ -721,7 +721,7 @@ const long & OverlayParams::getDockOverlayHintTopLength() {
 
 // Auto generated code (Tools/params_utils.py:300)
 const long & OverlayParams::defaultDockOverlayHintTopLength() {
-    const static long def = 0;
+    const static long def = 100;
     return def;
 }
 
@@ -749,7 +749,7 @@ const long & OverlayParams::getDockOverlayHintBottomLength() {
 
 // Auto generated code (Tools/params_utils.py:300)
 const long & OverlayParams::defaultDockOverlayHintBottomLength() {
-    const static long def = 0;
+    const static long def = 100;
     return def;
 }
 
@@ -889,7 +889,7 @@ const bool & OverlayParams::getDockOverlayHintTabBar() {
 
 // Auto generated code (Tools/params_utils.py:300)
 const bool & OverlayParams::defaultDockOverlayHintTabBar() {
-    const static bool def = true;
+    const static bool def = false;
     return def;
 }
 
