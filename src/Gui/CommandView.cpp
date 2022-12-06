@@ -4376,7 +4376,7 @@ StdCmdDockOverlayTransparentAll::StdCmdDockOverlayTransparentAll()
   sGroup        = "View";
   sMenuText     = QT_TR_NOOP("Toggle transparent for all");
   sToolTipText  = QT_TR_NOOP("Toggle transparent for all overlay docked window.\n"
-                             "This makes the docked widget stay transparent at al times.");
+                             "This makes the docked widget stay transparent at all times.");
   sWhatsThis    = "Std_DockOverlayTransparentAll";
   sStatusTip    = sToolTipText;
   sAccel        = "SHIFT+F4";
@@ -4425,7 +4425,7 @@ StdCmdDockOverlayToggleTransparent::StdCmdDockOverlayToggleTransparent()
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Toggle transparent");
     sToolTipText  = QT_TR_NOOP("Toggle transparent mode for the docked widget under cursor.\n"
-                               "This makes the docked widget stay transparent at al times.");
+                               "This makes the docked widget stay transparent at all times.");
     sWhatsThis    = "Std_DockOverlayToggleTransparent";
     sStatusTip    = sToolTipText;
     sAccel        = "SHIFT+F3";
