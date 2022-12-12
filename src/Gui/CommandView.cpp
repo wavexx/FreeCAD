@@ -4538,6 +4538,50 @@ void StdCmdDockOverlayToggleBottom::activated(int iMsg)
     OverlayManager::instance()->setOverlayMode(OverlayManager::ToggleBottom);
 }
 
+//===========================================================================
+// Std_DockOverlayMouseTransparent
+//===========================================================================
+
+DEF_STD_CMD_AC(StdCmdDockOverlayMouseTransparent)
+
+StdCmdDockOverlayMouseTransparent::StdCmdDockOverlayMouseTransparent()
+  :Command("Std_DockOverlayMouseTransparent")
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Bypass mouse event in dock overlay");
+  sToolTipText  = QT_TR_NOOP("Bypass all mouse event in dock overlay");
+  sWhatsThis    = "Std_DockOverlayMouseTransparent";
+  sStatusTip    = sToolTipText;
+  sAccel        = "T, T";
+  eType         = NoTransaction;
+}
+
+void StdCmdDockOverlayMouseTransparent::activated(int iMsg)
+{
+    (void)iMsg;
+    bool checked = !OverlayManager::instance()->isMouseTransparent();
+    OverlayManager::instance()->setMouseTransparent(checked);
+    if(_pcAction)
+        _pcAction->setChecked(checked,true);
+}
+
+Action * StdCmdDockOverlayMouseTransparent::createAction(void) {
+    Action *pcAction = Command::createAction();
+    pcAction->setCheckable(true);
+    pcAction->setIcon(QIcon());
+    _pcAction = pcAction;
+    isActive();
+    return pcAction;
+}
+
+bool StdCmdDockOverlayMouseTransparent::isActive() {
+    bool checked = OverlayManager::instance()->isMouseTransparent();
+    if(_pcAction && _pcAction->isChecked()!=checked)
+        _pcAction->setChecked(checked,true);
+    return true;
+}
+
+
 // ============================================================================
 
 class StdCmdDockOverlay : public GroupCommand
@@ -4559,6 +4603,8 @@ public:
         addCommand();
         addCommand(new StdCmdDockOverlayToggle());
         addCommand(new StdCmdDockOverlayToggleTransparent());
+        addCommand();
+        addCommand(new StdCmdDockOverlayMouseTransparent());
         addCommand();
         addCommand(new StdCmdDockOverlayToggleLeft());
         addCommand(new StdCmdDockOverlayToggleRight());
