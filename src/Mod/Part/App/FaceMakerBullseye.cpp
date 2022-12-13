@@ -82,7 +82,7 @@ std::string FaceMakerBullseye::getBriefExplanation() const
 
 bool FaceMakerBullseye::WireInfo::operator<(const WireInfo &other) const
 {
-    return other.extent - extent > Precision::Confusion();
+    return extent - other.extent > Precision::Confusion();
 }
 
 void FaceMakerBullseye::Build_Essence()
