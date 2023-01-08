@@ -1920,10 +1920,14 @@ private:
             TopoShape mShape = *static_cast<TopoShapePy*>(path)->getTopoShapePtr();
             // makeSweep uses GeomFill_Pipe which does not support shape
             // history. So use makEPipeShell() as a replacement
-            return shape2pyshape(TopoShape(0, mShape.Hasher).makEPipeShell(
+            auto res = TopoShape(0, mShape.Hasher).makEPipeShell(
                         {mShape, *static_cast<TopoShapePy*>(profile)->getTopoShapePtr()},
                         Standard_False, Standard_False, TopoShape::TransitionMode::Transformed,
-                        nullptr, tolerance));
+                        nullptr, tolerance);
+            if (res.countSubShapes(TopAbs_FACE) == 1) {
+                res = res.getSubTopoShape(TopAbs_FACE, 1);
+            }
+            return shape2pyshape(res);
 #else
             if (tolerance == 0.0)
                 tolerance=0.001;
