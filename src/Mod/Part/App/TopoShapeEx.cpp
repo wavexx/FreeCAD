@@ -3537,6 +3537,7 @@ TopoShape &TopoShape::makEBoolean(const char *maker,
     mk->SetTools(shapeTools);
     if (tol > 0.0)
         mk->SetFuzzyValue(tol);
+    mk->SetNonDestructive(Standard_True);
     mk->Build();
     makEShape(*mk,inputs,op);
 
