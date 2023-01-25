@@ -19,7 +19,9 @@ jobs:
     # build in destructive mode because building in LXD is way too slow 
     # due to the kde-neon SDK snap being mounted via fuse
     - name: build snap 
-      run: sudo snapcraft --destructive-mode
+      run: |
+          sudo snapcraft --destructive-mode
+          sudo rm -rf $HOME/.config/snapcraft
     - name: upload snap
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
@@ -29,4 +31,4 @@ jobs:
         else
           release_to="stable"
         fi
-        sudo snapcraft upload --release=${release_to} freecad-realthunder*.snap
+        snapcraft upload --release=${release_to} freecad-realthunder*.snap
