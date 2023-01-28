@@ -21,6 +21,7 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
+#include <memory>
 #ifndef _PreComp_
 # include <TopoDS_Shape.hxx>
 # include <TopoDS_Face.hxx>
@@ -8002,8 +8003,11 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                                 geos.emplace_back(arc);
                             }
                         } else if (projCurve.GetType() == GeomAbs_BSplineCurve) {
+
+                            std::unique_ptr<Part::GeomBSplineCurve> bspline;
+
                             if (ArcFitTolerance.getValue() >= Precision::Confusion()) {
-                                std::unique_ptr<Part::GeomBSplineCurve> bspline(new Part::GeomBSplineCurve(projCurve.BSpline()));
+                                bspline.reset(new Part::GeomBSplineCurve(projCurve));
                                 std::vector<std::unique_ptr<Part::Geometry>> arcs;
                                 for (auto arc : bspline->toBiArcs(ArcFitTolerance.getValue()))
                                     arcs.emplace_back(arc);
@@ -8014,46 +8018,51 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                                 }
                             }
 
-                            // Unfortunately, a normal projection of a circle can also give a Bspline
-                            // Split the spline into arcs
-                            GeomConvert_BSplineCurveKnotSplitting bSplineSplitter(projCurve.BSpline(), 2);
                             //int s = bSplineSplitter.NbSplits();
-                            if ((curve.GetType() == GeomAbs_Circle) && (bSplineSplitter.NbSplits() == 2)) {
-                                // Result of projection is actually a circle...
-                                TColStd_Array1OfInteger splits(1, 2);
-                                bSplineSplitter.Splitting(splits);
-                                gp_Pnt p1 = projCurve.Value(splits(1));
-                                gp_Pnt p2 = projCurve.Value(splits(2));
-                                gp_Pnt p3 = projCurve.Value(0.5 * (splits(1) + splits(2)));
-                                GC_MakeCircle circleMaker(p1, p2, p3);
-                                Handle(Geom_Circle) circ = circleMaker.Value();
-                                Part::GeomCircle* circle = new Part::GeomCircle();
-                                circle->setRadius(circ->Radius());
-                                gp_Pnt center = circ->Axis().Location();
-                                circle->setCenter(Base::Vector3d(center.X(), center.Y(), center.Z()));
+                            if (curve.GetType() == GeomAbs_Circle) {
+                                // Unfortunately, a normal projection of a circle can also give a Bspline
+                                // Split the spline into arcs
+                                GeomConvert_BSplineCurveKnotSplitting bSplineSplitter(projCurve.BSpline(), 2);
+                                if (bSplineSplitter.NbSplits() == 2) {
+                                    // Result of projection is actually a circle...
+                                    TColStd_Array1OfInteger splits(1, 2);
+                                    bSplineSplitter.Splitting(splits);
+                                    gp_Pnt p1 = projCurve.Value(splits(1));
+                                    gp_Pnt p2 = projCurve.Value(splits(2));
+                                    gp_Pnt p3 = projCurve.Value(0.5 * (splits(1) + splits(2)));
+                                    GC_MakeCircle circleMaker(p1, p2, p3);
+                                    Handle(Geom_Circle) circ = circleMaker.Value();
+                                    Part::GeomCircle* circle = new Part::GeomCircle();
+                                    circle->setRadius(circ->Radius());
+                                    gp_Pnt center = circ->Axis().Location();
+                                    circle->setCenter(Base::Vector3d(center.X(), center.Y(), center.Z()));
 
-                                GeometryFacade::setConstruction(circle, true);
-                                geos.emplace_back(circle);
-                            } else {
-                                Part::GeomBSplineCurve* bspline = new Part::GeomBSplineCurve(projCurve.BSpline());
-                                if (int maxDegree = ExternalBSplineMaxDegree.getValue()) {
-                                    if (bspline->getDegree() > maxDegree) {
-                                        std::string err;
-                                        try {
-                                            if (!bspline->approximate(ExternalBSplineTolerance.getValue(), 20,
-                                                                    ExternalBSplineMaxDegree.getValue(), 0))
-                                                err = "not done";
-                                        } catch (Base::Exception &e) {
-                                            err = e.what();
-                                        }
-                                        if (err.size())
-                                            FC_WARN("Failed to simplify external imported bspline "
-                                                    << getFullName() << ": " << key << ", " << err);
-                                    }
+                                    GeometryFacade::setConstruction(circle, true);
+                                    geos.emplace_back(circle);
+                                    return;
                                 }
-                                GeometryFacade::setConstruction(bspline, true);
-                                geos.emplace_back(bspline);
                             }
+
+                            if (!bspline)
+                                bspline.reset(new Part::GeomBSplineCurve(projCurve));
+                            if (int maxDegree = ExternalBSplineMaxDegree.getValue()) {
+                                if (bspline->getDegree() > maxDegree) {
+                                    std::string err;
+                                    try {
+                                        if (!bspline->approximate(ExternalBSplineTolerance.getValue(), 20,
+                                                                ExternalBSplineMaxDegree.getValue(), 0))
+                                            err = "not done";
+                                    } catch (Base::Exception &e) {
+                                        err = e.what();
+                                    }
+                                    if (err.size())
+                                        FC_WARN("Failed to simplify external imported bspline "
+                                                << getFullName() << ": " << key << ", " << err);
+                                }
+                            }
+                            GeometryFacade::setConstruction(bspline.get(), true);
+                            geos.emplace_back(bspline.release());
+
                         } else if (projCurve.GetType() == GeomAbs_Hyperbola) {
                             gp_Hypr e = projCurve.Hyperbola();
                             gp_Pnt p = e.Location();
