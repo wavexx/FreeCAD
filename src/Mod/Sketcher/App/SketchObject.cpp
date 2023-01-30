@@ -332,6 +332,9 @@ void SketchObject::buildShape() {
             FC_WARN("Edge too small: " << indexedName);
         }
     }
+
+    internalElementMap.clear();
+
     if(shapes.empty() && vertices.empty()) {
         InternalShape.setValue(Part::TopoShape());
         Shape.setValue(Part::TopoShape());
@@ -361,6 +364,38 @@ void SketchObject::buildShape() {
     // GeoFeature::updateElementReference() can run properly on change of Shape
     // property, because some reference may pointing to the InternalShape
     Shape.setValue(result);
+}
+
+const std::map<std::string,std::string> SketchObject::getInternalElementMap() const
+{
+    if (!internalElementMap.empty() || !MakeInternals.getValue())
+        return internalElementMap;
+
+    auto internalShape = InternalShape.getShape();
+    auto shape = Shape.getShape().located();
+    if (!internalShape.isNull() && !shape.isNull()) {
+        std::vector<std::string> names;
+        std::string prefix;
+        const std::array<TopAbs_ShapeEnum, 2> types = {TopAbs_VERTEX, TopAbs_EDGE};
+        for (const auto &type : types) {
+            prefix = internalPrefix() + Part::TopoShape::shapeName(type);
+            std::size_t len = prefix.size();
+            int i=0;
+            for (const auto &v : internalShape.getSubTopoShapes(type)) {
+                ++i;
+                shape.searchSubShape(v, &names, Data::SearchOption::CheckGeometry
+                                                |Data::SearchOption::SingleResult);
+                if (names.empty())
+                    continue;
+                prefix += std::to_string(i);
+                internalElementMap[prefix] = names.front();
+                internalElementMap[names.front()] = prefix;
+                prefix.resize(len);
+                names.clear();
+            }
+        }
+    }
+    return internalElementMap;
 }
 
 Part::TopoShape SketchObject::buildInternals(const Part::TopoShape &edges) const
@@ -10016,20 +10051,28 @@ SketchObject::getHigherElements(const char *element, bool silent) const
         }
         return res;
     }
-    bool internal = boost::starts_with(element, internalPrefix());
-    const auto &shape = internal ? InternalShape.getShape() : Shape.getShape();
-    auto res = shape.getHigherElements(element+(internal?internalPrefix().size():0), silent);
-    for (auto it=res.begin(); it!=res.end();) {
-        auto &indexedName = *it;
-        if (boost::equals(indexedName.getType(), "Face")
-                || boost::equals(indexedName.getType(), "Edge")
-                || boost::equals(indexedName.getType(), "Wire")) {
-            if (internal)
-                indexedName = Data::IndexedName((internalPrefix() + indexedName.getType()).c_str(), indexedName.getIndex());
-            ++it;
+
+    std::vector<Data::IndexedName> res;
+    auto getNames = [&](const char *element) {
+        bool internal = boost::starts_with(element, internalPrefix());
+        const auto &shape = internal ? InternalShape.getShape() : Shape.getShape();
+        for (const auto &indexedName : shape.getHigherElements(element+(internal?internalPrefix().size():0), silent)) {
+            if (!internal) {
+                res.push_back(indexedName);
+            }
+            else if (boost::equals(indexedName.getType(), "Face")
+                    || boost::equals(indexedName.getType(), "Edge")
+                    || boost::equals(indexedName.getType(), "Wire")) {
+                res.emplace_back((internalPrefix() + indexedName.getType()).c_str(), indexedName.getIndex());
+            }
         }
-        else
-            it = res.erase(it);
+    };
+    getNames(element);
+    const auto &elementMap = getInternalElementMap();
+    auto it = elementMap.find(element);
+    if (it != elementMap.end()) {
+        res.emplace_back(it->second.c_str());
+        getNames(it->second.c_str());
     }
     return res;
 }
