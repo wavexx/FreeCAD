@@ -7968,9 +7968,9 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                     if (Part::TopoShape(edge).findPlane(pln)
                             && pln.Axis().Direction().IsParallel(
                                 sketchPlane.Axis().Direction(), Precision::Confusion())) {
-                        double d = -pln.Distance(sketchPlane);
+                        double d = pln.Distance(sketchPlane);
                         gp_Trsf trsf;
-                        trsf.SetTranslation(gp_Vec(pln.Axis().Direction()) * d);
+                        trsf.SetTranslation(gp_Vec(sketchPlane.Axis().Direction()) * d);
                         projShape.setShape(edge);
                         projShape.transformShape(Part::TopoShape::convert(trsf), /*copy*/false);
                     } else {
