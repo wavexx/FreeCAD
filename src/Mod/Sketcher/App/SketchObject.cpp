@@ -7968,13 +7968,11 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                     if (Part::TopoShape(edge).findPlane(pln)
                             && pln.Axis().Direction().IsParallel(
                                 sketchPlane.Axis().Direction(), Precision::Confusion())) {
-                        double d = pln.Distance(sketchPlane);
+                        double d = -pln.Distance(sketchPlane);
                         gp_Trsf trsf;
                         trsf.SetTranslation(gp_Vec(pln.Axis().Direction()) * d);
                         projShape.setShape(edge);
-                        // Must copy the edge to make the transformation work
-                        // for some reason.
-                        projShape.transformShape(Part::TopoShape::convert(trsf), /*copy*/true);
+                        projShape.transformShape(Part::TopoShape::convert(trsf), /*copy*/false);
                     } else {
                         BRepOffsetAPI_NormalProjection mkProj(aProjFace);
                         mkProj.Add(edge);
@@ -7985,11 +7983,11 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                             return;
                         }
                     }
-                    for (const auto &e : projShape.getSubShapes(TopAbs_EDGE)) {
-                        TopoDS_Edge projEdge = TopoDS::Edge(e);
-                        TopLoc_Location loc(mov);
-                        projEdge.Location(loc);
-
+                    for (auto &e : projShape.getSubTopoShapes(TopAbs_EDGE)) {
+                        // Must copy the edge to make the transformation work
+                        // for some reason.
+                        e.transformShape(invMat, /*copy*/true, /*checkScale*/true);
+                        TopoDS_Edge projEdge = TopoDS::Edge(e.getShape());
                         BRepAdaptor_Curve projCurve(projEdge);
 
                         gp_Pnt P1 = BRep_Tool::Pnt(TopExp::FirstVertex(projEdge));
