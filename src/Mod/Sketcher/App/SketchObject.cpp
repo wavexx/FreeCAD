@@ -7966,11 +7966,21 @@ void SketchObject::rebuildExternalGeometry(bool defining, bool addIntersection)
                     Part::TopoShape projShape;
                     gp_Pln pln;
                     if (Part::TopoShape(edge).findPlane(pln)
-                            && pln.Axis().Direction().IsParallel(
-                                sketchPlane.Axis().Direction(), Precision::Confusion())) {
-                        double d = pln.Distance(sketchPlane);
+                            && pln.Position().Direction().IsParallel(
+                                sketchPlane.Position().Direction(), Precision::Confusion())) {
+                        // We can't use gp_Pln::Distance() because we need to
+                        // know which side the plane is regarding the sketch
+                        // plane, i.e. we need the returned distance to be
+                        // signed.
+                        // double d = pln.Distance(sketchPlane);
+                        const gp_Pnt& aP = sketchPlane.Location();
+                        const gp_Pnt& aLoc = pln.Location ();
+                        const gp_Dir& aDir = pln.Position().Direction();
+                        double d = (aDir.X() * (aP.X() - aLoc.X()) +
+                                aDir.Y() * (aP.Y() - aLoc.Y()) +
+                                aDir.Z() * (aP.Z() - aLoc.Z()));
                         gp_Trsf trsf;
-                        trsf.SetTranslation(gp_Vec(sketchPlane.Axis().Direction()) * d);
+                        trsf.SetTranslation(gp_Vec(aDir) * d);
                         projShape.setShape(edge);
                         projShape.transformShape(Part::TopoShape::convert(trsf), /*copy*/false);
                     } else {
