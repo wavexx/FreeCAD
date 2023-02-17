@@ -25,7 +25,6 @@
 #define PARTDESIGN_FEATURETHICKNESS_H
 
 #include <App/PropertyStandard.h>
-#include <App/PropertyLinks.h>
 #include <App/PropertyUnits.h>
 #include "FeatureDressUp.h"
 
@@ -34,7 +33,7 @@ namespace PartDesign
 
 class PartDesignExport Thickness : public DressUp
 {
-    PROPERTY_HEADER(PartDesign::Thickness);
+    PROPERTY_HEADER_WITH_OVERRIDE(PartDesign::Thickness);
 
 public:
     Thickness();
@@ -43,17 +42,17 @@ public:
     App::PropertyBool           Reversed;
     App::PropertyBool           Intersection;
     App::PropertyEnumeration    Mode;
-    App::PropertyEnumeration    Join;      
+    App::PropertyEnumeration    Join;
     App::PropertyBool           Refine;
 
     /** @name methods override feature */
     //@{
     /// recalculate the feature
-    App::DocumentObjectExecReturn *execute(void);
-    short mustExecute() const;
-    virtual void setupObject ();
+    App::DocumentObjectExecReturn *execute() override;
+    short mustExecute() const override;
+    void setupObject () override;
     /// returns the type name of the view provider
-    const char* getViewProviderName(void) const {
+    const char* getViewProviderName() const override {
         return "PartDesignGui::ViewProviderThickness";
     }
     //@}

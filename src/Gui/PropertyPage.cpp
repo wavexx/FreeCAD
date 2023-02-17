@@ -20,15 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
+#ifndef _PreComp_
+# include <QVBoxLayout>
+#endif
+
+#include <Base/Console.h>
 
 #include "PropertyPage.h"
 #include "PrefWidgets.h"
 #include "UiLoader.h"
-#include <Base/Console.h>
+
 
 using namespace Gui::Dialog;
+using namespace Gui;
 
 /** Construction */
 PropertyPage::PropertyPage(QWidget* parent) : QWidget(parent)
@@ -113,7 +118,7 @@ void PreferencePage::changeEvent(QEvent *e)
 // ----------------------------------------------------------------
 
 PreferenceUiForm::PreferenceUiForm(const QString& fn, QWidget* parent)
-  : PreferencePage(parent), form(0)
+  : PreferencePage(parent), form(nullptr)
 {
     UiLoader loader;
     loader.setLanguageChangeEnabled(true);
@@ -124,7 +129,7 @@ PreferenceUiForm::PreferenceUiForm(const QString& fn, QWidget* parent)
     file.close();
     if (form) {
         this->setWindowTitle(form->windowTitle());
-        QVBoxLayout *layout = new QVBoxLayout;
+        auto layout = new QVBoxLayout;
         layout->addWidget(form);
         setLayout(layout);
     }
@@ -144,7 +149,7 @@ void PreferenceUiForm::changeEvent(QEvent *e)
 }
 
 template <typename PW>
-void PreferenceUiForm::loadPrefWidgets(void)
+void PreferenceUiForm::loadPrefWidgets()
 {
     QList<PW> pw = form->findChildren<PW>();
     for (typename QList<PW>::iterator it = pw.begin(); it != pw.end(); ++it)
@@ -152,7 +157,7 @@ void PreferenceUiForm::loadPrefWidgets(void)
 }
 
 template <typename PW>
-void PreferenceUiForm::savePrefWidgets(void)
+void PreferenceUiForm::savePrefWidgets()
 {
     QList<PW> pw = form->findChildren<PW>();
     for (typename QList<PW>::iterator it = pw.begin(); it != pw.end(); ++it)
@@ -168,6 +173,7 @@ void PreferenceUiForm::loadSettings()
     loadPrefWidgets<Gui::PrefSpinBox        *>();
     loadPrefWidgets<Gui::PrefDoubleSpinBox  *>();
     loadPrefWidgets<Gui::PrefLineEdit       *>();
+    loadPrefWidgets<Gui::PrefTextEdit       *>();
     loadPrefWidgets<Gui::PrefFileChooser    *>();
     loadPrefWidgets<Gui::PrefComboBox       *>();
     loadPrefWidgets<Gui::PrefFontBox        *>();
@@ -176,6 +182,7 @@ void PreferenceUiForm::loadSettings()
     loadPrefWidgets<Gui::PrefSlider         *>();
     loadPrefWidgets<Gui::PrefColorButton    *>();
     loadPrefWidgets<Gui::PrefUnitSpinBox    *>();
+    loadPrefWidgets<Gui::PrefQuantitySpinBox*>();
 }
 
 void PreferenceUiForm::saveSettings()
@@ -187,6 +194,7 @@ void PreferenceUiForm::saveSettings()
     savePrefWidgets<Gui::PrefSpinBox        *>();
     savePrefWidgets<Gui::PrefDoubleSpinBox  *>();
     savePrefWidgets<Gui::PrefLineEdit       *>();
+    savePrefWidgets<Gui::PrefTextEdit       *>();
     savePrefWidgets<Gui::PrefFileChooser    *>();
     savePrefWidgets<Gui::PrefComboBox       *>();
     savePrefWidgets<Gui::PrefFontBox        *>();
@@ -195,6 +203,7 @@ void PreferenceUiForm::saveSettings()
     savePrefWidgets<Gui::PrefSlider         *>();
     savePrefWidgets<Gui::PrefColorButton    *>();
     savePrefWidgets<Gui::PrefUnitSpinBox    *>();
+    savePrefWidgets<Gui::PrefQuantitySpinBox*>();
 }
 
 // ----------------------------------------------------------------
@@ -246,6 +255,40 @@ bool CustomizeActionPage::event(QEvent* e)
 void CustomizeActionPage::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+ParamHandlers::ParamHandlers()
+{
+}
+
+ParamHandlers::~ParamHandlers()
+{
+}
+
+void ParamHandlers::addHandler(const ParamKey &key, const std::shared_ptr<ParamHandler> &handler)
+{
+    if (handlers.empty()) {
+        conn = App::GetApplication().GetUserParameter().signalParamChanged.connect(
+            [this](ParameterGrp *Param, ParameterGrp::ParamType, const char *Name, const char *) {
+                if (!Param || !Name)
+                    return;
+                auto it =  handlers.find(ParamKey(Param, Name));
+                if (it != handlers.end() && it->second->onChange(&it->first)) {
+                    pendings.insert(it->second);
+                    timer.start(100);
+                }
+            });
+
+        timer.setSingleShot(true);
+        QObject::connect(&timer, &QTimer::timeout, [this]() {
+            for (const auto &v : pendings) {
+                v->onTimer();
+            }
+            pendings.clear();
+        });
+    }
+    handlers[key] = handler;
 }
 
 #include "moc_PropertyPage.cpp"

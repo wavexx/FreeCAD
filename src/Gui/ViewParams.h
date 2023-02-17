@@ -34,7 +34,7 @@ import ViewParams
 ViewParams.declare_begin()
 ]]]*/
 
-// Auto generated code (Gui/ViewParams.py:423)
+// Auto generated code (Gui/ViewParams.py:424)
 #include <QString>
 
 // Auto generated code (Tools/params_utils.py:72)
@@ -226,6 +226,16 @@ public:
     static void removeDefaultShapeColor();
     static void setDefaultShapeColor(const unsigned long &v);
     static const char *docDefaultShapeColor();
+    //@}
+
+    // Auto generated code (Tools/params_utils.py:122)
+    //@{
+    /// Accessor for parameter DefaultShapeTransparency
+    static const long & getDefaultShapeTransparency();
+    static const long & defaultDefaultShapeTransparency();
+    static void removeDefaultShapeTransparency();
+    static void setDefaultShapeTransparency(const long &v);
+    static const char *docDefaultShapeTransparency();
     //@}
 
     // Auto generated code (Tools/params_utils.py:122)
@@ -1895,7 +1905,7 @@ public:
     static const char *docToolTipDisable();
     //@}
 
-    // Auto generated code (Gui/ViewParams.py:429)
+    // Auto generated code (Gui/ViewParams.py:430)
     static const std::vector<QString> AnimationCurveTypes;
 //[[[end]]]
 
@@ -1921,7 +1931,7 @@ ViewParams.declare_end()
 }; // class ViewParams
 } // namespace Gui
 
-// Auto generated code (Gui/ViewParams.py:437)
+// Auto generated code (Gui/ViewParams.py:438)
 namespace Gui {
 /// Obtain all draw style names, terminated by nullptr entry.
 GuiExport const char **drawStyleNames();

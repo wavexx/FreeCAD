@@ -21,9 +21,12 @@
  ****************************************************************************/
 
 #include "PreCompiled.h"
-#include <QStatusBar>
-#include <QToolBar>
-#include <QMenuBar>
+#ifndef _PreComp_
+# include <QApplication>
+# include <QStatusBar>
+# include <QToolBar>
+# include <QMenuBar>
+#endif
 #include "Application.h"
 #include "Document.h"
 #include "ViewProvider.h"
@@ -71,6 +74,7 @@ public:
     unsigned long DefaultShapeLineColor;
     unsigned long DefaultShapeVertexColor;
     unsigned long DefaultShapeColor;
+    long DefaultShapeTransparency;
     long DefaultShapeLineWidth;
     long DefaultShapePointSize;
     bool CoinCycleCheck;
@@ -250,6 +254,8 @@ public:
         funcs["DefaultShapeVertexColor"] = &ViewParamsP::updateDefaultShapeVertexColor;
         DefaultShapeColor = handle->GetUnsigned("DefaultShapeColor", 0xCCCCCCFF);
         funcs["DefaultShapeColor"] = &ViewParamsP::updateDefaultShapeColor;
+        DefaultShapeTransparency = handle->GetInt("DefaultShapeTransparency", 0);
+        funcs["DefaultShapeTransparency"] = &ViewParamsP::updateDefaultShapeTransparency;
         DefaultShapeLineWidth = handle->GetInt("DefaultShapeLineWidth", 2);
         funcs["DefaultShapeLineWidth"] = &ViewParamsP::updateDefaultShapeLineWidth;
         DefaultShapePointSize = handle->GetInt("DefaultShapePointSize", 2);
@@ -617,6 +623,10 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDefaultShapeColor(ViewParamsP *self) {
         self->DefaultShapeColor = self->handle->GetUnsigned("DefaultShapeColor", 0xCCCCCCFF);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateDefaultShapeTransparency(ViewParamsP *self) {
+        self->DefaultShapeTransparency = self->handle->GetInt("DefaultShapeTransparency", 0);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateDefaultShapeLineWidth(ViewParamsP *self) {
@@ -1636,6 +1646,33 @@ void ViewParams::setDefaultShapeColor(const unsigned long &v) {
 // Auto generated code (Tools/params_utils.py:314)
 void ViewParams::removeDefaultShapeColor() {
     instance()->handle->RemoveUnsigned("DefaultShapeColor");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docDefaultShapeTransparency() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const long & ViewParams::getDefaultShapeTransparency() {
+    return instance()->DefaultShapeTransparency;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const long & ViewParams::defaultDefaultShapeTransparency() {
+    const static long def = 0;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setDefaultShapeTransparency(const long &v) {
+    instance()->handle->SetInt("DefaultShapeTransparency",v);
+    instance()->DefaultShapeTransparency = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeDefaultShapeTransparency() {
+    instance()->handle->RemoveInt("DefaultShapeTransparency");
 }
 
 // Auto generated code (Tools/params_utils.py:288)
@@ -5631,7 +5668,7 @@ void ViewParams::removeToolTipDisable() {
     instance()->handle->RemoveBool("ToolTipDisable");
 }
 
-// Auto generated code (Gui/ViewParams.py:453)
+// Auto generated code (Gui/ViewParams.py:454)
 const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("Linear"),
     QStringLiteral("InQuad"),
@@ -5676,7 +5713,7 @@ const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("OutInBounce"),
 };
 
-// Auto generated code (Gui/ViewParams.py:461)
+// Auto generated code (Gui/ViewParams.py:462)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -5690,7 +5727,7 @@ static const char *DrawStyleNames[] = {
     nullptr,
 };
 
-// Auto generated code (Gui/ViewParams.py:471)
+// Auto generated code (Gui/ViewParams.py:472)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -5704,13 +5741,13 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:481)
+// Auto generated code (Gui/ViewParams.py:482)
 const char **drawStyleNames()
 {
     return DrawStyleNames;
 }
 
-// Auto generated code (Gui/ViewParams.py:488)
+// Auto generated code (Gui/ViewParams.py:489)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -5718,7 +5755,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:497)
+// Auto generated code (Gui/ViewParams.py:498)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -5730,7 +5767,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:510)
+// Auto generated code (Gui/ViewParams.py:511)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)

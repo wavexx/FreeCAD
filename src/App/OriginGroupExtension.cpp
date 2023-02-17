@@ -21,18 +21,16 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#include "OriginGroupExtension.h"
 
-#ifndef _PreComp_
-#endif
-
-#include <Base/Exception.h>
-#include <Base/Console.h>
-#include <Base/Tools.h>
 #include <App/Document.h>
+#include <Base/Console.h>
+#include <Base/Exception.h>
+#include <Base/Tools.h>
+
+#include "OriginGroupExtension.h"
+#include "GeoFeature.h"
 #include "Origin.h"
 
-#include "GeoFeature.h"
 
 FC_LOG_LEVEL_INIT("App", true, true)
 
@@ -44,12 +42,11 @@ OriginGroupExtension::OriginGroupExtension () {
 
     initExtensionType(OriginGroupExtension::getExtensionClassTypeId());
 
-    EXTENSION_ADD_PROPERTY_TYPE ( Origin, (0), 0, App::Prop_Hidden, "Origin linked to the group" );
+    EXTENSION_ADD_PROPERTY_TYPE ( Origin, (nullptr), 0, App::Prop_Hidden, "Origin linked to the group" );
     Origin.setScope(LinkScope::Child);
 }
 
-OriginGroupExtension::~OriginGroupExtension ()
-{ }
+OriginGroupExtension::~OriginGroupExtension () = default;
 
 App::Origin *OriginGroupExtension::getOrigin () const {
     App::DocumentObject *originObj = Origin.getValue ();

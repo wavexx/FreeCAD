@@ -98,7 +98,7 @@ class DraftLink(DraftObject):
                 'Force sync pattern placements even when array elements are expanded')
             obj.addProperty("App::PropertyBool",
                             "AlwaysSyncPlacement",
-                            "Objects",
+                            "Draft",
                             _tip)
 
         if hasattr(obj, 'ShowElement'):
@@ -230,9 +230,11 @@ class DraftLink(DraftObject):
                             "from '{}'\n".format(obj.Label, obj.Base.Label))
                 raise RuntimeError(_err_msg)
             else:
-                #  shape = shape.copy()
+                # Resetting the Placement of the copied shape does not work for
+                # Part_Vertex and Draft_Point objects, we need to transform:
+                place = shape.Placement
                 shape = Part.Shape(shape)
-                shape.Placement = App.Placement()
+                shape.transformShape(place.Matrix.inverse())
                 base = []
                 for i, pla in enumerate(pls):
                     vis = getattr(obj, 'VisibilityList', [])

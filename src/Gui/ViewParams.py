@@ -145,6 +145,7 @@ Params = [
     ParamHex('DefaultShapeLineColor', 0x191919FF),
     ParamHex('DefaultShapeVertexColor', 0x191919FF),
     ParamHex('DefaultShapeColor', 0xCCCCCCFF),
+    ParamInt('DefaultShapeTransparency', 0),
     ParamInt('DefaultShapeLineWidth', 2),
     ParamInt('DefaultShapePointSize', 2),
     ParamBool('CoinCycleCheck', True),
