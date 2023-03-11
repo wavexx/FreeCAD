@@ -62,6 +62,7 @@ public:
     //@}
 
     void onNewSolidChanged() override;
+    void unsetupObject() override;
 
 protected:
     void handleChangedPropertyName(Base::XMLReader &reader, const char * TypeName, const char *PropName) override;

@@ -263,3 +263,17 @@ void Boolean::onNewSolidChanged()
     }
     inherited::onNewSolidChanged();
 }
+
+void Boolean::unsetupObject() {
+    std::vector<App::DocumentObjectT> objsT;
+    for (auto obj : Group.getValues()) {
+        if (!obj->isRemoving() && obj->getInList().size() <= 1) {
+            objsT.emplace_back(obj);
+        }
+    }
+    for (const auto &objT : objsT) {
+        if (auto obj = objT.getObject()) {
+            obj->getDocument()->removeObject(obj->getNameInDocument());
+        }
+    }
+}
