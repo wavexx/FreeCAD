@@ -116,8 +116,8 @@ protected:
 
 private:
     void saveToFile(Base::Writer &writer) const;
-    void loadFromFile(Base::Reader &reader);
-    void loadFromStream(Base::Reader &reader);
+    TopoDS_Shape loadFromFile(Base::Reader &reader);
+    TopoDS_Shape loadFromStream(Base::Reader &reader);
 
 private:
     TopoShape _Shape;

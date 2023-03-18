@@ -544,7 +544,7 @@ void PropertyPartShape::saveToFile(Base::Writer &writer) const
     fi.deleteFile();
 }
 
-void PropertyPartShape::loadFromFile(Base::Reader &reader)
+TopoDS_Shape PropertyPartShape::loadFromFile(Base::Reader &reader)
 {
     BRep_Builder builder;
     // create a temporary file and copy the content from the zip stream
@@ -584,22 +584,22 @@ void PropertyPartShape::loadFromFile(Base::Reader &reader)
 
     // delete the temp file
     fi.deleteFile();
-    setValue(shape);
+    return shape;
 }
 
-void PropertyPartShape::loadFromStream(Base::Reader &reader)
+TopoDS_Shape PropertyPartShape::loadFromStream(Base::Reader &reader)
 {
+    TopoDS_Shape shape;
     try {
         reader.exceptions(std::istream::failbit | std::istream::badbit);
         BRep_Builder builder;
-        TopoDS_Shape shape;
         BRepTools::Read(shape, reader, builder);
-        setValue(shape);
     }
     catch (const std::exception&) {
         if (!reader.eof())
             Base::Console().Warning("Failed to load BRep file %s\n", reader.getFileName().c_str());
     }
+    return shape;
 }
 
 void PropertyPartShape::SaveDocFile (Base::Writer &writer) const
@@ -651,11 +651,11 @@ void PropertyPartShape::RestoreDocFile(Base::Reader &reader)
                 "User parameter:BaseApp/Preferences/Mod/Part/General");
         bool direct = hGrp->GetBool("DirectAccess", true);
         if (!direct) {
-            loadFromFile(reader);
+            shape = loadFromFile(reader);
         }
         else {
             auto iostate = reader.exceptions();
-            loadFromStream(reader);
+            shape = loadFromStream(reader);
             reader.exceptions(iostate);
         }
     }
