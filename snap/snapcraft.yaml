@@ -137,37 +137,7 @@ parts:
     organize:
       "*": usr/Mod/SnapSetup/
 
-  coin3d:
-    plugin: cmake
-    source: https://github.com/realthunder/coin.git
-    source-tag: Coin-20210915 
-    cmake-parameters:
-      - -DCMAKE_INSTALL_PREFIX=/usr
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DCOIN_BUILD_TESTS=OFF
-      - -DCMAKE_CXX_STANDARD=98
-
-  pivy:
-    after: [coin3d]
-    plugin: cmake
-    source: https://github.com/coin3d/pivy.git
-    source-tag: "0.6.6"
-    override-build: |
-      # out of source builds fail for some reason:
-      # https://github.com/coin3d/pivy/issues/72
-      # let's do an in-source build  instead
-      cd $SNAPCRAFT_PART_SRC
-      cmake \
-        -DCMAKE_FIND_ROOT_PATH=/snap/kde-frameworks-5-qt-5-15-5-core20-sdk/current \
-        -DCMAKE_PREFIX_PATH="$SNAPCRAFT_STAGE" \
-        -DCMAKE_INSTALL_PREFIX=/usr \
-        -DCMAKE_BUILD_TYPE=Release \
-        .
-      cmake --build . -- -j${SNAPCRAFT_PARALLEL_BUILD_COUNT}
-      DESTDIR="$SNAPCRAFT_PART_INSTALL" cmake --build  . --target install
-
   freecad:
-    after: [coin3d, pivy]
     plugin: cmake
     source: .
     cmake-parameters:
@@ -184,8 +154,10 @@ parts:
       - -DBUILD_FLAT_MESH=ON
     build-snaps:
       - freecad-deps-core20
+      - coin3d-realthunder
     stage-snaps:
       - freecad-deps-core20
+      - coin3d-realthunder
     build-packages:
       - g++
       - git
@@ -265,7 +237,10 @@ parts:
       - povray # Raytracing
       - povray-includes # Raytracing
     override-build: |
-      kde_sdk_dir="/snap/kde-frameworks-5-96-qt-5-15-5-core20-sdk/current"
+      kde_sdk_dir="/snap/kde-frameworks-5-99-qt-5-15-7-core20-sdk/current"
+      mkdir -p "/snap/kde-frameworks-5-96-qt-5-15-5-core20-sdk"
+      # qtchooser wrapper scripts in 5-99 release seem broken and hard code path to 5-96 directory causing build failure
+      ln -s "/snap/kde-frameworks-5-99-qt-5-15-7-core20-sdk/9" "/snap/kde-frameworks-5-96-qt-5-15-5-core20-sdk/current"
       mkdir -p /etc/xdg/qtchooser
       cp "$kde_sdk_dir/etc/xdg/qtchooser/default.conf" "/etc/xdg/qtchooser/default.conf"
       mkdir -p /workspace/usr/bin
@@ -328,12 +303,12 @@ parts:
         ${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/graphviz/
 
   cleanup:
-    after: [stub-chown, freecad, python-packages, assembly3, snap-setup-mod, graphviz, coin3d, pivy, branding]
+    after: [stub-chown, freecad, python-packages, assembly3, snap-setup-mod, graphviz, branding]
     plugin: nil
-    build-snaps: [kde-frameworks-5-96-qt-5-15-5-core20]
+    build-snaps: [kde-frameworks-5-99-qt-5-15-7-core20]
     override-prime: |
       set -eux
-      for snap in "kde-frameworks-5-96-qt-5-15-5-core20"; do  # List all content-snaps you're using here
+      for snap in "kde-frameworks-5-99-qt-5-15-7-core20"; do  # List all content-snaps you're using here
         cd "/snap/$snap/current" && find . -type f,l -exec rm -f "$SNAPCRAFT_PRIME/{}" "$SNAPCRAFT_PRIME/usr/{}" \;
       done
       for cruft in bug lintian man; do

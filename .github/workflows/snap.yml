@@ -3,7 +3,7 @@ name: Publish Snap
 on:
   push:
     tags:
-      - "*" # build for any new tag (on all branches)
+      - "Snap*" # build for any new tag (on all branches)
     
 jobs:
   publish_amd64:
@@ -28,7 +28,7 @@ jobs:
       run: |
         if ${{ endsWith(github.ref, 'edge') }}; then
           release_to="edge"
-        else
-          release_to="stable"
+        elif ${{ endsWith(github.ref, 'tip') }}; then
+          release_to="beta"
         fi
         sudo snapcraft upload --release=${release_to} freecad-realthunder*.snap
