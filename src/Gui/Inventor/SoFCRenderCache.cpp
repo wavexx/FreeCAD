@@ -1799,11 +1799,33 @@ SoFCRenderCache::buildHighlightCache(SbFCMap<int, VertexCachePtr> &sharedcache,
         continue;
 
       if (!wholeontop && detail && !elementselectable)
-          continue;
+        continue;
 
       Material material = child.first;
       material.order = order;
       material.depthfunc = SoDepthBuffer::LEQUAL;
+
+      if (order > 0) {
+        float scale = 1.f;
+        if (material.type == Material::Line) {
+          scale = 2.f;
+          material.polygonoffsetstyle = SoPolygonOffsetElement::LINES;
+        }
+        else if (material.type == Material::Triangle) {
+          material.polygonoffsetstyle = SoPolygonOffsetElement::POINTS;
+          scale = 1.5f;
+        }
+        else
+          material.polygonoffsetstyle = SoPolygonOffsetElement::FILLED;
+        material.polygonoffsetfactor = -ViewParams::getRenderHighlightPolygonOffsetFactor();
+        material.polygonoffsetunits = -ViewParams::getRenderHighlightPolygonOffsetUnits();
+        if (preselect) {
+          material.polygonoffsetfactor -= ViewParams::getRenderHighlightPolygonOffsetFactor();
+          material.polygonoffsetunits -= ViewParams::getRenderHighlightPolygonOffsetUnits();
+        }
+        material.polygonoffsetfactor *= scale;
+        material.polygonoffsetunits *= scale;
+      }
 
       if (color && (material.selectstyle == Material::Box
                     || (material.selectstyle == Material::BoxFull && !detail)
