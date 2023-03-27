@@ -260,14 +260,14 @@ public:
 
     template<class Func>
     std::shared_ptr<ParamHandler> addHandler(const char *path, const char *key, Func func) {
-        auto handler = std::shared_ptr<ParamHandler>(new ParamHandlerT(func));
+        std::shared_ptr<ParamHandler> handler(new ParamHandlerT<Func>(func));
         addHandler(path, key, handler);
         return handler;
     }
 
     template<class Func>
     std::shared_ptr<ParamHandler> addHandler(ParameterGrp *hGrp, const char *key, Func func) {
-        auto handler = std::shared_ptr<ParamHandler>(new ParamHandlerT(func));
+        std::shared_ptr<ParamHandler> handler(new ParamHandlerT<Func>(func));
         addHandler(hGrp, key, handler);
         return handler;
     }
@@ -275,20 +275,20 @@ public:
     template<class Func>
     std::shared_ptr<ParamHandler> addDelayedHandler(const char *path, const char *key, Func func) {
         auto hGrp = App::GetApplication().GetUserParameter().GetGroup(path);
-        auto handler = std::shared_ptr<ParamHandler>(new ParamDelayedHandlerT(
-            [hGrp, func]() {
-                func(hGrp);
-            }));
+        auto wrap = [hGrp, func]() {
+            func(hGrp);
+        };
+        std::shared_ptr<ParamHandler> handler(new ParamDelayedHandlerT<decltype(wrap)>(wrap));
         addHandler(hGrp, key, handler);
         return handler;
     }
 
     template<class Func>
     std::shared_ptr<ParamHandler> addDelayedHandler(ParameterGrp *hGrp, const char *key, Func func) {
-        auto handler = std::shared_ptr<ParamHandler>(new ParamDelayedHandlerT(
-            [hGrp, func]() {
-                func(hGrp);
-            }));
+        auto wrap = [hGrp, func]() {
+            func(hGrp);
+        };
+        std::shared_ptr<ParamHandler> handler(new ParamDelayedHandlerT<decltype(wrap)>(wrap));
         addHandler(hGrp, key, handler);
         return handler;
     }
@@ -299,10 +299,10 @@ public:
                                                     Func func)
     {
         auto hGrp = App::GetApplication().GetUserParameter().GetGroup(path);
-        auto handler = std::shared_ptr<ParamHandler>(new ParamDelayedHandlerT(
-            [hGrp, func]() {
-                func(hGrp);
-            }));
+        auto wrap = [hGrp, func]() {
+            func(hGrp);
+        };
+        std::shared_ptr<ParamHandler> handler(new ParamDelayedHandlerT<decltype(wrap)>(wrap));
         for (const auto &key : keys)
             addHandler(ParamKey(hGrp, key), handler);
         return handler;
@@ -313,10 +313,10 @@ public:
                                                     const std::vector<const char *> &keys,
                                                     Func func)
     {
-        auto handler = std::shared_ptr<ParamHandler>(new ParamDelayedHandlerT(
-            [hGrp, func]() {
-                func(hGrp);
-            }));
+        auto wrap = [hGrp, func]() {
+            func(hGrp);
+        };
+        std::shared_ptr<ParamHandler> handler(new ParamDelayedHandlerT<decltype(wrap)>(wrap));
         for (const auto &key : keys)
             addHandler(ParamKey(hGrp, key), handler);
         return handler;
