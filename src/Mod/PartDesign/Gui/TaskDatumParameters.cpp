@@ -46,7 +46,6 @@
 #include "Utils.h"
 
 using namespace PartDesignGui;
-using namespace Gui;
 using namespace Attacher;
 
 /* TRANSLATOR PartDesignGui::TaskDatumParameters */

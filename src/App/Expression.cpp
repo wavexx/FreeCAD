@@ -40,6 +40,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <cctype>
 
 #include <App/Application.h>
 #include <App/DocumentObject.h>
@@ -7037,7 +7038,7 @@ bool isModuleImported(PyObject *module) {
 }
 
 bool check_text(const char *txt, const char *prefix) {
-    for(;*txt && std::isspace((unsigned char)txt[0]);++txt);
+    for(;*txt && std::isspace(static_cast<unsigned char>(txt[0]));++txt);
     return boost::starts_with(txt,prefix);
 }
 

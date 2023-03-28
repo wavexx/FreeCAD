@@ -27,6 +27,8 @@
 # include <cstdlib>
 #endif
 
+#include <cctype>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -1615,12 +1617,12 @@ MappedName ComplexGeoData::setElementName(const IndexedName & element,
 
     for(int i=0, count=name.size(); i<count; ++i) {
         char c = name[i];
-        if(c == '.' || std::isspace((int)c))
+        if(c == '.' || std::isspace(static_cast<unsigned char>(c)))
             FC_THROWM(Base::RuntimeError,"Illegal character in mapped name: " << name);
     }
     for(const char *s=element.getType();*s;++s) {
         char c = *s;
-        if(c == '.' || std::isspace((int)c))
+        if(c == '.' || std::isspace(static_cast<unsigned char>(c)))
             FC_THROWM(Base::RuntimeError,"Illegal character in element name: " << element);
     }
 

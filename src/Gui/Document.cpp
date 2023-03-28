@@ -24,7 +24,6 @@
 #include "Renderer/Renderer.h"
 
 #ifndef _PreComp_
-# include <cctype>
 # include <mutex>
 # include <QApplication>
 # include <QFileInfo>
@@ -35,6 +34,7 @@
 # include <Inventor/nodes/SoSeparator.h>
 #endif
 
+#include <cctype>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <App/AutoTransaction.h>
@@ -2373,7 +2373,7 @@ bool Document::saveCameraSettings(const char *settings, std::string *dst) const 
                 skipping = false;
         } else if(c == '#')
             skipping = true;
-        else if(!std::isspace(c))
+        else if(!std::isspace(static_cast<unsigned char>(c)))
             break;
     }
 

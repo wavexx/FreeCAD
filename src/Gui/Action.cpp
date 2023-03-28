@@ -2916,9 +2916,9 @@ public:
                 // user's intention of unbinding the property.
                 bool empty = false;
                 const char *t = m[0].second;
-                for(;*t && std::isspace((int)*t);++t);
+                for(;*t && std::isspace(static_cast<unsigned char>(*t));++t);
                 if(*t == '#') {
-                    for(++t;*t && std::isspace((int)*t);++t);
+                    for(++t;*t && std::isspace(static_cast<unsigned char>(*t));++t);
                     empty = !*t;
                 }
                 App::ExpressionPtr expr;

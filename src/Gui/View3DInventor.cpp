@@ -53,6 +53,7 @@
 #endif
 
 #include <atomic>
+#include <cctype>
 
 
 #include <App/DocumentObject.h>
@@ -879,10 +880,10 @@ bool View3DInventor::setCamera(const char* pCamera, int animateSteps, int animat
     const char *pos = std::strstr(pCamera,_OverrideModePrefix);
     if(pos) {
         size_t start = strlen(_OverrideModePrefix);
-        for(;pos[start] && std::isspace((int)pos[start]);++start);
+        for(;pos[start] && std::isspace(static_cast<unsigned char>(pos[start]));++start);
         size_t end = start;
         for(;pos[end] && pos[end]!='\n'; ++end);
-        for(;end!=start && std::isspace((int)pos[end-1]);--end);
+        for(;end!=start && std::isspace(static_cast<unsigned char>(pos[end-1]));--end);
         DrawStyle.setValue(std::string(pos+start, pos+end).c_str());
     }
 

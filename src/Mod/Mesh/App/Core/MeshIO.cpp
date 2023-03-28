@@ -30,6 +30,8 @@
 # include <string_view>
 #endif
 
+#include <cctype>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/convert.hpp>
 #include <boost/convert/spirit.hpp>

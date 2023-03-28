@@ -70,6 +70,7 @@
 
 using namespace Gui::PropertyEditor;
 using namespace Gui::Dialog;
+using namespace Gui;
 
 Gui::PropertyEditor::PropertyItemFactory* Gui::PropertyEditor::PropertyItemFactory::_singleton = nullptr;
 
