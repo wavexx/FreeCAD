@@ -5,7 +5,7 @@ set "CFLAGS= "
 set "CXXFLAGS= "
 set "LDFLAGS_SHARED= ucrt.lib"
 
-cmake -G "Ninja" ^
+cmake --debug-output -G "Ninja" ^
       -D BUID_WITH_CONDA:BOOL=ON ^
       -D CMAKE_BUILD_TYPE=Release ^
       -D FREECAD_LIBPACK_USE:BOOL=OFF ^
@@ -28,6 +28,7 @@ cmake -G "Ninja" ^
       -D USE_BOOST_PYTHON:BOOL=OFF ^
       -D FREECAD_USE_PYBIND11:BOOL=ON ^
       -D SMESH_INCLUDE_DIR:FILEPATH=%LIBRARY_PREFIX%/include/smesh ^
+      -D SMESH_LIBRARY:FILEPATH="%LIBRARY_PREFIX%/lib/SMESH.lib" ^
       -D FREECAD_USE_EXTERNAL_SMESH:BOOL=ON ^
       -D BUILD_FLAT_MESH:BOOL=ON ^
       -D BUILD_SHIP:BOOL=OFF ^
@@ -38,6 +39,7 @@ cmake -G "Ninja" ^
       -D FREECAD_USE_PCL:BOOL=ON ^
       -D INSTALL_TO_SITEPACKAGES:BOOL=ON ^
       -D LZMA_LIBRARY="%LIBRARY_PREFIX%/lib/liblzma.lib" ^
+      -D BUILD_TEST:BOOL=OFF ^
       ..
 
 if errorlevel 1 exit 1
