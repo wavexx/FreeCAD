@@ -15,7 +15,7 @@ jobs:
       matrix:
         # os: [macOS-latest, ubuntu-latest, windows-latest]
         # python-version: ["3.8", "3.9", "3.10"]
-        os: [windows-latest]
+        os: [macOS-11]
         python-version: ["3.10"]
 
     steps:
@@ -26,7 +26,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           # mamba-version: "*"
           conda-build-version: "*"
-          environment-file: conda/build_env.yaml    # Path to the build conda environment
+          environment-file: dist/conda/build_env.yaml    # Path to the build conda environment
           auto-update-conda: false
           auto-activate-base: false
           show-channel-urls: true
@@ -37,9 +37,10 @@ jobs:
       - name: Build and upload the conda packages
         uses: realthunder/action-build-and-upload-conda-packages@main
         with:
-          meta_yaml_dir: conda
+          meta_yaml_dir: dist/conda
           # mambabuild: true
           python-version: ${{ matrix.python-version }}
           user: realthunder
           label: auto
           token: ${{ secrets.ANACONDA_TOKEN }}
+          # debug: true
