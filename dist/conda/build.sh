@@ -20,10 +20,6 @@ if [[ ${HOST} =~ .*darwin.* ]] && [[ ${target_platform} =~ osx-64 ]]; then
     # add hacks for osx here!
     echo "adding hacks for osx"
     
-    # delete python3.11 from framework
-    rm -rf /Library/Frameworks/Python.framework/Versions/3.11
-
-
     # should be applied @vtk-feedstock
     # sed -i '381,383d' ${PREFIX}/lib/cmake/vtk-9.0/VTK-targets.cmake
 
@@ -43,10 +39,10 @@ if [[ ${HOST} =~ .*darwin.* ]] && [[ ${target_platform} =~ osx-64 ]]; then
 fi
 
 if [[ ${HOST} =~ .*darwin.* ]]; then
-    CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+    CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY -DBOOST_NO_CXX98_FUNCTION_BASE"
 fi
 
-cmake --debug-output -G "$cmake_generator" \
+cmake -G "$cmake_generator" \
       -D BUID_WITH_CONDA:BOOL=ON \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$PREFIX \
@@ -63,7 +59,10 @@ cmake --debug-output -G "$cmake_generator" \
       -D FREECAD_USE_EXTERNAL_SMESH=ON \
       -D BUILD_FLAT_MESH:BOOL=ON \
       -D BUILD_WITH_CONDA:BOOL=ON \
+      -D Python3_FIND_STRATEGY=LOCATION \
       -D PYTHON_EXECUTABLE:FILEPATH=$PREFIX/bin/python \
+      -D Python3_EXECUTABLE:FILEPATH=$PREFIX/bin/python \
+      -D Python3_FIND_FRAMEWORK:STRING=NEVER \
       -D BUILD_FEM_NETGEN:BOOL=ON \
       -D BUILD_PLOT:BOOL=OFF \
       -D BUILD_SHIP:BOOL=OFF \
