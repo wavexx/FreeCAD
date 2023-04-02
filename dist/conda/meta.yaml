@@ -13,7 +13,7 @@ build:
 requirements:
   run_constrained:
     - moab * mpi_openmpi_tempest*
-    - __osx >={{ MACOSX_DEPLOYMENT_TARGET|default("10.9") }}  # [osx]
+    - __osx >={{ MACOSX_DEPLOYMENT_TARGET|default("10.12") }}  # [osx]
   build:
     - {{ compiler("cxx") }}
     - {{ cdt('mesa-libgl-devel') }}      # [linux]

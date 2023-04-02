@@ -15,7 +15,7 @@ jobs:
       matrix:
         # macos-latest seems to hang on installing 3Dconnexion framework
         # os: [macos-11, ubuntu-latest, windows-latest]
-        os: [ubuntu-latest]
+        os: [macos-11]
 
     steps:
       - uses: actions/checkout@v3
@@ -37,6 +37,6 @@ jobs:
           meta_yaml_dir: dist/conda
           # mambabuild: true
           user: realthunder
-          label: auto
+          label: main
           token: ${{ secrets.ANACONDA_TOKEN }}
           # debug: true
