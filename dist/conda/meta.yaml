@@ -34,6 +34,7 @@ requirements:
     - sed  # [unix]
     - python                                 # [build_platform != target_platform]
     - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - qt-main                                # [build_platform != target_platform]
   host:
     - boost-cpp
     - python
@@ -43,14 +44,12 @@ requirements:
     - xerces-c
     - zlib
     - vtk
-    - swig
     - eigen
     - pybind11
     - coin3d-rt
     - pivy-rt
     - pyside2
     - smesh ==9.9
-    - doxygen
     - hdf5 
     - freetype
     - libspnav  # [linux]
@@ -81,7 +80,6 @@ requirements:
     - ply
     - gmsh
     - graphviz
-    - opencamlib
     - matplotlib
 
 # test:
