@@ -8,11 +8,12 @@ source:
   git_url : ../../
 
 build:
-  number: 2
+  number: 3
 
 requirements:
   run_constrained:
-    - moab * mpi_openmpi_tempest*
+    - moab * mpi_openmpi_tempest* # [not osx]
+    - moab * mpi_mpich_tempest* # [osx]
     - __osx >={{ MACOSX_DEPLOYMENT_TARGET|default("10.12") }}  # [osx]
   build:
     - {{ compiler("cxx") }}

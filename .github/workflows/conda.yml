@@ -44,6 +44,7 @@ jobs:
       #   shell: bash -el {0}
       #   run: mamba install boa -c conda-forge
       - name: Set build variant
+        shell: bash -xel {0}
         run: |
           if ${{ startsWith(matrix.os, 'macos') }}; then
             platform=osx
@@ -52,14 +53,15 @@ jobs:
           else
             platform=linux
           fi
-          echo "target_platform:\n  $platform-${{ matrix.arch }}" > conda/variant.yaml
-          cat conda/variant.yaml
+          printf "target_platform:\n  - %s-%s\n" $platform ${{ matrix.arch }} > dist/conda/variant.yaml
+          cat dist/conda/variant.yaml
       - name: Build and upload the conda packages
         uses: realthunder/action-build-and-upload-conda-packages@main
         with:
           meta_yaml_dir: dist/conda
           # mambabuild: true
           python-version: ${{ matrix.python-version }}
+          variant_conf: dist/conda/variant.yaml
           user: realthunder
           label: main
           token: ${{ secrets.ANACONDA_TOKEN }}
