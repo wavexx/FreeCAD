@@ -1,7 +1,15 @@
+@echo on
+
+if "%GIT_DESCRIBE_TAG:~-6%"=="stable" (
+    set ICON=icon.ico
+) else (
+    set ICON=icon-daily.ico
+)
+
+if exist "%RECIPE_DIR%\extra\%ICON%" (copy /y "%RECIPE_DIR%\extra\%ICON%" src\Main\icon.ico)
+
 mkdir build
 cd build
-
-@echo on
 
 set "CFLAGS= "
 set "CXXFLAGS= "
