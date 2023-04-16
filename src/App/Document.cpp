@@ -3873,7 +3873,7 @@ public:
 
 bool Document::isAnyRecomputing()
 {
-    return _Recomputing == 0;
+    return _Recomputing != 0;
 }
 
 int Document::recompute(const std::vector<App::DocumentObject*> &objs, bool force, bool *hasError, int options)
