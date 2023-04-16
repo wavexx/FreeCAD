@@ -457,6 +457,15 @@ public:
     /// Return the number of hashes that are used by others
     size_t count() const;
 
+    struct StorageSizes {
+        size_t referenced_size = 0;
+        size_t total_size = 0;
+        size_t shared_size = 0;
+        size_t total_shared_size = 0;
+    };
+    /// Return the storage size
+    StorageSizes getStorageSize() const;
+
     virtual PyObject *getPyObject(void) override;
 
     void setSaveAll(bool enable);

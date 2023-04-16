@@ -204,6 +204,28 @@ void StringHasher::compact()
     }
 }
 
+StringHasher::StorageSizes StringHasher::getStorageSize() const
+{
+    StorageSizes sizes;
+    std::unordered_set<const char *> dataset;
+    for (const auto & v : _hashes->right) {
+        const StringID &sid = *v.second;
+        size_t size = sid._data.size() + sid._postfix.size();
+        size_t shared_size = 0;
+        if (dataset.insert(sid._data.constData()).second)
+            shared_size += sid._data.size();
+        if (dataset.insert(sid._postfix.constData()).second)
+            shared_size += sid._postfix.size();
+        if (sid.isPersistent() || sid.getRefCount() > 1) {
+            sizes.referenced_size += size;
+            sizes.shared_size += shared_size;
+        }
+        sizes.total_size += size;
+        sizes.total_shared_size += shared_size;
+    }
+    return sizes;
+}
+
 bool StringHasher::getSaveAll() const {
     return _hashes->SaveAll;
 }
