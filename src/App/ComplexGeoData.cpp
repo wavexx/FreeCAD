@@ -1889,8 +1889,6 @@ int ComplexGeoData::findTagInElementName(const MappedName & name,
         // ----------- len -----------
         _len = pos - _len;
     }
-    if(type)
-        *type = tp;
     if(tag) {
         if (_tag == 0 && recursive)
             return findTagInElementName(
@@ -1900,6 +1898,8 @@ int ComplexGeoData::findTagInElementName(const MappedName & name,
         else
             *tag = -_tag;
     }
+    if(type)
+        *type = tp;
     if(len)
         *len = _len;
     if(postfix)
@@ -1994,14 +1994,13 @@ long ComplexGeoData::getElementHistory(const MappedName & name,
     int pos = findTagInElementName(name,&tag,&len,nullptr,nullptr,true);
     if(pos < 0) {
         if(original)
-            *original = name;
+            *original = name.copy();
         return tag;
     }
     if(!original && !history)
         return tag;
 
-    MappedName tmp;
-    MappedName &ret = original?*original:tmp;
+    MappedName ret;
     if(name.startsWith(elementMapPrefix())) {
         unsigned offset = elementMapPrefix().size();
         ret = MappedName::fromRawData(name, offset);
@@ -2011,7 +2010,8 @@ long ComplexGeoData::getElementHistory(const MappedName & name,
     while(1) {
         if(!len || len>pos) {
             FC_WARN("invalid name length " << name);
-            return 0;
+            tag = 0;
+            break;
         }
         bool dehashed = false;
         if (ret.startsWith(MappedChildElements::prefix(), len)) {
@@ -2029,11 +2029,15 @@ long ComplexGeoData::getElementHistory(const MappedName & name,
         long tag2 = 0;
         pos = findTagInElementName(ret,&tag2,&len,nullptr,nullptr,true);
         if(pos < 0 || (tag2!=tag && tag2!=-tag && tag!=Tag && -tag!=Tag))
-            return tag;
+            break;
         tag = tag2;
         if(history)
             history->push_back(ret.copy());
     }
+
+    if (original)
+        *original = ret.copy();
+    return tag;
 }
 
 void ComplexGeoData::setPersistenceFileName(const char *filename) const {
