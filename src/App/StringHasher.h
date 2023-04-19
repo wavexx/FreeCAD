@@ -129,13 +129,19 @@ public:
 
     std::string dataToText(int index) const;
 
-    void toBytes(QByteArray &bytes, int index) const {
-        if (_postfix.size())
-            bytes = _data + _postfix;
-        else if (index)
-            bytes = _data + QByteArray::number(index);
-        else
-            bytes = _data;
+    /** Get the content of this StringID as QByteArray
+     * @param index: optional index.
+     */
+    QByteArray dataToBytes(int index = 0) const
+    {
+        QByteArray res(_data);
+        if (index != 0) {
+            res += QByteArray::number(index);
+        }
+        if (_postfix.size() != 0) {
+            res += _postfix;
+        }
+        return res;
     }
 
     void mark() const;
@@ -350,8 +356,9 @@ public:
     }
 
     void toBytes(QByteArray &bytes) const {
-        if (_sid)
-            _sid->toBytes(bytes, _index);
+        if (_sid) {
+            bytes = _sid->dataToBytes(_index);
+        }
     }
 
     PyObject *getPyObject(void) {
