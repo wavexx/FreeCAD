@@ -1703,8 +1703,18 @@ MappedName ComplexGeoData::renameDuplicateElement(int index,
                                                   const MappedName & name,
                                                   ElementIDRefs &sids)
 {
+    int idx;
+#ifdef FC_DEBUG
+    idx = index;
+#else
+    static std::random_device _RD;
+    static std::mt19937 _RGEN(_RD());
+    static std::uniform_int_distribution<> _RDIST(1,10000);
+    (void)index;
+    idx = _RDIST(_RGEN);
+#endif
     std::ostringstream ss;
-    ss << elementMapPrefix() << 'D' << std::hex << index;
+    ss << elementMapPrefix() << 'D' << std::hex << idx;
     MappedName renamed(name);
     encodeElementName(element.getType()[0],renamed,ss,&sids);
     if (FC_LOG_INSTANCE.isEnabled(FC_LOGLEVEL_LOG))
