@@ -24,7 +24,6 @@
 #define GUI_SPLITVIEW3DINVENTOR_H
 
 #include "MDIView.h"
-#include "MDIViewPy.h"
 
 #include <Base/Parameter.h>
 #include <vector>
