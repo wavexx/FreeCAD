@@ -284,7 +284,7 @@ StringIDRef StringHasher::getID(const Data::MappedName &name,
     d._postfix = name.postfixBytes();
 
     Data::IndexedName indexed;
-    if (d._postfix.size()) {
+    if (DocumentParams::getHashIndexedName() && d._postfix.size()) {
         // Only check for IndexedName if there is postfix, because of the way
         // we restore the StringID. See StringHasher::saveStream/restoreStreamNew()
         indexed = Data::IndexedName(name.dataBytes());
@@ -358,20 +358,22 @@ StringIDRef StringHasher::getID(const Data::MappedName &name,
         // StringHasher::saveStream/restoreStreamNew()
         StringID::IndexID res = StringID::fromString(id._data);
         if (res.id > 0) {
-            if (res.index != 0) {
-                indexed.setIndex(res.index);
-                id._data.resize(id._data.lastIndexOf(':')+1);
-            }
-            int offset = id.isPostfixEncoded() ? 1 : 0;
-            for (int i=offset; i<id._sids.size();++i) {
-                if (id._sids[i].value() == res.id) {
-                    if (i!=offset)
-                        std::swap(id._sids[offset], id._sids[i]);
-                    if (res.index != 0)
-                        id._flags.set(StringID::PrefixIDIndex);
-                    else
-                        id._flags.set(StringID::PrefixID);
-                    break;
+            if (DocumentParams::getHashIndexedName() || res.index == 0) {
+                if (res.index != 0) {
+                    indexed.setIndex(res.index);
+                    id._data.resize(id._data.lastIndexOf(':')+1);
+                }
+                int offset = id.isPostfixEncoded() ? 1 : 0;
+                for (int i=offset; i<id._sids.size();++i) {
+                    if (id._sids[i].value() == res.id) {
+                        if (i!=offset)
+                            std::swap(id._sids[offset], id._sids[i]);
+                        if (res.index != 0)
+                            id._flags.set(StringID::PrefixIDIndex);
+                        else
+                            id._flags.set(StringID::PrefixID);
+                        break;
+                    }
                 }
             }
         }
