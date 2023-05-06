@@ -526,7 +526,11 @@ void DlgPreferencesImp::applyChanges()
 
 void DlgPreferencesImp::showEvent(QShowEvent* ev)
 {
-    adjustSize();
+    // For some reason, calling adjustSize() below overrides size restore done
+    // by widgetState
+    //
+    // adjustSize();
+
     adjustListBox();
     QDialog::showEvent(ev);
 }

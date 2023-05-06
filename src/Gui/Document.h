@@ -246,6 +246,7 @@ public:
                 f(view);
         }
     }
+    BaseView *getViewByID(int id) const;
     //@}
 
     MDIView *setActiveView(ViewProviderDocumentObject *vp=nullptr, Base::Type typeId = Base::Type());

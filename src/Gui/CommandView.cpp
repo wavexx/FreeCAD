@@ -4197,9 +4197,48 @@ VIEW_CMD_DEF(PreSelFaceOnTop, ShowPreSelectedFaceOnTop)
 VIEW_CMD_DEF(PreSelFaceOutline, ShowPreSelectedFaceOutline)
 {
   sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("&Draw pre-selection outline");
+  sMenuText     = QT_TR_NOOP("Draw pre-selection &outline");
   sToolTipText  = ViewParams::docShowPreSelectedFaceOutline();
   sWhatsThis    = "Std_PreSelFaceOutline";
+  sStatusTip    = sToolTipText;
+  eType         = NoDefaultAction;
+}
+
+//======================================================================
+// Std_SelFaceOutline
+//======================================================================
+VIEW_CMD_DEF(SelFaceOutline, ShowSelectedFaceOutline)
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Draw selection outline");
+  sToolTipText  = ViewParams::docShowSelectedFaceOutline();
+  sWhatsThis    = "Std_SelFaceOutline";
+  sStatusTip    = sToolTipText;
+  eType         = NoDefaultAction;
+}
+
+//======================================================================
+// Std_NoSelFaceHighlightWithOutline
+//======================================================================
+VIEW_CMD_DEF(NoSelFaceHighlightWithOutline, NoSelFaceHighlightWithOutline)
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("No selection face highlight with outline");
+  sToolTipText  = ViewParams::docNoSelFaceHighlightWithOutline();
+  sWhatsThis    = "Std_NoSelFaceHighlightWithOutline";
+  sStatusTip    = sToolTipText;
+  eType         = NoDefaultAction;
+}
+
+//======================================================================
+// Std_NoPreSelFaceHighlightWithOutline
+//======================================================================
+VIEW_CMD_DEF(NoPreSelFaceHighlightWithOutline, NoPreSelFaceHighlightWithOutline)
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("No pre-selection face highlight with outline");
+  sToolTipText  = ViewParams::docNoPreSelFaceHighlightWithOutline();
+  sWhatsThis    = "Std_NoPreSelFaceHighlightWithOutline";
   sStatusTip    = sToolTipText;
   eType         = NoDefaultAction;
 }
@@ -4321,6 +4360,9 @@ public:
         addCommand(new StdCmdSelOnTop());
         addCommand(new StdCmdPreSelFaceOnTop());
         addCommand(new StdCmdPreSelFaceOutline());
+        addCommand(new StdCmdSelFaceOutline());
+        addCommand(new StdCmdNoSelFaceHighlightWithOutline());
+        addCommand(new StdCmdNoPreSelFaceHighlightWithOutline());
         addCommand(new StdCmdPartialHighlightOnFullSelect());
         // addCommand(new StdCmdSelectionFaceWire());
         addCommand(new StdCmdAutoTransparentPick());
@@ -4448,7 +4490,7 @@ StdCmdDockOverlayToggleLeft::StdCmdDockOverlayToggleLeft()
     sToolTipText  = QT_TR_NOOP("Show/hide left overlay panel");
     sWhatsThis    = "Std_DockOverlayToggleLeft";
     sStatusTip    = sToolTipText;
-    sAccel        = "SHIFT+Left";
+    sAccel        = "Ctrl+Shift+Left";
     sPixmap       = "qss:overlay/close.svg";
     eType         = 0;
 }
@@ -4473,7 +4515,7 @@ StdCmdDockOverlayToggleRight::StdCmdDockOverlayToggleRight()
     sToolTipText  = QT_TR_NOOP("Show/hide right overlay panel");
     sWhatsThis    = "Std_DockOverlayToggleRight";
     sStatusTip    = sToolTipText;
-    sAccel        = "SHIFT+Right";
+    sAccel        = "Ctrl+Shift+Right";
     sPixmap       = "qss:overlay/close.svg";
     eType         = 0;
 }
@@ -4498,7 +4540,7 @@ StdCmdDockOverlayToggleTop::StdCmdDockOverlayToggleTop()
     sToolTipText  = QT_TR_NOOP("Show/hide top overlay panel");
     sWhatsThis    = "Std_DockOverlayToggleTop";
     sStatusTip    = sToolTipText;
-    sAccel        = "SHIFT+Up";
+    sAccel        = "Ctrl+Shift+Up";
     sPixmap       = "qss:overlay/close.svg";
     eType         = 0;
 }
@@ -4523,7 +4565,7 @@ StdCmdDockOverlayToggleBottom::StdCmdDockOverlayToggleBottom()
     sToolTipText  = QT_TR_NOOP("Show/hide bottom overlay panel");
     sWhatsThis    = "Std_DockOverlayToggleBottom";
     sStatusTip    = sToolTipText;
-    sAccel        = "SHIFT+Down";
+    sAccel        = "Ctrl+Shift+Down";
     sPixmap       = "qss:overlay/close.svg";
     eType         = 0;
 }

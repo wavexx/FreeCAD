@@ -154,7 +154,7 @@ public:
     static bool isElementMappingDisabled(App::PropertyContainer *container);
 
     const std::vector<std::string>& searchElementCache(const std::string &element,
-                                                       bool checkGeometry = true,
+                                                       Data::SearchOptions options = Data::SearchOption::CheckGeometry,
                                                        double tol = 1e-7,
                                                        double atol = 1e-10) const override;
 

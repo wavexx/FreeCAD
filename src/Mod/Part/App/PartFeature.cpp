@@ -93,7 +93,7 @@ PROPERTY_SOURCE(Part::Feature, App::GeoFeature)
 Feature::Feature()
 {
     ADD_PROPERTY(Shape, (TopoDS_Shape()));
-    ADD_PROPERTY_TYPE(ValidateShape, (PartParams::getValidateShape()), "", App::Prop_None,
+    ADD_PROPERTY_TYPE(ValidateShape, (false), "", App::Prop_None,
             "Validate shape content and warn about invalid shape");
     ADD_PROPERTY_TYPE(InvalidShape, (false), "", App::Prop_Hidden,
             "Indicate the shape is invalid");
@@ -1344,7 +1344,7 @@ bool Feature::shouldApplyPlacement()
 
 const std::vector<std::string> &
 Feature::searchElementCache(const std::string &element,
-                            bool checkGeometry,
+                            Data::SearchOptions options,
                             double tol,
                             double atol) const
 {
@@ -1366,7 +1366,7 @@ Feature::searchElementCache(const std::string &element,
         }
         it->second.searched = true;
         propShape->getShape().searchSubShape(
-                it->second.shape, &it->second.names, checkGeometry, tol, atol);
+                it->second.shape, &it->second.names, options, tol, atol);
         if (prefix) {
             for (auto &name : it->second.names) {
                 if (auto dot = strrchr(name.c_str(), '.'))

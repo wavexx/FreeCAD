@@ -274,6 +274,7 @@ class PartExport GeomBSplineCurve : public GeomBoundedCurve
 public:
     GeomBSplineCurve();
     GeomBSplineCurve(const Handle(Geom_BSplineCurve)&);
+    explicit GeomBSplineCurve(const Adaptor3d_Curve &);
 
     GeomBSplineCurve( const std::vector<Base::Vector3d>& poles, const std::vector<double>& weights,
                       const std::vector<double>& knots, const std::vector<int>& multiplicities,
@@ -890,8 +891,9 @@ class PartExport GeomBSplineSurface : public GeomSurface
 public:
     GeomBSplineSurface();
     GeomBSplineSurface(const Handle(Geom_BSplineSurface)&);
-    ~GeomBSplineSurface() override;
-    Geometry *copy() const override;
+    explicit GeomBSplineSurface(const Adaptor3d_Surface&);
+    virtual ~GeomBSplineSurface();
+    virtual Geometry *copy(void) const;
 
     void scaleKnotsToBounds(double u0, double u1, double v0, double v1);
     // Persistence implementer ---------------------
@@ -905,6 +907,8 @@ public:
 
     void setHandle(const Handle(Geom_BSplineSurface)&);
     const Handle(Geom_Geometry)& handle() const override;
+
+    void Trim(double u1, double u2, double v1, double v2);
 
 private:
     Handle(Geom_BSplineSurface) mySurface;

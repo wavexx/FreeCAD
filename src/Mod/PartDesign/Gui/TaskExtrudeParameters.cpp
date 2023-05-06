@@ -361,7 +361,9 @@ void TaskExtrudeParameters::_onSelectionChanged(const Gui::SelectionChanges& msg
             }
         }
     } else if (msg.Type == Gui::SelectionChanges::ClrSelection) {
-        clearFaceName();
+        if (getSelectionMode() == SelectionMode::refAdd) {
+            clearFaceName();
+        }
     }
 }
 

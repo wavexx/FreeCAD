@@ -375,7 +375,7 @@ QString Action::createToolTip(QString helpText,
     if (command && command->getName()) {
         auto pCmd = command;
         cmdName = QString::fromUtf8(command->getName());
-        int idx = 0;
+        int idx = -1;
         if (auto action = pCmd->getChildAction(-1, &idx)) {
             auto cmd = action->command();
             if (cmd && cmd->getName()) {
@@ -384,7 +384,11 @@ QString Action::createToolTip(QString helpText,
                     .arg(cmdName)
                     .arg(idx);
                 pCmd = cmd;
+                idx = -1;
             }
+        }
+        if (idx >= 0) {
+            cmdName = QStringLiteral("%1:%2").arg(cmdName).arg(idx);
         }
         if (iconPath.isEmpty() && ViewParams::getToolTipIconSize() > 0) {
             if (auto pixmap = pCmd->getPixmap()) {

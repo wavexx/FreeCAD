@@ -101,7 +101,7 @@ public:
     /*! Constructor */
     DocumentObjectT(DocumentObjectT &&);
     /*! Constructor */
-    explicit DocumentObjectT(const DocumentObject*);
+    explicit DocumentObjectT(const DocumentObject*, const char *propertyName="");
     /*! Constructor */
     DocumentObjectT(const Document*, const std::string& objName);
     /*! Constructor */
@@ -139,6 +139,8 @@ public:
     const std::string &getObjectLabel() const;
     /*! Get the name of the property. */
     const std::string &getPropertyName() const;
+    /*! Set the name of the property. */
+    void setPropertyName(const char *name);
     /*! Get the document object as Python command. */
     std::string getObjectPython() const;
     /*! Get the property as Python command. */

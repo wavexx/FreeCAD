@@ -619,37 +619,6 @@ App::DocumentObjectExecReturn *Transformed::execute()
     }
 
 
-    auto getTransformedCompShape = [&](const auto& origShape)
-    {
-        TopTools_ListOfShape shapeTools;
-        std::vector<TopoDS_Shape> shapes;
-
-        std::vector<gp_Trsf>::const_iterator transformIter = transformations.begin();
-
-        // First transformation is skipped since it should not be part of the toolShape.
-        ++transformIter;
-
-        for (; transformIter != transformations.end(); ++transformIter) {
-            // Make an explicit copy of the shape because the "true" parameter to BRepBuilderAPI_Transform
-            // seems to be pretty broken
-            BRepBuilderAPI_Copy copy(origShape);
-
-            TopoDS_Shape shape = copy.Shape();
-
-            BRepBuilderAPI_Transform mkTrf(shape, *transformIter, false); // No need to copy, now
-            if (!mkTrf.IsDone())
-                return shapeTools;
-            shape = mkTrf.Shape();
-
-            shapes.emplace_back(shape);
-        }
-
-        for (const auto& shape : shapes)
-            shapeTools.Append(shape);
-
-        return shapeTools;
-    };
-
     // NOTE: It would be possible to build a compound from all original addShapes/subShapes and then
     // transform the compounds as a whole. But we choose to apply the transformations to each
     // Original separately. This way it is easier to discover what feature causes a fuse/cut

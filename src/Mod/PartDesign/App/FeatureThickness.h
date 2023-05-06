@@ -42,15 +42,14 @@ public:
     App::PropertyBool           Reversed;
     App::PropertyBool           Intersection;
     App::PropertyEnumeration    Mode;
-    App::PropertyEnumeration    Join;
-    App::PropertyBool           Refine;
+    App::PropertyEnumeration    Join;      
+    App::PropertyBool           MakeOffset;
 
     /** @name methods override feature */
     //@{
     /// recalculate the feature
     App::DocumentObjectExecReturn *execute() override;
     short mustExecute() const override;
-    void setupObject () override;
     /// returns the type name of the view provider
     const char* getViewProviderName() const override {
         return "PartDesignGui::ViewProviderThickness";

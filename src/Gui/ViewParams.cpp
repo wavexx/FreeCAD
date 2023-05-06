@@ -86,6 +86,10 @@ public:
     bool ShowSelectionOnTop;
     bool ShowPreSelectedFaceOnTop;
     bool ShowPreSelectedFaceOutline;
+    bool ShowSelectedFaceOutline;
+    double OutlineThicken;
+    bool NoSelFaceHighlightWithOutline;
+    bool NoPreSelFaceHighlightWithOutline;
     bool AutoTransparentPick;
     bool SelectElementOnTop;
     double TransparencyOnTop;
@@ -206,6 +210,8 @@ public:
     long RenderCacheMergeCountMax;
     long RenderCacheMergeDepthMax;
     long RenderCacheMergeDepthMin;
+    double RenderHighlightPolygonOffsetFactor;
+    double RenderHighlightPolygonOffsetUnits;
     bool ForceSolidSingleSideLighting;
     long DefaultFontSize;
     bool EnableTaskPanelKeyTranslate;
@@ -278,6 +284,14 @@ public:
         funcs["ShowPreSelectedFaceOnTop"] = &ViewParamsP::updateShowPreSelectedFaceOnTop;
         ShowPreSelectedFaceOutline = handle->GetBool("ShowPreSelectedFaceOutline", true);
         funcs["ShowPreSelectedFaceOutline"] = &ViewParamsP::updateShowPreSelectedFaceOutline;
+        ShowSelectedFaceOutline = handle->GetBool("ShowSelectedFaceOutline", true);
+        funcs["ShowSelectedFaceOutline"] = &ViewParamsP::updateShowSelectedFaceOutline;
+        OutlineThicken = handle->GetFloat("OutlineThicken", 4);
+        funcs["OutlineThicken"] = &ViewParamsP::updateOutlineThicken;
+        NoSelFaceHighlightWithOutline = handle->GetBool("NoSelFaceHighlightWithOutline", false);
+        funcs["NoSelFaceHighlightWithOutline"] = &ViewParamsP::updateNoSelFaceHighlightWithOutline;
+        NoPreSelFaceHighlightWithOutline = handle->GetBool("NoPreSelFaceHighlightWithOutline", true);
+        funcs["NoPreSelFaceHighlightWithOutline"] = &ViewParamsP::updateNoPreSelFaceHighlightWithOutline;
         AutoTransparentPick = handle->GetBool("AutoTransparentPick", false);
         funcs["AutoTransparentPick"] = &ViewParamsP::updateAutoTransparentPick;
         SelectElementOnTop = handle->GetBool("SelectElementOnTop", false);
@@ -518,6 +532,10 @@ public:
         funcs["RenderCacheMergeDepthMax"] = &ViewParamsP::updateRenderCacheMergeDepthMax;
         RenderCacheMergeDepthMin = handle->GetInt("RenderCacheMergeDepthMin", 1);
         funcs["RenderCacheMergeDepthMin"] = &ViewParamsP::updateRenderCacheMergeDepthMin;
+        RenderHighlightPolygonOffsetFactor = handle->GetFloat("RenderHighlightPolygonOffsetFactor", 1);
+        funcs["RenderHighlightPolygonOffsetFactor"] = &ViewParamsP::updateRenderHighlightPolygonOffsetFactor;
+        RenderHighlightPolygonOffsetUnits = handle->GetFloat("RenderHighlightPolygonOffsetUnits", 1);
+        funcs["RenderHighlightPolygonOffsetUnits"] = &ViewParamsP::updateRenderHighlightPolygonOffsetUnits;
         ForceSolidSingleSideLighting = handle->GetBool("ForceSolidSingleSideLighting", true);
         funcs["ForceSolidSingleSideLighting"] = &ViewParamsP::updateForceSolidSingleSideLighting;
         DefaultFontSize = handle->GetInt("DefaultFontSize", 0);
@@ -675,6 +693,22 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateShowPreSelectedFaceOutline(ViewParamsP *self) {
         self->ShowPreSelectedFaceOutline = self->handle->GetBool("ShowPreSelectedFaceOutline", true);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateShowSelectedFaceOutline(ViewParamsP *self) {
+        self->ShowSelectedFaceOutline = self->handle->GetBool("ShowSelectedFaceOutline", true);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateOutlineThicken(ViewParamsP *self) {
+        self->OutlineThicken = self->handle->GetFloat("OutlineThicken", 4);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateNoSelFaceHighlightWithOutline(ViewParamsP *self) {
+        self->NoSelFaceHighlightWithOutline = self->handle->GetBool("NoSelFaceHighlightWithOutline", false);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateNoPreSelFaceHighlightWithOutline(ViewParamsP *self) {
+        self->NoPreSelFaceHighlightWithOutline = self->handle->GetBool("NoPreSelFaceHighlightWithOutline", true);
     }
     // Auto generated code (Tools/params_utils.py:238)
     static void updateAutoTransparentPick(ViewParamsP *self) {
@@ -1167,6 +1201,14 @@ public:
     // Auto generated code (Tools/params_utils.py:238)
     static void updateRenderCacheMergeDepthMin(ViewParamsP *self) {
         self->RenderCacheMergeDepthMin = self->handle->GetInt("RenderCacheMergeDepthMin", 1);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateRenderHighlightPolygonOffsetFactor(ViewParamsP *self) {
+        self->RenderHighlightPolygonOffsetFactor = self->handle->GetFloat("RenderHighlightPolygonOffsetFactor", 1);
+    }
+    // Auto generated code (Tools/params_utils.py:238)
+    static void updateRenderHighlightPolygonOffsetUnits(ViewParamsP *self) {
+        self->RenderHighlightPolygonOffsetUnits = self->handle->GetFloat("RenderHighlightPolygonOffsetUnits", 1);
     }
     // Auto generated code (Tools/params_utils.py:244)
     static void updateForceSolidSingleSideLighting(ViewParamsP *self) {
@@ -1975,6 +2017,118 @@ void ViewParams::setShowPreSelectedFaceOutline(const bool &v) {
 // Auto generated code (Tools/params_utils.py:314)
 void ViewParams::removeShowPreSelectedFaceOutline() {
     instance()->handle->RemoveBool("ShowPreSelectedFaceOutline");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docShowSelectedFaceOutline() {
+    return QT_TRANSLATE_NOOP("ViewParams",
+"Show selected face outline");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const bool & ViewParams::getShowSelectedFaceOutline() {
+    return instance()->ShowSelectedFaceOutline;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const bool & ViewParams::defaultShowSelectedFaceOutline() {
+    const static bool def = true;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setShowSelectedFaceOutline(const bool &v) {
+    instance()->handle->SetBool("ShowSelectedFaceOutline",v);
+    instance()->ShowSelectedFaceOutline = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeShowSelectedFaceOutline() {
+    instance()->handle->RemoveBool("ShowSelectedFaceOutline");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docOutlineThicken() {
+    return QT_TRANSLATE_NOOP("ViewParams",
+"Muplication factor to increase outline width of the selected face.");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & ViewParams::getOutlineThicken() {
+    return instance()->OutlineThicken;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & ViewParams::defaultOutlineThicken() {
+    const static double def = 4;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setOutlineThicken(const double &v) {
+    instance()->handle->SetFloat("OutlineThicken",v);
+    instance()->OutlineThicken = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeOutlineThicken() {
+    instance()->handle->RemoveFloat("OutlineThicken");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docNoSelFaceHighlightWithOutline() {
+    return QT_TRANSLATE_NOOP("ViewParams",
+"Do not highlight selected face if outline is enabled");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const bool & ViewParams::getNoSelFaceHighlightWithOutline() {
+    return instance()->NoSelFaceHighlightWithOutline;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const bool & ViewParams::defaultNoSelFaceHighlightWithOutline() {
+    const static bool def = false;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setNoSelFaceHighlightWithOutline(const bool &v) {
+    instance()->handle->SetBool("NoSelFaceHighlightWithOutline",v);
+    instance()->NoSelFaceHighlightWithOutline = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeNoSelFaceHighlightWithOutline() {
+    instance()->handle->RemoveBool("NoSelFaceHighlightWithOutline");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docNoPreSelFaceHighlightWithOutline() {
+    return QT_TRANSLATE_NOOP("ViewParams",
+"Do not highlight pre-selected face if outline is enabled");
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const bool & ViewParams::getNoPreSelFaceHighlightWithOutline() {
+    return instance()->NoPreSelFaceHighlightWithOutline;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const bool & ViewParams::defaultNoPreSelFaceHighlightWithOutline() {
+    const static bool def = true;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setNoPreSelFaceHighlightWithOutline(const bool &v) {
+    instance()->handle->SetBool("NoPreSelFaceHighlightWithOutline",v);
+    instance()->NoPreSelFaceHighlightWithOutline = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeNoPreSelFaceHighlightWithOutline() {
+    instance()->handle->RemoveBool("NoPreSelFaceHighlightWithOutline");
 }
 
 // Auto generated code (Tools/params_utils.py:288)
@@ -5337,6 +5491,60 @@ void ViewParams::removeRenderCacheMergeDepthMin() {
 }
 
 // Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docRenderHighlightPolygonOffsetFactor() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & ViewParams::getRenderHighlightPolygonOffsetFactor() {
+    return instance()->RenderHighlightPolygonOffsetFactor;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & ViewParams::defaultRenderHighlightPolygonOffsetFactor() {
+    const static double def = 1;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setRenderHighlightPolygonOffsetFactor(const double &v) {
+    instance()->handle->SetFloat("RenderHighlightPolygonOffsetFactor",v);
+    instance()->RenderHighlightPolygonOffsetFactor = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeRenderHighlightPolygonOffsetFactor() {
+    instance()->handle->RemoveFloat("RenderHighlightPolygonOffsetFactor");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
+const char *ViewParams::docRenderHighlightPolygonOffsetUnits() {
+    return "";
+}
+
+// Auto generated code (Tools/params_utils.py:294)
+const double & ViewParams::getRenderHighlightPolygonOffsetUnits() {
+    return instance()->RenderHighlightPolygonOffsetUnits;
+}
+
+// Auto generated code (Tools/params_utils.py:300)
+const double & ViewParams::defaultRenderHighlightPolygonOffsetUnits() {
+    const static double def = 1;
+    return def;
+}
+
+// Auto generated code (Tools/params_utils.py:307)
+void ViewParams::setRenderHighlightPolygonOffsetUnits(const double &v) {
+    instance()->handle->SetFloat("RenderHighlightPolygonOffsetUnits",v);
+    instance()->RenderHighlightPolygonOffsetUnits = v;
+}
+
+// Auto generated code (Tools/params_utils.py:314)
+void ViewParams::removeRenderHighlightPolygonOffsetUnits() {
+    instance()->handle->RemoveFloat("RenderHighlightPolygonOffsetUnits");
+}
+
+// Auto generated code (Tools/params_utils.py:288)
 const char *ViewParams::docForceSolidSingleSideLighting() {
     return QT_TRANSLATE_NOOP("ViewParams",
 "Force single side lighting on solid. This can help visualizing invalid\n"
@@ -5668,7 +5876,7 @@ void ViewParams::removeToolTipDisable() {
     instance()->handle->RemoveBool("ToolTipDisable");
 }
 
-// Auto generated code (Gui/ViewParams.py:454)
+// Auto generated code (Gui/ViewParams.py:465)
 const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("Linear"),
     QStringLiteral("InQuad"),
@@ -5713,7 +5921,7 @@ const std::vector<QString> ViewParams::AnimationCurveTypes = {
     QStringLiteral("OutInBounce"),
 };
 
-// Auto generated code (Gui/ViewParams.py:462)
+// Auto generated code (Gui/ViewParams.py:473)
 static const char *DrawStyleNames[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "As Is"),
     QT_TRANSLATE_NOOP("DrawStyle", "Points"),
@@ -5727,7 +5935,7 @@ static const char *DrawStyleNames[] = {
     nullptr,
 };
 
-// Auto generated code (Gui/ViewParams.py:472)
+// Auto generated code (Gui/ViewParams.py:483)
 static const char *DrawStyleDocs[] = {
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, normal display mode"),
     QT_TRANSLATE_NOOP("DrawStyle", "Draw style, show points only"),
@@ -5741,13 +5949,13 @@ static const char *DrawStyleDocs[] = {
 };
 
 namespace Gui {
-// Auto generated code (Gui/ViewParams.py:482)
+// Auto generated code (Gui/ViewParams.py:493)
 const char **drawStyleNames()
 {
     return DrawStyleNames;
 }
 
-// Auto generated code (Gui/ViewParams.py:489)
+// Auto generated code (Gui/ViewParams.py:500)
 const char *drawStyleNameFromIndex(int i)
 {
     if (i < 0 || i>= 9)
@@ -5755,7 +5963,7 @@ const char *drawStyleNameFromIndex(int i)
     return DrawStyleNames[i];
 }
 
-// Auto generated code (Gui/ViewParams.py:498)
+// Auto generated code (Gui/ViewParams.py:509)
 int drawStyleIndexFromName(const char *name)
 {
     if (!name)
@@ -5767,7 +5975,7 @@ int drawStyleIndexFromName(const char *name)
     return -1;
 }
 
-// Auto generated code (Gui/ViewParams.py:511)
+// Auto generated code (Gui/ViewParams.py:522)
 const char *drawStyleDocumentation(int i)
 {
     if (i < 0 || i>= 9)

@@ -41,7 +41,9 @@
 #include <App/Origin.h>
 #include <App/Part.h>
 #include <Base/Tools.h>
+#include <Gui/Action.h>
 #include <Gui/Application.h>
+#include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
 #include <Gui/CommandT.h>
 #include <Gui/Control.h>
@@ -904,7 +906,7 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
                 Gui::cmdAppObject(Feat, ss << "]");
         }
         if (which.compare("AdditivePipe") == 0 || which.compare("SubtractivePipe") == 0) {
-            if (sels.size() > 1) {
+            if (!sels.empty()) {
                 // for additive and subtractive pipes, treat the first extra
                 // selection as spine, and the remaining selection as multi
                 // sections
@@ -912,21 +914,21 @@ void prepareProfileBased(PartDesign::Body *pcActiveBody, Gui::Command* cmd, cons
                 App::SubObjectT spineT;
                 std::vector<std::string> subs;
                 std::vector<App::SubObjectT> sections;
-                for (unsigned i=1; i<sels.size(); ++i) {
+                for (const auto &sel : sels) {
                     if (!spine) {
-                        spineT = PartDesignGui::importExternalObject(sels[i], false);
+                        spineT = PartDesignGui::importExternalObject(sel, false);
                         if (spineT.getObjectName().empty())
                             continue;
-                        spine = sels[i].getSubObject();
+                        spine = sel.getSubObject();
                         if (!spine)
                             continue;
-                    } else if (spine != sels[i].getSubObject()) {
-                        auto ref = PartDesignGui::importExternalObject(sels[i], false);
+                    } else if (spine != sel.getSubObject()) {
+                        auto ref = PartDesignGui::importExternalObject(sel, false);
                         if (ref.getObjectName().size())
                             sections.push_back(ref);
                         continue;
                     }
-                    auto sub = sels[i].getOldElementName();
+                    auto sub = sel.getOldElementName();
                     if (sub.size())
                         subs.push_back(std::move(sub));
                 }
@@ -2535,7 +2537,7 @@ bool CmdPartDesignMultiTransform::isActive()
 //===========================================================================
 
 /* Boolean commands =======================================================*/
-DEF_STD_CMD_A(CmdPartDesignBoolean)
+DEF_STD_CMD_ACL(CmdPartDesignBoolean)
 
 CmdPartDesignBoolean::CmdPartDesignBoolean()
   :Command("PartDesign_Boolean")
@@ -2543,7 +2545,7 @@ CmdPartDesignBoolean::CmdPartDesignBoolean()
     sAppModule      = "PartDesign";
     sGroup          = QT_TR_NOOP("PartDesign");
     sMenuText       = QT_TR_NOOP("Boolean operation");
-    sToolTipText    = QT_TR_NOOP("Boolean operation with two or more bodies");
+    sToolTipText    = QT_TR_NOOP("Boolean operation with two or more solids/bodies");
     sWhatsThis      = "PartDesign_Boolean";
     sStatusTip      = sToolTipText;
     sPixmap         = "PartDesign_Boolean";
@@ -2552,12 +2554,83 @@ CmdPartDesignBoolean::CmdPartDesignBoolean()
             boost::bind(&commandOverride, this, 0, bp::_1, bp::_2), "Part_Boolean");
 
     Gui::Application::Instance->commandManager().registerCallback(
+            boost::bind(&commandOverride, this, 0, bp::_1, bp::_2), "Part_Fuse");
+
+    Gui::Application::Instance->commandManager().registerCallback(
             boost::bind(&commandOverride, this, 1, bp::_1, bp::_2), "Part_Cut");
 
     Gui::Application::Instance->commandManager().registerCallback(
             boost::bind(&commandOverride, this, 2, bp::_1, bp::_2), "Part_Common");
+
+    Gui::Application::Instance->commandManager().registerCallback(
+            boost::bind(&commandOverride, this, 3, bp::_1, bp::_2), "Part_Compound");
+
+    Gui::Application::Instance->commandManager().registerCallback(
+            boost::bind(&commandOverride, this, 4, bp::_1, bp::_2), "Part_Section");
 }
 
+Gui::Action * CmdPartDesignBoolean::createAction()
+{
+    Gui::ActionGroup* pcAction = new Gui::ActionGroup(this, Gui::getMainWindow());
+    pcAction->setDropDownMenu(true);
+    applyCommandData(this->className(), pcAction);
+
+    QAction* cmd0 = pcAction->addAction(QString());
+    cmd0->setIcon(Gui::BitmapFactory().iconFromTheme("PartDesign_Boolean"));
+    QAction* cmd1 = pcAction->addAction(QString());
+    cmd1->setIcon(Gui::BitmapFactory().iconFromTheme("Part_Cut"));
+    QAction* cmd2 = pcAction->addAction(QString());
+    cmd2->setIcon(Gui::BitmapFactory().iconFromTheme("Part_Common"));
+    QAction* cmd3 = pcAction->addAction(QString());
+    cmd3->setIcon(Gui::BitmapFactory().iconFromTheme("Part_Compound"));
+    QAction* cmd4 = pcAction->addAction(QString());
+    cmd4->setIcon(Gui::BitmapFactory().iconFromTheme("Part_Section"));
+
+    _pcAction = pcAction;
+    languageChange();
+
+    pcAction->setIcon(cmd0->icon());
+    int defaultId = 0;
+    pcAction->setProperty("defaultAction", QVariant(defaultId));
+
+    return pcAction;
+}
+
+void CmdPartDesignBoolean::languageChange()
+{
+    Command::languageChange();
+
+    if (!_pcAction)
+        return;
+
+    Gui::ActionGroup* pcAction = qobject_cast<Gui::ActionGroup*>(_pcAction);
+    QList<QAction*> a = pcAction->actions();
+
+    QAction* cmd0 = a[0];
+    cmd0->setText(QApplication::translate("PartDesign", "Boolean operation"));
+    cmd0->setToolTip(QApplication::translate("PartDesign", "Configurable boolean operation. Default to fuse"));
+    cmd0->setStatusTip(cmd0->toolTip());
+
+    QAction* cmd1 = a[1];
+    cmd1->setText(QApplication::translate("PartDesign", "Cut"));
+    cmd1->setToolTip(QApplication::translate("PartDesign", "Make a cut of two or more solids/bodies"));
+    cmd1->setStatusTip(cmd1->toolTip());
+
+    QAction* cmd2 = a[2];
+    cmd2->setText(QApplication::translate("PartDesign", "Intersection"));
+    cmd2->setToolTip(QApplication::translate("PartDesign", "Make an intersection of two or more solids/bodies"));
+    cmd2->setStatusTip(cmd2->toolTip());
+
+    QAction* cmd3 = a[3];
+    cmd3->setText(QApplication::translate("PartDesign", "Compound"));
+    cmd3->setToolTip(QApplication::translate("PartDesign", "Make a compound of two or more solids/bodies"));
+    cmd3->setStatusTip(cmd3->toolTip());
+
+    QAction* cmd4 = a[4];
+    cmd4->setText(QApplication::translate("PartDesign", "Section"));
+    cmd4->setToolTip(QApplication::translate("PartDesign", "Make a section using another shape"));
+    cmd4->setStatusTip(cmd4->toolTip());
+}
 
 void CmdPartDesignBoolean::activated(int iMsg)
 {
@@ -2572,7 +2645,6 @@ void CmdPartDesignBoolean::activated(int iMsg)
 
     std::string support;
     std::set<App::DocumentObject*> objSet;
-    std::vector<App::DocumentObject*> objs;
     std::map<std::pair<App::DocumentObject*,std::string>, std::vector<std::string> > binderLinks;
 
     for(auto &sel : Gui::Selection().getSelectionT("*",Gui::ResolveMode::NoResolve)) {
@@ -2634,7 +2706,17 @@ void CmdPartDesignBoolean::activated(int iMsg)
     case 2:
         Gui::cmdAppObject(Feat, "Type = 'Common'");
         break;
+    case 3:
+        Gui::cmdAppObject(Feat, "Type = 'Compound'");
+        break;
+    case 4:
+        Gui::cmdAppObject(Feat, "Type = 'Section'");
+        break;
     }
+
+    // If we don't add an object to the boolean group then don't update the body
+    // as otherwise this will fail and it will be marked as invalid
+    bool updateDocument = false;
 
     std::set<App::SubObjectT> boundObjects;
     for(auto &v : binderLinks) {
@@ -2646,8 +2728,7 @@ void CmdPartDesignBoolean::activated(int iMsg)
         if(!binder)
             continue;
 
-        std::map<App::DocumentObject*, std::vector<std::string> > links;
-        auto &subs = links[v.first.first];
+        std::vector<std::string> subs;
         if(v.second.empty())
             v.second.push_back("");
         for(auto &s : v.second) {
@@ -2656,17 +2737,12 @@ void CmdPartDesignBoolean::activated(int iMsg)
             sobjT.setSubName(sobjT.getSubNameNoElement());
             boundObjects.insert(sobjT);
         }
-        binder->setLinks(std::move(links));
-        objs.push_back(binder);
-    }
 
-    // If we don't add an object to the boolean group then don't update the body
-    // as otherwise this will fail and it will be marked as invalid
-    bool updateDocument = false;
-    if (objs.size()) {
         updateDocument = true;
-        std::string bodyString = PartDesignGui::buildLinkListPythonStr(objs);
-        Gui::cmdAppObject(Feat, std::ostringstream() <<"addObjects("<<bodyString<<")");
+        Gui::cmdAppObject(Feat, std::ostringstream() <<"addObject("
+                << binder->getFullName(true) << ")");
+        Gui::cmdAppObject(binder, std::ostringstream() << "Support = "
+                << PartDesignGui::buildLinkSubPythonStr(v.first.first, subs));
     }
 
     for (auto sobjT : boundObjects) {

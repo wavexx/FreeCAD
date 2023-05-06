@@ -67,31 +67,3 @@ bool ViewProviderBase::doubleClicked()
 
     return false;
 }
-
-void ViewProviderBase::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
-{
-    // If the Placement is mutable then show the context-menu of the base class.
-    PartDesign::FeatureBase* base = static_cast<PartDesign::FeatureBase*>(getObject());
-    if (!base->Placement.testStatus(App::Property::Immutable) &&
-        !base->Placement.testStatus(App::Property::ReadOnly) &&
-        !base->Placement.testStatus(App::Property::Hidden)) {
-        PartDesignGui::ViewProvider::setupContextMenu(menu, receiver, member);
-    }
-}
-
-bool ViewProviderBase::setEdit(int ModNum)
-{
-    PartDesign::FeatureBase* base = static_cast<PartDesign::FeatureBase*>(getObject());
-    if (!base->Placement.testStatus(App::Property::Immutable) &&
-        !base->Placement.testStatus(App::Property::ReadOnly) &&
-        !base->Placement.testStatus(App::Property::Hidden)) {
-        return PartGui::ViewProviderPart::setEdit(ModNum); // clazy:exclude=skipped-base-method
-    }
-
-    return false;
-}
-
-void ViewProviderBase::unsetEdit(int ModNum)
-{
-    PartGui::ViewProviderPart::unsetEdit(ModNum); // clazy:exclude=skipped-base-method
-}

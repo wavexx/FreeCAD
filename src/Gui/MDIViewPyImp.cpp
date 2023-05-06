@@ -208,3 +208,8 @@ PyObject* MDIViewPy::close(PyObject *args)
 
     Py_Return;
 }
+
+Py::Int MDIViewPy::getID() const
+{
+    return Py::Int(getMDIViewPtr()->getID());
+}

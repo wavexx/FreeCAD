@@ -27,6 +27,9 @@
 #endif
 
 #include <App/Document.h>
+
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <Base/Matrix.h>
 #include <Base/MatrixPy.h>
 #include <Base/Stream.h>
@@ -507,6 +510,15 @@ PyObject *DocumentPy::getCustomAttributes(const char* attr) const
     if (item)
         return nullptr;
 
+    if (boost::starts_with(attr, "View")) {
+        std::istringstream iss(attr+4);
+        int id = 0;
+        if ((iss >> id) && iss.eof()) {
+            if (auto view = getDocumentPtr()->getViewByID(id))
+                return view->getPyObject();
+        }
+    }
+    
     // search for an object with this name
     ViewProvider* obj = getDocumentPtr()->getViewProviderByName(attr);
 

@@ -56,7 +56,7 @@ TaskBoxPrimitives::TaskBoxPrimitives(ViewProviderPrimitive* vp, QWidget* parent)
 
     this->groupLayout()->addWidget(proxy);
 
-    PartDesignGui::addTaskCheckBox(proxy);
+    PartDesignGui::addTaskCheckBox(vp, proxy);
     this->addOperationCombo(qobject_cast<QBoxLayout*>(proxy->layout()));
 
     _refresh();

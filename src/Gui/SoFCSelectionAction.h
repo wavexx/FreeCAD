@@ -401,8 +401,19 @@ public:
 
     const SoPickedPointList &getPrioPickedPointList() const;
 
-    int pickBackFace() const {return backFace;}
-    void setPickBackFace(int enable);
+    enum class PickMode {
+        /// Pick front face or front edge/vertex
+        FrontFace = 0,
+        /// Pick edge or vertex first. If none, then pick the back face, i.e.  the furthest hit face
+        EdgeVertexOrBackFace = 1,
+        /// Pick edge or vertex first. If none, then pick the front face, i.e. the closest hit face
+        EdgeVertexOrFrontFace = 2,
+        /// Pick the back face with a given order (e.g. the second furthest hit face). If none, then try pick the front edge/vertex
+        BackFace = 3,
+    };
+
+    PickMode getPickMode() const {return pickMode;}
+    void setPickMode(PickMode mode, int backFaceOrder=0);
 
     bool resetClipPlane() const {return resetclipplane;}
     void setResetClipPlane(bool enable);
@@ -422,11 +433,12 @@ protected:
 private:
     std::unique_ptr<SoPickedPointList> ppList;
     std::unique_ptr<SoPickedPointList> tempList;
-    std::map<float, std::unique_ptr<SoPickedPoint> > faceDistances;
+    std::multimap<float, std::unique_ptr<SoPickedPoint> > faceDistances;
     int lastPriority;
     float lastDist;
     float lastBackDist;
-    int backFace = 0;
+    int backFaceOrder = 0;
+    PickMode pickMode = PickMode::FrontFace;
     bool skipFace;
     bool resetclipplane = false;
 };

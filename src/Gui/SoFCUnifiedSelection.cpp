@@ -171,7 +171,6 @@ public:
         selectAll = false;
         preSelection = -1;
 
-        preselTime = SbTime::getTimeOfDay();
         preselTimer.setData(this);
         preselTimer.setFunction([](void *data, SoSensor*){
             reinterpret_cast<Private*>(data)->onPreselectTimer();
@@ -649,69 +648,61 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
     this->rayPickAction.setPickAll(!singlePick || !ViewParams::getUseNewRayPick());
 
     SoPickStyleElement::set(this->rayPickAction.getState(),
-            (!this->rayPickAction.pickBackFace() && singlePick) ?
+            (this->rayPickAction.getPickMode() != SoFCRayPickAction::PickMode::FrontFace && singlePick) ?
                 SoPickStyleElement::SHAPE_FRONTFACES : SoPickStyleElement::SHAPE);
     if (!useRenderer())
         SoOverrideElement::setPickStyleOverride(this->rayPickAction.getState(),0,true);
 
     SoFCDisplayModeElement::set(this->rayPickAction.getState(),0,SbName::empty(),false);
 
-    if (ViewParams::hiddenLineSelectionOnTop())
-        this->rayPickAction.setPickBackFace(singlePick ? (pickBackFace ? pickBackFace : -1) : 0);
-    else
-        this->rayPickAction.setPickBackFace(singlePick ? pickBackFace : 0);
-
-    this->rayPickAction.setResetClipPlane(ViewParams::getNoSectionOnTop());
-
     this->rayPickAction.cleanup();
-    getPickedInfoOnTop(ret, singlePick, filter);
 
-    this->rayPickAction.setResetClipPlane(false);
-
-    this->rayPickAction.setPickBackFace(singlePick ? pickBackFace : 0);
-    if (singlePick && (ViewParams::hiddenLineSelectionOnTop() || pickBackFace) && ret.size()) {
-        // Here means, we got some pick in the on top group. But user is
-        // holding SHIFT for backface picking. Right now, we can't pick back
-        // face beyond on top group yet. But we can pick other edge or vertex
-        // if the current on top picking is a face. In other word, we can give
-        // higher priority to edges and verteices in non on top group objects
-        // than faces in on top objects.
-        auto element = Data::ComplexGeoData::findElementName(ret.front().subname.c_str());
-        auto index = Data::IndexedName(element);
-        if (!boost::equals(index.getType(), "Vertex")
-                && !boost::equals(index.getType(), "Edge")) {
-            std::vector<PickedInfo> tmp;
-            applyOverrideMode(this->rayPickAction.getState());
-            SoOverrideElement::setPickStyleOverride(this->rayPickAction.getState(),0,false);
-            this->rayPickAction.setPickBackFace(-1);
-            this->rayPickAction.apply(pcViewer->getSoRenderManager()->getSceneGraph());
-            getPickedInfo(tmp,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
-
-            if (tmp.size()) {
-                auto element = Data::ComplexGeoData::findElementName(tmp.front().subname.c_str());
-                auto index = Data::IndexedName(element);
-                if (boost::equals(index.getType(), "Vertex")
-                        || boost::equals(index.getType(), "Edge")) {
-                    ret = std::move(tmp);
-                }
-            }
+    // Only if back face picking is inactive, shall we pick objects in on top
+    // group first. If back face picking, then do pick through all objects in
+    // order to let user choose all ray hitting faces.
+    if (!pickBackFace && singlePick) {
+        if (ViewParams::hiddenLineSelectionOnTop()) {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::EdgeVertexOrFrontFace);
         }
+        else {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::FrontFace);
+        }
+
+        this->rayPickAction.setResetClipPlane(ViewParams::getNoSectionOnTop());
+
+        getPickedInfoOnTop(ret, singlePick, filter);
+
+        this->rayPickAction.setResetClipPlane(false);
     }
-    else if(ret.empty() || !singlePick) {
+
+    if(ret.empty() || !singlePick) {
         applyOverrideMode(this->rayPickAction.getState());
         SoOverrideElement::setPickStyleOverride(this->rayPickAction.getState(),0,false);
+
+        if (!singlePick || !pickBackFace) {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::FrontFace);
+        }
+        else if (pickBackFace == 1) {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::EdgeVertexOrBackFace);
+        }
+        else if (pickBackFace > 1) {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::BackFace, pickBackFace-1);
+        }
+        else {
+            this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::BackFace, pickBackFace);
+        }
+
         this->rayPickAction.apply(pcViewer->getSoRenderManager()->getSceneGraph());
 
         getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
     }
 
-    if(singlePick && pickBackFace) {
-        if(pickBackFace > 1 && this->rayPickAction.getBackFaceCount() < pickBackFace)
-            pickBackFace = std::max(1, this->rayPickAction.getBackFaceCount());
-        else if (pickBackFace < -1 && this->rayPickAction.getBackFaceCount() < -pickBackFace+1) {
-            // Note pickBackFace == -1 is reserved for picking hidden
-            // edge/vertex. So we start from -2 for picking actual back face
-            pickBackFace = std::min(-2, -this->rayPickAction.getBackFaceCount()-1);
+    if(singlePick) {
+        int count = this->rayPickAction.getBackFaceCount();
+        if (pickBackFace > 1 && count < pickBackFace) {
+            pickBackFace = 1;
+        } else if (pickBackFace < -1 && count < -pickBackFace) {
+            pickBackFace = -1;
         }
     }
 
@@ -1545,21 +1536,17 @@ SoFCUnifiedSelection::Private::handleEvent(SoHandleEventAction * action)
                 auto wev = static_cast<const SoMouseWheelEvent*>(event);
                 if (wev->getDelta() > 0) {
                     if(pickBackFace == 1) {
-                        // Note pickBackFace == -1 is reserved for picking hidden
-                        // edge/vertex. So we start from -2 for picking actual back face
-                        pickBackFace = -2;
+                        pickBackFace = -1;
                     } else
                         --pickBackFace;
                     doPick = true;
-                    FC_LOG("back face forward " << pickBackFace << " " << wev->getDelta());
                     action->setHandled();
                 } else if (wev->getDelta() < 0) {
-                    if(pickBackFace == -2)
+                    if(pickBackFace == -1)
                         pickBackFace = 1;
                     else
                         ++pickBackFace;
                     doPick = true;
-                    FC_LOG("back face reverse " << pickBackFace << " " << wev->getDelta());
                     action->setHandled();
                 }
             }

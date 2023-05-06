@@ -874,9 +874,12 @@ PyObject *DocumentObjectPy::getElementMapVersion(PyObject *args) {
     return Py::new_reference_to(Py::String(getDocumentObjectPtr()->getElementMapVersion(prop, Base::asBoolean(restored))));
 }
 
-PyObject *DocumentObjectPy::getCustomAttributes(const char* ) const
+PyObject *DocumentObjectPy::getCustomAttributes(const char* attr) const
 {
-        return nullptr;
+    if (boost::equals(attr, "Parents")) {
+        return const_cast<DocumentObjectPy*>(this)->getParents(Py::Tuple().ptr());
+    }
+    return nullptr;
 }
 //remove
 int DocumentObjectPy::setCustomAttributes(const char* , PyObject *)
@@ -944,11 +947,21 @@ PyObject *DocumentObjectPy::resolveSubElement(PyObject *args)
     Py_Return;
 }
 
-Py::List DocumentObjectPy::getParents() const {
-    Py::List ret;
-    for(auto &v : getDocumentObjectPtr()->getParents())
-        ret.append(Py::TupleN(Py::Object(v.first->getPyObject(),true),Py::String(v.second)));
-    return ret;
+PyObject * DocumentObjectPy::getParents(PyObject *args) {
+    PyObject *pyQueryParent = nullptr;
+    if (!PyArg_ParseTuple(args, "|O!", &DocumentObjectPy::Type, &pyQueryParent))
+        return nullptr;
+
+    DocumentObject *query_parent = nullptr;
+    if (pyQueryParent)
+        query_parent = static_cast<DocumentObjectPy*>(pyQueryParent)->getDocumentObjectPtr();
+
+    try {
+        Py::List ret;
+        for(auto &v : getDocumentObjectPtr()->getParents(query_parent))
+            ret.append(Py::TupleN(Py::Object(v.first->getPyObject(),true),Py::String(v.second)));
+        return Py::new_reference_to(ret);
+    } PY_CATCH
 }
 
 PyObject *DocumentObjectPy::adjustRelativeLinks(PyObject *args) {

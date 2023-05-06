@@ -832,7 +832,7 @@ void TaskSketchBasedParameters::initUI(QWidget *widget) {
         return;
 
     addProfileEdit(boxLayout);
-    PartDesignGui::addTaskCheckBox(widget);
+    PartDesignGui::addTaskCheckBox(vp, widget);
     addOperationCombo(boxLayout);
     addUpdateViewCheckBox(boxLayout);
     addFittingWidgets(boxLayout);

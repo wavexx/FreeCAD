@@ -123,11 +123,6 @@ public:
     const char *getName(void) const;
     void onChanged(const App::Property *prop) override;
 
-    /** ID of this view
-     * Currently only used for saving and restoring view binding.
-     */
-    int getID() const {return _id;}
-
     void bindCamera(SoCamera *camera, bool sync=false);
     void syncCamera(View3DInventor *view);
     View3DInventor *bindView(const QString &title, bool sync=false);
@@ -231,7 +226,6 @@ private:
 
     CameraInfo camInfo;
     CameraInfo boundCamInfo;
-    int _id;
 
     // friends
     friend class View3DInventorPy;

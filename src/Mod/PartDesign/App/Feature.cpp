@@ -36,7 +36,8 @@
 #include <App/DocumentObject.h>
 #include <App/FeaturePythonPyImp.h>
 #include <App/MappedElement.h>
-#include "App/OriginFeature.h"
+#include <App/OriginFeature.h>
+#include <Mod/Part/App/PartParams.h>
 #include <Base/Console.h>
 
 #include "Feature.h"
@@ -65,6 +66,8 @@ Feature::Feature()
 
     Placement.setStatus(App::Property::Hidden, true);
     BaseFeature.setStatus(App::Property::Hidden, true);
+
+    ValidateShape.setValue(Part::PartParams::getValidateShape());
 
     ADD_PROPERTY_TYPE(NewSolid,(false),"Base",App::Prop_None,
                      "Create a new separated solid from this feature");

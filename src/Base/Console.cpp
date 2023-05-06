@@ -618,4 +618,3 @@ PyObject *ConsoleSingleton::sPyGetObservers(PyObject * /*self*/, PyObject *args)
 }
 
 Base::ILogger::~ILogger() = default;
-

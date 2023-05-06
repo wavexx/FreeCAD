@@ -370,13 +370,13 @@ std::string buildLinkSubPythonStr(const App::DocumentObject* obj, const std::vec
     if (!obj)
         return "None";
 
-    std::string result("[");
+    std::ostringstream ss;
+    ss << "(" << Gui::Command::getObjectCmd(obj) << ", [";
 
     for (const auto & sub : subs)
-        result += "\"" + sub + "\",";
-    result += "]";
-
-    return result;
+        ss << "'" << sub << "',";
+    ss << "])";
+    return ss.str();
 }
 
 std::string buildLinkSingleSubPythonStr(const App::DocumentObject* obj,

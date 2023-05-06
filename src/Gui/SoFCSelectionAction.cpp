@@ -1610,10 +1610,11 @@ static inline float getDistance(SoAction *action, const SbVec3f &pos) {
     return -plane.getDistance(pos);
 }
 
-void SoFCRayPickAction::setPickBackFace(int enable)
+void SoFCRayPickAction::setPickMode(PickMode mode, int backFaceOrder)
 {
-    backFace = enable;
-    if(enable)
+    this->backFaceOrder = backFaceOrder;
+    this->pickMode = mode;
+    if(mode != PickMode::FrontFace)
         setPickAll(true);
 }
 
@@ -1635,7 +1636,7 @@ void SoFCRayPickAction::doPick(SoNode *node)
                 if (element->getNum() < 2)
                     element = nullptr;
                 else {
-                    setPickAll(TRUE);
+                    setPickAll(true);
                     pushed = true;
                     state->push();
                     element = static_cast<SoClipPlaneElement*>(
@@ -1673,7 +1674,7 @@ void SoFCRayPickAction::doPick(SoNode *node)
             tempList->append(pps[i]->copy());
     }
     reset();
-    if (pickall && !backFace) {
+    if (pickall && pickMode == PickMode::FrontFace) {
         if (tempList->getLength()) {
             int n = 0;
             if (ppList->getLength()
@@ -1698,41 +1699,42 @@ void SoFCRayPickAction::afterPick(const SoPickedPointList &pps) {
     std::unique_ptr<SoPickedPoint> _ppFace;
 
     if(isPickAll()) {
-        if(!backFace)
+        if(pickMode == PickMode::FrontFace)
             return;
         for(int i=0,c=pps.getLength();i<c;++i) {
             auto detail = pps[i]->getDetail();
             if(!detail)
                 continue;
             if(detail->isOfType(SoFaceDetail::getClassTypeId())) {
-                if (backFace == -1) {
-                    // picking only vertex or edge
+                if (pickMode == PickMode::EdgeVertexOrFrontFace) {
                     continue;
                 }
-                if(backFace == 1) {
+                if(pickMode == PickMode::EdgeVertexOrBackFace) {
                     ppFace = pps[i];
                     continue;
                 }
                 float dist = getDistance(this,pps[i]->getPoint());
-                if(backFace > 1) {
-                    if(backFace == (int)faceDistances.size()) {
-                        if(dist <= faceDistances.begin()->first)
+                if(backFaceOrder > 0) {
+                    if(backFaceOrder < (int)faceDistances.size()) {
+                        if(dist < faceDistances.begin()->first)
                             continue;
                         faceDistances.erase(faceDistances.begin());
                     }
-                    faceDistances[dist].reset(pps[i]->copy());
+                    faceDistances.emplace(dist, pps[i]->copy());
+
                     if(faceDistances.begin()->second) {
                         _ppFace.reset(faceDistances.begin()->second.release());
                         ppFace = _ppFace.get();
                     }
-                } else {
-                    if(-backFace+1 == (int)faceDistances.size()) {
+                } else if (backFaceOrder < 0) {
+                    if(-backFaceOrder < (int)faceDistances.size()) {
                         auto itLast = --faceDistances.end();
-                        if(dist >= itLast->first)
+                        if(dist > itLast->first)
                             continue;
                         faceDistances.erase(itLast);
                     }
-                    faceDistances[dist].reset(pps[i]->copy());
+                    faceDistances.emplace(dist,pps[i]->copy());
+
                     auto itLast = --faceDistances.end();
                     if(itLast->second) {
                         _ppFace.reset(itLast->second.release());
@@ -1779,48 +1781,82 @@ void SoFCRayPickAction::afterPick(const SoPickedPointList &pps) {
     float dist = getDistance(this,pos);
     int p = SoFCUnifiedSelection::getPriority(pp);
     
-    if (backFace == -1
+    if ((pickMode == PickMode::EdgeVertexOrFrontFace
+                || pickMode == PickMode::EdgeVertexOrFrontFace)
             && pp != ppFace
             && ppList->getLength()
             && (*ppList)[0]->getDetail()
             && (*ppList)[0]->getDetail()->isOfType(SoFaceDetail::getClassTypeId()))
+    {
         ppList->truncate(0);
+    }
 
     if(ppList->getLength() == 0) {
         lastPriority = p;
-        if(backFace && pp == ppFace) {
-            if(pp == _ppFace.get())
+        if(pickMode != PickMode::FrontFace && !skipFace && pp == ppFace) {
+            if(pp == _ppFace.get()) {
                 ppList->append(_ppFace.release());
-            else
+            } else {
                 ppList->append(pp->copy());
-            skipFace = false;
+            }
             lastBackDist = dist;
             lastDist = std::numeric_limits<float>::max();
         } else {
             ppList->append(pp->copy());
             lastDist = dist;
-            skipFace = true;
+            if (pickMode == PickMode::EdgeVertexOrBackFace
+                    || pickMode == PickMode::EdgeVertexOrFrontFace) {
+                skipFace = true;
+            }
         }
         reset();
         return;
     }
 
-    if(backFace && pp == ppFace) {
-        if(!skipFace && (backFace!=1 || lastBackDist < dist)) {
-            lastBackDist = dist;
-            if(pp == _ppFace.get())
-                ppList->set(0,_ppFace.release());
-            else
-                ppList->set(0,pp->copy());
-        }
-    } else {
-        if((p > lastPriority && pos.equals((*ppList)[0]->getPoint(),0.01f))
-                || dist < lastDist)
-        {
-            skipFace = true;
-            lastPriority = p;
-            lastDist = dist;
+    if (pickMode == PickMode::BackFace && pp == ppFace) {
+        if(pp == _ppFace.get()) {
+            ppList->set(0,_ppFace.release());
+        } else {
             ppList->set(0,pp->copy());
+        }
+    }
+    else if (pickMode == PickMode::EdgeVertexOrBackFace) {
+        if (pp != ppFace) {
+            skipFace = true;
+            lastBackDist = dist;
+            ppList->set(0,pp->copy());
+        }
+        else if (lastBackDist < dist) {
+            if (pp == ppFace && !skipFace) {
+                lastBackDist = dist;
+                if(pp == _ppFace.get()) {
+                    ppList->set(0,_ppFace.release());
+                } else {
+                    ppList->set(0,pp->copy());
+                }
+            }
+        }
+    }
+    else if (pickMode != PickMode::BackFace) {
+        if(dist < lastDist 
+                || (p > lastPriority && pos.equals((*ppList)[0]->getPoint(),0.01f))) {
+            if (pp == ppFace && !skipFace) {
+                lastPriority = p;
+                lastDist = dist;
+                if(pp == _ppFace.get()) {
+                    ppList->set(0,_ppFace.release());
+                } else {
+                    ppList->set(0,pp->copy());
+                }
+            }
+            else if (pp != ppFace) {
+                if (pickMode == PickMode::EdgeVertexOrFrontFace) {
+                    skipFace = true;
+                }
+                lastPriority = p;
+                lastDist = dist;
+                ppList->set(0,pp->copy());
+            }
         }
     }
     reset();

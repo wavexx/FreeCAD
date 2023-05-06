@@ -39,11 +39,6 @@ public:
     ~ViewProviderBase() override;
 
     bool doubleClicked() override;
-    void setupContextMenu(QMenu* menu, QObject* receiver, const char* member) override;
-
-protected:
-    bool setEdit(int ModNum) override;
-    void unsetEdit(int ModNum) override;
 };
 
 } // namespace PartDesignGui

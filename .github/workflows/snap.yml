@@ -9,26 +9,26 @@ jobs:
   publish_amd64:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: git permission workaround
       run: |
         sudo git config --global --add safe.directory "$GITHUB_WORKSPACE"
         sudo git config --global --add safe.directory /home/runner/work/FreeCAD/FreeCAD/parts/freecad/src
     - name: install snapcraft
-      run: |
-        sudo snap install snapcraft --classic
-        echo "$STORE_LOGIN" | snapcraft login --with -
-      env:
-        STORE_LOGIN: ${{ secrets.STORE_LOGIN }}
+      run: sudo snap install snapcraft --classic
     # build in destructive mode because building in LXD is way too slow 
     # due to the kde-neon SDK snap being mounted via fuse
     - name: build snap 
-      run: sudo snapcraft --destructive-mode
+      run: |
+          sudo snapcraft --destructive-mode
+          sudo rm -rf $HOME/.config/snapcraft
     - name: upload snap
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
       run: |
         if ${{ endsWith(github.ref, 'edge') }}; then
           release_to="edge"
         elif ${{ endsWith(github.ref, 'tip') }}; then
           release_to="beta"
         fi
-        sudo snapcraft upload --release=${release_to} freecad-realthunder*.snap
+        snapcraft upload --release=${release_to} freecad-realthunder*.snap
