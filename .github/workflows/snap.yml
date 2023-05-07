@@ -3,8 +3,10 @@ name: Publish Snap
 on:
   push:
     tags:
-      - "Snap*" # build for any new tag (on all branches)
+      - "*" # build for any new tag (on all branches)
     
+  workflow_dispatch:
+
 jobs:
   publish_amd64:
     runs-on: ubuntu-20.04

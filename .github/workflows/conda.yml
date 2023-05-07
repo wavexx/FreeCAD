@@ -8,9 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  conda_deployment_with_new_tag:
-    name: Conda build for ${{ matrix.os }} ${{ matrix.arch }} py${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
+  make:
     strategy:
       fail-fast: false
       matrix:
@@ -20,49 +18,19 @@ jobs:
         include:
           - os: windows-latest
             python-version: "3.8"
-            arch : "64"
+            arch: "64"
           - os: ubuntu-latest
-            arch: aarch64
             python-version: "3.10"
+            arch: "aarch64"
           - os: macos-11
             arch: arm64
             python-version: "3.10"
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Conda environment creation and activation
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          environment-file: dist/conda/build_env.yaml    # Path to the build conda environment
-          auto-update-conda: false
-          auto-activate-base: false
-          show-channel-urls: true
-          # use-mamba: true
-          # miniforge-variant: Mambaforge
-      # - name: Install mamba build
-      #   shell: bash -el {0}
-      #   run: mamba install boa -c conda-forge
-      - name: Set build variant
-        shell: bash -xel {0}
-        run: |
-          if ${{ startsWith(matrix.os, 'macos') }}; then
-            platform=osx
-          elif ${{ startsWith(matrix.os, 'windows') }}; then
-            platform=win
-          else
-            platform=linux
-          fi
-          printf "target_platform:\n  - %s-%s\n" $platform ${{ matrix.arch }} > dist/conda/variant.yaml
-          cat dist/conda/variant.yaml
-      - name: Build and upload the conda packages
-        uses: realthunder/action-build-and-upload-conda-packages@main
-        with:
-          meta_yaml_dir: dist/conda
-          # mambabuild: true
-          python-version: ${{ matrix.python-version }}
-          variant_conf: dist/conda/variant.yaml
-          user: realthunder
-          label: main
-          token: ${{ secrets.ANACONDA_TOKEN }}
-          # debug: true
+    uses: realthunder/FreeCADMakeImage/.github/workflows/builder.yaml@master
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      python-version: ${{ matrix.python-version }}
+      ref: ${{ github.ref_name }}
+    secrets:
+      token: ${{ secrets.ANACONDA_TOKEN }}
