@@ -54,8 +54,13 @@ public:
     virtual std::map<App::ObjectIdentifier, const App::Expression*> getExpressions() const = 0;
     virtual void setExpressions(std::map<App::ObjectIdentifier, App::ExpressionPtr> &&exprs) = 0;
 
-    virtual Property *copyBeforeChange(void) const { return nullptr; }
-    virtual bool isSame(const Property &) const {return false;}
+    Property *copyBeforeChange(void) const override {
+        return nullptr;
+    }
+
+    bool isSame(const Property &) const override {
+        return false;
+    }
 
 protected:
     virtual void onRelabeledDocument(const App::Document &doc) = 0;

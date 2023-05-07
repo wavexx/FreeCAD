@@ -447,11 +447,11 @@ public:
 
     /** @name Save/restore */
     //@{
-    void Save (Base::Writer &writer) const;
-    void Restore(Base::XMLReader &reader);
-    void SaveDocFile(Base::Writer &writer) const;
-    void RestoreDocFile(Base::Reader &reader);
-    unsigned int getMemSize (void) const;
+    void Save (Base::Writer &writer) const override;
+    void Restore(Base::XMLReader &reader) override;
+    void SaveDocFile(Base::Writer &writer) const override;
+    void RestoreDocFile(Base::Reader &reader) override;
+    unsigned int getMemSize (void) const override;
     void setPersistenceFileName(const char *name) const;
     virtual void beforeSave() const;
     bool isRestoreFailed() const { return _restoreFailed; }

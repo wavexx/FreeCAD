@@ -175,7 +175,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 #define EXPR_TYPESYSTEM_HEADER() \
-    TYPESYSTEM_HEADER();\
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();\
 public:\
     void operator delete(void *p)
         

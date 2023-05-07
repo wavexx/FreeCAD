@@ -164,8 +164,8 @@ public:
     virtual std::vector<Data::IndexedName> getHigherElements(const char *name, bool silent=false) const;
 
 protected:
-    virtual void onChanged(const Property* prop);
-    virtual void onDocumentRestored();
+    void onChanged(const Property* prop) override;
+    void onDocumentRestored() override;
     void updateElementReference();
     std::pair<std::string,std::string> _getElementName(const char *name, const Data::MappedElement &mapped) const;
 

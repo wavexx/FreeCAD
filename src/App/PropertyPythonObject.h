@@ -74,7 +74,7 @@ public:
     std::string toString() const;
     void fromString(const std::string&);
 
-    bool isSame(const Property &other) const;
+    bool isSame(const Property &other) const override;
 
 private:
     void saveObject(Base::Writer &writer) const;
