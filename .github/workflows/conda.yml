@@ -9,28 +9,8 @@ on:
 
 jobs:
   make:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-11, ubuntu-latest, windows-latest]
-        python-version: ["3.10"]
-        arch : ["64"]
-        include:
-          - os: windows-latest
-            python-version: "3.8"
-            arch: "64"
-          - os: ubuntu-latest
-            python-version: "3.10"
-            arch: "aarch64"
-          - os: macos-11
-            arch: arm64
-            python-version: "3.10"
-
-    uses: realthunder/FreeCADMakeImage/.github/workflows/builder.yaml@master
+    uses: realthunder/FreeCADMakeImage/.github/workflows/bundle.yaml@master
     with:
-      os: ${{ matrix.os }}
-      arch: ${{ matrix.arch }}
-      python-version: ${{ matrix.python-version }}
       ref: ${{ github.ref_name }}
     secrets:
       token: ${{ secrets.ANACONDA_TOKEN }}
