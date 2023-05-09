@@ -103,6 +103,8 @@ void TaskExtrudeParameters::setupDialog(bool newObj, const char *historyPath)
     ui->offsetEdit->bind(extrude->Offset);
     ui->taperAngleEdit->bind(extrude->TaperAngle);
     ui->taperAngleEdit2->bind(extrude->TaperAngle2);
+    ui->innerTaperEdit->bind(extrude->TaperInnerAngle);
+    ui->innerTaperEdit2->bind(extrude->TaperInnerAngleRev);
     ui->XDirectionEdit->bind(App::ObjectIdentifier::parse(extrude, std::string("Direction.x")));
     ui->YDirectionEdit->bind(App::ObjectIdentifier::parse(extrude, std::string("Direction.y")));
     ui->ZDirectionEdit->bind(App::ObjectIdentifier::parse(extrude, std::string("Direction.z")));
@@ -309,6 +311,8 @@ void TaskExtrudeParameters::connectSlots()
         extrude->AutoTaperInnerAngle.setValue(checked);
         ui->innerTaperEdit->setDisabled(checked);
         ui->innerTaperEdit2->setDisabled(checked);
+        ui->innerTaperEdit->setVisible(checked);
+        ui->innerTaperEdit2->setVisible(checked);
         recomputeFeature();
     });
 }
