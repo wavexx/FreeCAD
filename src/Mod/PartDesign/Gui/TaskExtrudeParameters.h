@@ -62,10 +62,10 @@ public:
     void fillDirectionCombo();
     void applyParameters(QString facename);
 
-    enum class Type {
-        Pad,
-        Pocket
-    };
+    virtual bool isPocket() {
+        return false;
+    }
+
     enum class Modes {
         Dimension,
         ThroughAll,
@@ -102,7 +102,7 @@ protected:
     bool eventFilter(QObject *o, QEvent *ev) override;
     void _onSelectionChanged(const Gui::SelectionChanges& msg) override;
 
-    void setCheckboxes(Modes mode, Type type);
+    void setCheckboxes();
     void setupDialog(bool newObj, const char *historyPath);
     void readValuesFromHistory();
     App::PropertyLinkSub* propReferenceAxis;
@@ -127,7 +127,6 @@ protected:
     virtual void translateTooltips();
     virtual void translateModeList(int index);
     virtual void translateFaceNamePlaceHolder();
-    virtual void updateUI(int index);
 
 private:
     void tryRecomputeFeature();

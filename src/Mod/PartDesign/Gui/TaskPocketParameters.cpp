@@ -58,12 +58,10 @@ void TaskPocketParameters::translateModeList(int index)
     ui->changeMode->setCurrentIndex(index);
 }
 
-void TaskPocketParameters::updateUI(int index)
+void TaskPocketParameters::translateTooltips()
 {
-    // update direction combobox
-    fillDirectionCombo();
-    // set and enable checkboxes
-    setCheckboxes(static_cast<Modes>(index), Type::Pocket);
+    ui->offsetEdit->setToolTip(tr("Offset from face at which pocket will end"));
+    ui->checkBoxReversed->setToolTip(tr("Reverses pocket direction"));
 }
 
 void TaskPocketParameters::onModeChanged(int index)
@@ -98,7 +96,7 @@ void TaskPocketParameters::onModeChanged(int index)
             pcPocket->Length.setValue(0.0);
             ui->lengthEdit->setValue(0.0);
             if (!pcPocket->UpToFace.getValue()) {
-                updateUI(index);
+                setCheckboxes();
                 return;
             }
             break;
@@ -109,7 +107,7 @@ void TaskPocketParameters::onModeChanged(int index)
             break;
     }
 
-    updateUI(index);
+    setCheckboxes();
     recomputeFeature();
 }
 

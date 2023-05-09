@@ -232,7 +232,7 @@ void TaskExtrudeParameters::refresh()
     for (QWidget* child : proxy->findChildren<QWidget*>())
         child->blockSignals(false);
 
-    updateUI(index);
+    setCheckboxes();
     TaskSketchBasedParameters::refresh();
 }
 
@@ -309,10 +309,7 @@ void TaskExtrudeParameters::connectSlots()
         PartDesign::FeatureExtrude* extrude = static_cast<PartDesign::FeatureExtrude*>(vp->getObject());
         setupTransaction();
         extrude->AutoTaperInnerAngle.setValue(checked);
-        ui->innerTaperEdit->setDisabled(checked);
-        ui->innerTaperEdit2->setDisabled(checked);
-        ui->innerTaperEdit->setVisible(checked);
-        ui->innerTaperEdit2->setVisible(checked);
+        setCheckboxes();
         recomputeFeature();
     });
 }
@@ -555,10 +552,12 @@ void TaskExtrudeParameters::addAxisToCombo(App::DocumentObject* linkObj, const s
     this->axesInList.emplace_back(linkObj, linkSubname.c_str());
 }
 
-void TaskExtrudeParameters::setCheckboxes(Modes mode, Type type)
+void TaskExtrudeParameters::setCheckboxes()
 {
     if (!vp)
         return;
+
+    auto mode = static_cast<Modes>(getMode());
 
     // disable/hide everything unless we are sure we don't need it
     // exception: the direction parameters are in any case visible
@@ -583,14 +582,14 @@ void TaskExtrudeParameters::setCheckboxes(Modes mode, Type type)
         // Reverse only makes sense if Midplane is not true
         isReversedEnabled = !ui->checkBoxMidplane->isChecked();
     }
-    else if (mode == Modes::ThroughAll && type == Type::Pocket) {
+    else if (mode == Modes::ThroughAll && isPocket()) {
         isOffsetEditVisible = true;
         isOffsetEditEnabled = false; // offset may have some meaning for through all but it doesn't work
         isMidplaneEnabled = true;
         isMidplaneVisible = true;
         isReversedEnabled = !ui->checkBoxMidplane->isChecked();
     }
-    else if (mode == Modes::ToLast && type == Type::Pad) {
+    else if (mode == Modes::ToLast && !isPocket()) {
         isOffsetEditVisible = true;
         isReversedEnabled = true;
     }
@@ -639,20 +638,17 @@ void TaskExtrudeParameters::setCheckboxes(Modes mode, Type type)
     PartDesign::FeatureExtrude* extrude = static_cast<PartDesign::FeatureExtrude*>(vp->getObject());
 
     if (extrude->AutoTaperInnerAngle.getValue()) {
-        ui->innerTaperEdit->setVisible( false );
         ui->innerTaperEdit->setEnabled( false );
-        ui->labelInnerTaperAngle->setVisible( false );
-        ui->innerTaperEdit2->setVisible( false );
         ui->innerTaperEdit2->setEnabled( false );
-        ui->labelInnerTaperAngle2->setVisible( false );
     } else {
-        ui->innerTaperEdit->setVisible( isTaperEditVisible );
         ui->innerTaperEdit->setEnabled( isTaperEditVisible );
-        ui->labelInnerTaperAngle->setVisible( isTaperEditVisible );
-        ui->innerTaperEdit2->setVisible( isTaperEdit2Visible );
         ui->innerTaperEdit2->setEnabled( isTaperEdit2Visible );
-        ui->labelInnerTaperAngle2->setVisible( isTaperEdit2Visible );
     }
+
+    ui->innerTaperEdit->setVisible( isTaperEditVisible );
+    ui->innerTaperEdit2->setVisible( isTaperEdit2Visible );
+    ui->labelInnerTaperAngle->setVisible( isTaperEditVisible );
+    ui->labelInnerTaperAngle2->setVisible( isTaperEdit2Visible );
 
     ui->checkBoxMidplane->setEnabled(isMidplaneEnabled);
     ui->checkBoxMidplane->setVisible(isMidplaneVisible);
@@ -1068,11 +1064,6 @@ void TaskExtrudeParameters::onModeChanged(int)
     // implement in sub-class
 }
 
-void TaskExtrudeParameters::updateUI(int)
-{
-    // implement in sub-class
-}
-
 void TaskExtrudeParameters::translateModeList(int)
 {
     // implement in sub-class
@@ -1080,8 +1071,9 @@ void TaskExtrudeParameters::translateModeList(int)
 
 void TaskExtrudeParameters::translateTooltips()
 {
-    ui->offsetEdit->setToolTip(tr("Offset from face at which pocket will end"));
-    ui->checkBoxReversed->setToolTip(tr("Reverses pocket direction"));
+    ui->offsetEdit->setToolTip(tr("Offset from face at which pad will end"));
+    ui->checkBoxReversed->setToolTip(tr("Reverses pad direction"));
 }
+
 
 #include "moc_TaskExtrudeParameters.cpp"

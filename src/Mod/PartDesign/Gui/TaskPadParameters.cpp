@@ -54,12 +54,6 @@ TaskPadParameters::~TaskPadParameters()
 {
 }
 
-void TaskPadParameters::translateTooltips()
-{
-    ui->offsetEdit->setToolTip(tr("Offset from face at which pad will end"));
-    ui->checkBoxReversed->setToolTip(tr("Reverses pad direction"));
-}
-
 void TaskPadParameters::translateModeList(int index)
 {
     ui->changeMode->clear();
@@ -84,14 +78,6 @@ void TaskPadParameters::translateFaceNamePlaceHolder()
     else {
         TaskExtrudeParameters::translateFaceNamePlaceHolder();
     }
-}
-
-void TaskPadParameters::updateUI(int index)
-{
-    // update direction combobox
-    fillDirectionCombo();
-    // set and enable checkboxes
-    setCheckboxes(static_cast<Modes>(index), Type::Pad);
 }
 
 void TaskPadParameters::onModeChanged(int index)
@@ -119,7 +105,7 @@ void TaskPadParameters::onModeChanged(int index)
             ui->buttonFace->setChecked(true);
         }
         if (!pcPad->UpToFace.getValue()) {
-            updateUI(index);
+            setCheckboxes();
             return;
         }
         break;
@@ -128,7 +114,7 @@ void TaskPadParameters::onModeChanged(int index)
         break;
     }
 
-    updateUI(index);
+    setCheckboxes();
     recomputeFeature();
 }
 

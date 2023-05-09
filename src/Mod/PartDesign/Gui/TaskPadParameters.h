@@ -53,10 +53,8 @@ public:
 
 private:
     void onModeChanged(int index) override;
-    void translateTooltips() override;
     void translateModeList(int index) override;
     void translateFaceNamePlaceHolder() override;
-    void updateUI(int index) override;
 };
 
 /// simulation dialog for the TaskView

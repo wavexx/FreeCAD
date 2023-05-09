@@ -50,8 +50,11 @@ public:
 
 private:
     void onModeChanged(int index) override;
+    void translateTooltips() override;
     void translateModeList(int index) override;
-    void updateUI(int index) override;
+    bool isPocket() override {
+        return true;
+    }
 
 private:
     double oldLength;
