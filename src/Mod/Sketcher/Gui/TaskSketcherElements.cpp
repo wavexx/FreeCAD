@@ -568,7 +568,7 @@ void TaskSketcherElements::on_elementsWidget_itemSelectionChanged(void)
     bool multipleconsecutiveselection=false; // shift type of selection in listWidget
 
     if (!inhibitSelectionUpdate) {
-        if(!itf) {
+        if(itf) {
             switch(element){
             case 0:
                 itf->isLineSelected=!itf->isLineSelected;
