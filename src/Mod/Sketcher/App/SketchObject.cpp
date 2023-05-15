@@ -7096,7 +7096,7 @@ int SketchObject::addExternal(App::DocumentObject *Obj, const char* SubName, boo
 
 int SketchObject::delExternal(int ExtGeoId)
 {
-    return delExternal({ExtGeoId});
+    return delExternal(std::vector<int>{ExtGeoId});
 }
 
 int SketchObject::delExternal(const std::vector<int> &ExtGeoIds)
