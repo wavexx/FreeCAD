@@ -43,7 +43,6 @@
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/SelectionFilter.h>
-#include <Gui/SoFCUnifiedSelection.h>
 #include <Gui/View3DInventor.h>
 #include <Gui/View3DInventorViewer.h>
 #include <Mod/Part/App/DatumFeature.h>
@@ -70,6 +69,7 @@
 #include "DrawSketchHandlerArcOfHyperbola.h"
 #include "DrawSketchHandlerArcOfParabola.h"
 #include "DrawSketchHandlerBSpline.h"
+#include "DrawSketchHandlerBSplineByInterpolation.h"
 #include "DrawSketchHandlerCarbonCopy.h"
 #include "DrawSketchHandlerCircle.h"
 #include "DrawSketchHandlerEllipse.h"
@@ -935,7 +935,7 @@ CmdSketcherExternal::CmdSketcherExternal()
 {
     sAppModule      = "Sketcher";
     sGroup          = "Sketcher";
-    sMenuText       = QT_TR_NOOP("Add external geometry");
+    sMenuText       = QT_TR_NOOP("Create an external geometry");
     sToolTipText    = QT_TR_NOOP("Create an edge linked to an external geometry");
     sWhatsThis      = "Sketcher_External";
     sStatusTip      = sToolTipText;
@@ -1314,8 +1314,8 @@ CmdSketcherCarbonCopy::CmdSketcherCarbonCopy()
 {
     sAppModule      = "Sketcher";
     sGroup          = "Sketcher";
-    sMenuText       = QT_TR_NOOP("Carbon copy");
-    sToolTipText    = QT_TR_NOOP("Copies the geometry of another sketch");
+    sMenuText       = QT_TR_NOOP("Create a carbon copy");
+    sToolTipText    = QT_TR_NOOP("Copy the geometry of another sketch");
     sWhatsThis      = "Sketcher_CarbonCopy";
     sStatusTip      = sToolTipText;
     sPixmap         = "Sketcher_CarbonCopy";

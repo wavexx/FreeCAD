@@ -53,10 +53,11 @@
 # include <QOpenGLTexture>
 # include <QAction>
 # include <QVBoxLayout>
+# include <QPainterPath>
 #endif
 
-#include <QPainterPath>
 
+#include <App/Color.h>
 #include <App/Document.h>
 #include <Base/Tools.h>
 #include <Base/UnitsApi.h>
@@ -67,6 +68,7 @@
 #include "Action.h"
 #include "Application.h"
 #include "Command.h"
+#include "Action.h"
 #include "MainWindow.h"
 #include "View3DInventorViewer.h"
 #include "View3DInventor.h"
@@ -77,23 +79,6 @@ FC_LOG_LEVEL_INIT("Gui", true, true)
 using namespace Eigen;
 using namespace std;
 using namespace Gui;
-
-// TODO
-// ortho / persp
-// stay in window
-// corner angle
-// menu actions
-// size
-// XYZ position
-// menu feedback
-// colors
-// antialise cube icon
-// translation
-// DONE
-// - permanent menu ("NaviCube_Menu"
-// - improved hit testing
-// - improved graphics (text now black)
-// - first stab at supporting translations
 
 class Face {
 public:
