@@ -3055,10 +3055,26 @@ void Application::LoadParameters()
     std::string vendorPrefix;
     if (mConfig.count("VendorCFGPrefix"))
         vendorPrefix = mConfig["VendorCFGPrefix"];
-    if (mConfig.find("UserParameter") == mConfig.end())
-        mConfig["UserParameter"]   = mConfig["UserConfigPath"] + "user.cfg";
-    if (mConfig.find("SystemParameter") == mConfig.end())
-        mConfig["SystemParameter"] = mConfig["UserConfigPath"] + "system.cfg";
+
+    if (mConfig.find("UserParameter") == mConfig.end()) {
+        std::string path = mConfig["UserConfigPath"] + vendorPrefix + "user.cfg";
+        if (vendorPrefix.size() && !FileInfo(path).exists()) {
+            FileInfo fi(mConfig["UserConfigPath"] + "user.cfg");
+            if (fi.exists())
+                fi.copyTo(path.c_str());
+        }
+        mConfig["UserParameter"] = path;
+    }
+    if (mConfig.find("SystemParameter") == mConfig.end()) {
+        std::string path = mConfig["UserConfigPath"] + vendorPrefix + "system.cfg";
+        if (vendorPrefix.size() && !FileInfo(path).exists()) {
+            FileInfo fi(mConfig["UserConfigPath"] + "system.cfg");
+            if (fi.exists())
+                fi.copyTo(path.c_str());
+        }
+        mConfig["SystemParameter"] = path;
+    }
+
 
     // create standard parameter sets
     _pcSysParamMngr = ParameterManager::Create();
