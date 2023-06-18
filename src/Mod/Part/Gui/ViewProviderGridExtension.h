@@ -66,6 +66,9 @@ public:
     void getClosestGridPoint(double &x, double &y) const;
     double getGridSize() const;
 
+    void attachViewer(Gui::View3DInventorViewer *viewer);
+    void detachViewer();
+
 protected:
     void extensionOnChanged(const App::Property*) override;
 
@@ -86,6 +89,7 @@ private:
     static const char* GridStyleEnums[];
     static App::PropertyQuantityConstraint::Constraints GridSizeRange;
 
+    friend class GridExtensionP;
     std::unique_ptr<GridExtensionP> pImpl;
 
 

@@ -21,10 +21,12 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
+#include <algorithm>
 
 #ifndef _PreComp_
 # include <cfloat>
 
+# include <Inventor/nodes/SoCamera.h>
 # include <Inventor/nodes/SoDepthBuffer.h>
 # include <Inventor/nodes/SoDrawStyle.h>
 # include <Inventor/nodes/SoLineSet.h>
@@ -34,6 +36,7 @@
 # include <Inventor/nodes/SoSeparator.h>
 # include <Inventor/nodes/SoBaseColor.h>
 # include <Inventor/SbVec3f.h>
+# include <Inventor/sensors/SoNodeSensor.h>
 
 # include <QApplication>
 #endif
@@ -81,6 +84,10 @@ public:
 
     void setGridOrientation(Base::Vector3d origin, Base::Rotation rotation);
 
+    void attachViewer(Gui::View3DInventorViewer *viewer);
+    void detachViewer();
+
+
     // Configurable parameters (to be configured by specific VP)
     int GridSizePixelThreshold = 15;
     int GridNumberSubdivision = 10;
@@ -119,6 +126,8 @@ private:
 
     // scenograph
     SoSeparator * GridRoot;
+
+    std::unique_ptr<SoNodeSensor> CameraSensor;
 };
 
 } // namespace PartGui
@@ -194,13 +203,13 @@ bool GridExtensionP::checkCameraTranslationChange(const Gui::View3DInventorViewe
 
 void GridExtensionP::computeGridSize(const Gui::View3DInventorViewer* viewer)
 {
-
     auto capGridSize = [](auto & value){
         value = std::max(static_cast<float>(value), std::numeric_limits<float>::min());
         value = std::min(static_cast<float>(value), std::numeric_limits<float>::max());
     };
 
-    if (!vp->GridAuto.getValue()) {
+    if (!vp->GridAuto.getValue())
+    {
         computedGridValue = vp->GridSize.getValue();
         capGridSize(computedGridValue);
         return;
@@ -226,12 +235,46 @@ void GridExtensionP::computeGridSize(const Gui::View3DInventorViewer* viewer)
     capGridSize(computedGridValue);
 }
 
+void ViewProviderGridExtension::attachViewer(Gui::View3DInventorViewer *viewer)
+{
+    pImpl->attachViewer(viewer);
+}
+
+void GridExtensionP::attachViewer(Gui::View3DInventorViewer *viewer)
+{
+    if (!CameraSensor) {
+        CameraSensor = std::make_unique<SoNodeSensor>();
+        CameraSensor->setData(this);
+        CameraSensor->setFunction([](void *data, SoSensor *) {
+            GridExtensionP *self = reinterpret_cast<GridExtensionP*>(data);
+            self->drawGrid(true);
+        });
+    }
+    CameraSensor->attach(viewer->getSoRenderManager()->getCamera());
+}
+
+void ViewProviderGridExtension::detachViewer()
+{
+    pImpl->detachViewer();
+}
+
+void GridExtensionP::detachViewer()
+{
+    if (CameraSensor)
+        CameraSensor->detach();
+}
+
+
 void GridExtensionP::createGrid(bool cameraUpdate)
 {
-    auto view = dynamic_cast<Gui::View3DInventor*>(Gui::Application::Instance->editDocument()->getActiveView());
-
-    if(!view)
-        return;
+    auto view = Base::freecad_dynamic_cast<Gui::View3DInventor>(
+            Gui::Application::Instance->editViewOfNode(vp->getExtendedViewProvider()->getRoot()));
+    if (!view) {
+        view = Base::freecad_dynamic_cast<Gui::View3DInventor>(
+                Gui::Application::Instance->editDocument()->getActiveView());
+        if (!view)
+            return;
+    }
 
     Gui::View3DInventorViewer* viewer = view->getViewer();
 
@@ -300,8 +343,8 @@ void GridExtensionP::createGridPart(int numberSubdiv, bool subDivLines, bool div
             isTooManySegmentsNotified = true;
         }
 
-        Gui::coinRemoveAllChildren(GridRoot);
-        return;
+        nlines = 2000;
+        vlines = 1000;
     }
     else {
         isTooManySegmentsNotified = false;

@@ -435,6 +435,7 @@ ViewProviderSketch::ViewProviderSketch()
     isShownVirtualSpace(false)
 {
     PartGui::ViewProviderAttachExtension::initExtension(this);
+    PartGui::ViewProviderGridExtension::initExtension(this);
 
     ADD_PROPERTY_TYPE(Autoconstraints,(true),"Auto Constraints",(App::PropertyType)(App::Prop_None),"Create auto constraints");
     ADD_PROPERTY_TYPE(AvoidRedundant,(true),"Auto Constraints",(App::PropertyType)(App::Prop_None),"Avoid redundant autoconstraint");
@@ -7202,7 +7203,7 @@ bool ViewProviderSketch::setEdit(int ModNum)
     Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
     TaskDlgEditSketch *sketchDlg = qobject_cast<TaskDlgEditSketch *>(dlg);
     if (sketchDlg && sketchDlg->getSketchView() != this)
-        sketchDlg = 0; // another sketch left open its task panel
+        sketchDlg = nullptr; // another sketch left open its task panel
     if (dlg && !sketchDlg && !dlg->tryClose())
         return false;
 
@@ -7289,8 +7290,6 @@ bool ViewProviderSketch::setEdit(int ModNum)
     } catch (Base::PyException &){
         Base::Console().Warning("ViewProviderSketch::setEdit: could not import Show module. Visibility automation will not work.\n");
     }
-
-    inherited::setEdit(ModNum); // notify to handle grid according to edit mode property
 
     // start the edit dialog
     if (sketchDlg)
@@ -7901,6 +7900,8 @@ void ViewProviderSketch::setEditViewer(Gui::View3DInventorViewer* viewer, int Mo
     // with the solver information, including solver extensions, and triggers a draw(true) via ViewProvider::UpdateData.
     getSketchObject()->solve(true);
 
+    attachViewer(viewer);
+
     inherited::setEditViewer(viewer, ModNum);
 }
 
@@ -7913,6 +7914,7 @@ void ViewProviderSketch::unsetEditViewer(Gui::View3DInventorViewer* viewer)
         edit->viewer = nullptr;
     }
 
+    detachViewer();
     inherited::unsetEditViewer(viewer);
 }
 
