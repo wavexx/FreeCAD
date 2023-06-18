@@ -649,6 +649,67 @@ bool CmdSketcherCreatePeriodicBSpline::isActive()
     return isCommandActive(getActiveGuiDocument());
 }
 
+/// @brief Macro that declares a new sketcher command class 'CmdSketcherCreateBSplineByInterpolation'
+DEF_STD_CMD_AU(CmdSketcherCreateBSplineByInterpolation)
+
+CmdSketcherCreateBSplineByInterpolation::CmdSketcherCreateBSplineByInterpolation()
+: Command("Sketcher_CreateBSplineByInterpolation")
+{
+    sAppModule      = "Sketcher";
+    sGroup          = "Sketcher";
+    sMenuText       = QT_TR_NOOP("Interpolate B-spline");
+    sToolTipText    = QT_TR_NOOP("Create a B-spline by interpolation, i.e. via knots in the sketch.");
+    sWhatsThis      = "Sketcher_CreateBSplineByInterpolation";
+    sStatusTip      = sToolTipText;
+    sPixmap         = "Sketcher_CreateBSplineByInterpolation";
+    sAccel          = "G, B, I";
+    eType           = ForEdit;
+}
+
+CONSTRUCTION_UPDATE_ACTION(CmdSketcherCreateBSplineByInterpolation,"Sketcher_CreateBSplineByInterpolation")
+
+void CmdSketcherCreateBSplineByInterpolation::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    ActivateHandler(getActiveGuiDocument(),new DrawSketchHandlerBSplineByInterpolation(0) );
+}
+
+bool CmdSketcherCreateBSplineByInterpolation::isActive()
+{
+    return isCommandActive(getActiveGuiDocument());
+}
+
+/// @brief Macro that declares a new sketcher command class 'CmdSketcherCreatePeriodicBSplineByInterpolation'
+DEF_STD_CMD_AU(CmdSketcherCreatePeriodicBSplineByInterpolation)
+
+CmdSketcherCreatePeriodicBSplineByInterpolation::CmdSketcherCreatePeriodicBSplineByInterpolation()
+: Command("Sketcher_CreatePeriodicBSplineByInterpolation")
+{
+    sAppModule      = "Sketcher";
+    sGroup          = "Sketcher";
+    sMenuText       = QT_TR_NOOP("Interpolate periodic B-spline");
+    sToolTipText    = QT_TR_NOOP("Create a periodic B-spline by interpolation, i.e. via knots in the sketch.");
+    sWhatsThis      = "Sketcher_Create_Periodic_BSplineByInterpolation";
+    sStatusTip      = sToolTipText;
+    sPixmap         = "Sketcher_Create_Periodic_BSplineByInterpolation";
+    sAccel          = "G, B, O";
+    eType           = ForEdit;
+}
+
+CONSTRUCTION_UPDATE_ACTION(CmdSketcherCreatePeriodicBSplineByInterpolation,"Sketcher_CreatePeriodicBSplineByInterpolation")
+
+void CmdSketcherCreatePeriodicBSplineByInterpolation::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    ActivateHandler(getActiveGuiDocument(),new DrawSketchHandlerBSplineByInterpolation(1) );
+}
+
+bool CmdSketcherCreatePeriodicBSplineByInterpolation::isActive()
+{
+    return isCommandActive(getActiveGuiDocument());
+}
+
+
 class CmdSketcherCompCreateBSpline: public Gui::GroupCommand
 {
 public:
@@ -672,6 +733,8 @@ CmdSketcherCompCreateBSpline::CmdSketcherCompCreateBSpline()
     eType           = ForEdit;
     addCommand(new CmdSketcherCreateBSpline());
     addCommand(new CmdSketcherCreatePeriodicBSpline());
+    addCommand(new CmdSketcherCreateBSplineByInterpolation());
+    addCommand(new CmdSketcherCreatePeriodicBSplineByInterpolation());
 }
 
 // ======================================================================================
