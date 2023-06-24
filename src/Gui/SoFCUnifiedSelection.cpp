@@ -695,16 +695,15 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
         auto backPick = [&]() {
             if (auto paths = pcViewer->getLatePickPaths()) {
                 this->rayPickAction.setLatePicking(true);
-                if (paths->getLength()) {
+                if (useRenderer()) {
+                    manager.doLatePick(&this->rayPickAction);
+                } else if (paths->getLength()) {
                     this->rayPickAction.apply(*paths, FALSE);
-                    getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
+                } else {
+                    this->rayPickAction.setLatePicking(false);
+                    return;
                 }
-                // for (int i=0; i< paths->getLength(); ++i) {
-                //     this->rayPickAction.apply((*paths)[i]);
-                //     getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
-                //     if (singlePick && !ret.empty())
-                //         break;
-                // }
+                getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
                 this->rayPickAction.setLatePicking(false);
             }
         };
@@ -1205,7 +1204,7 @@ SoFCUnifiedSelection::Private::setHighlight(SoFullPath *path,
                 float a = 1.f - ViewParams::getTransparencyOnTop();
                 t = 1.f - a*a;
             }
-            else if (!wholeontop && ontop && ViewParams::highlightPick()) {
+            if (wholeontop || (ontop && ViewParams::highlightPick())) {
                 SoDetail *_det = nullptr;
                 // Normal path obtained for ray pick action leads to the shape node
                 // that's got picked. But 'needPickedList' and 'highlightPick' requires
