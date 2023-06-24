@@ -692,9 +692,35 @@ SoFCUnifiedSelection::Private::getPickedList(const SbVec2s &pos,
             this->rayPickAction.setPickMode(SoFCRayPickAction::PickMode::BackFace, pickBackFace);
         }
 
-        this->rayPickAction.apply(pcViewer->getSoRenderManager()->getSceneGraph());
+        auto backPick = [&]() {
+            if (auto paths = pcViewer->getLatePickPaths()) {
+                this->rayPickAction.setLatePicking(true);
+                if (paths->getLength()) {
+                    this->rayPickAction.apply(*paths, FALSE);
+                    getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
+                }
+                // for (int i=0; i< paths->getLength(); ++i) {
+                //     this->rayPickAction.apply((*paths)[i]);
+                //     getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
+                //     if (singlePick && !ret.empty())
+                //         break;
+                // }
+                this->rayPickAction.setLatePicking(false);
+            }
+        };
 
-        getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
+        if (pickBackFace) {
+            backPick();
+        }
+
+        if (ret.empty() || !singlePick) {
+            this->rayPickAction.apply(pcViewer->getSoRenderManager()->getSceneGraph());
+            getPickedInfo(ret,this->rayPickAction.getPrioPickedPointList(),singlePick,false,filter);
+        }
+
+        if (!pickBackFace && (ret.empty() || !singlePick)) {
+            backPick();
+        }
     }
 
     if(singlePick) {
@@ -2471,7 +2497,7 @@ void SoFCSeparator::_GLRenderInPath(SoNode *node, SoGLRenderAction * action)
         for (int i = 0; i < numindices; i++) {
             int stop = indices[i];
             // This whole function is copied from SoSeparator::GLRenderInPath()
-            // except the following if statement. This extra check make is
+            // except the following if statement. This extra check make it
             // possible to traverse in a path list out of order without
             // expensive sorting.
             if (childidx > stop)
@@ -3602,4 +3628,54 @@ void SoFCPathAnnotation::doAction(SoAction *action) {
     if(path)
         SoFCSwitch::popSwitchPath();
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+SO_NODE_SOURCE(SoFCLatePickGroup)
+
+SoFCLatePickGroup::SoFCLatePickGroup()
+{
+    SO_NODE_CONSTRUCTOR(SoFCLatePickGroup);
+}
+
+void SoFCLatePickGroup::GLRenderBelowPath(SoGLRenderAction * action)
+{
+    if (action->isOfType(SoBoxSelectionRenderAction::getClassTypeId())) {
+        static_cast<SoBoxSelectionRenderAction*>(action)->addLatePickPath(action->getCurPath());
+    }
+    inherited::GLRenderBelowPath(action);
+}
+
+void SoFCLatePickGroup::GLRenderInPath(SoGLRenderAction * action)
+{
+    if (action->isOfType(SoBoxSelectionRenderAction::getClassTypeId())) {
+        auto raypick = static_cast<SoBoxSelectionRenderAction*>(action);
+        if (auto path = action->getPathAppliedTo())
+            raypick->addLatePickPath(path);
+        else
+            raypick->addLatePickPath(action->getCurPath());
+    }
+    inherited::GLRenderInPath(action);
+}
+
+void SoFCLatePickGroup::rayPick(SoRayPickAction *action)
+{
+    if (action->isOfType(SoFCRayPickAction::getClassTypeId())
+            && !static_cast<SoFCRayPickAction*>(action)->isLatePicking())
+    {
+        return;
+    }
+    inherited::rayPick(action);
+}
+
+void SoFCLatePickGroup::initClass()
+{
+    SO_NODE_INIT_CLASS(SoFCLatePickGroup,SoFCSeparator,"FCLatePickGroup");
+}
+
+void SoFCLatePickGroup::finish()
+{
+    atexit_cleanup();
+}
+
 
