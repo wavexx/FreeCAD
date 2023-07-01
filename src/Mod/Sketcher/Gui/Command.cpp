@@ -1676,6 +1676,8 @@ void CmdRenderingOrder::updateIcon()
     static QIcon external = Gui::BitmapFactory().iconFromTheme("Sketcher_RenderingOrder_External");
 
     auto * pcAction = qobject_cast<Gui::ActionGroup*>(getAction());
+    if (!pcAction)
+        return;
 
     if(TopElement == ElementType::Normal) {
         pcAction->setIcon(normal);
