@@ -63,12 +63,11 @@ TaskMultiTransformParameters::TaskMultiTransformParameters(ViewProviderTransform
     // we need a separate container widget to add all controls to
     proxy = new QWidget(this);
     ui->setupUi(proxy);
-    QMetaObject::connectSlotsByName(this);
     this->groupLayout()->addWidget(proxy);
 
     defaultMinimumHeight = 300;
 
-    setupUI();
+    setupBaseUI();
 
     // Create a context menu for the listview of transformation features
     auto action = new QAction(tr("Edit"), ui->listTransformFeatures);

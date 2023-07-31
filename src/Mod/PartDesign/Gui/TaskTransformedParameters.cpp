@@ -220,7 +220,7 @@ bool TaskTransformedParameters::isEnabledTransaction() const
     return enableTransaction;
 }
 
-void TaskTransformedParameters::setupUI() {
+void TaskTransformedParameters::setupBaseUI() {
     if(!TransformedView || !proxy)
         return;
 
@@ -290,9 +290,9 @@ void TaskTransformedParameters::setupUI() {
     assert(layout);
 
     auto grid = PartDesignGui::addTaskCheckBox(TransformedView, proxy);
-    grid->addWidget(checkBoxParallel, 1, 1);
     grid->addWidget(checkBoxNewSolid, 2, 0);
     grid->addWidget(checkBoxSubTransform, 2, 1);
+    grid->addWidget(checkBoxParallel, 3, 0);
 
     splitter = new QSplitter(Qt::Vertical, this);
     splitter->addWidget(labelMessage);
@@ -380,10 +380,7 @@ void TaskTransformedParameters::setupUI() {
     }
 
     linkEditor->init(App::DocumentObjectT(&pcTransformed->OriginalSubs),false);
-}
 
-void TaskTransformedParameters::connectSignals()
-{
     QMetaObject::connectSlotsByName(this);
     Base::connect(checkBoxSubTransform, &QCheckBox::toggled, this, &TaskTransformedParameters::onChangedSubTransform);
     Base::connect(checkBoxParallel, &QCheckBox::toggled, this, &TaskTransformedParameters::onChangedParallelTransform);

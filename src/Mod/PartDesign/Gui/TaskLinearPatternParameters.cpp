@@ -62,7 +62,6 @@ TaskLinearPatternParameters::TaskLinearPatternParameters(ViewProviderTransformed
     // we need a separate container widget to add all controls to
     proxy = new QWidget(this);
     ui->setupUi(proxy);
-    QMetaObject::connectSlotsByName(this);
 
     this->groupLayout()->addWidget(proxy);
 
@@ -82,7 +81,6 @@ TaskLinearPatternParameters::TaskLinearPatternParameters(TaskMultiTransformParam
     ui->setupUi(proxy);
     connect(ui->buttonOK, &QToolButton::pressed,
             parentTask, &TaskLinearPatternParameters::onSubTaskButtonOK);
-    QMetaObject::connectSlotsByName(this);
 
     layout->addWidget(proxy);
 
@@ -98,7 +96,7 @@ TaskLinearPatternParameters::TaskLinearPatternParameters(TaskMultiTransformParam
 
 void TaskLinearPatternParameters::setupUI()
 {
-    TaskTransformedParameters::setupUI();
+    setupBaseUI();
     ui->spinOccurrences->setMinimum(1);
 
     PartDesign::LinearPattern* pcLinearPattern = static_cast<PartDesign::LinearPattern*>(getObject());

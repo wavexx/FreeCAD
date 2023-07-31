@@ -62,7 +62,6 @@ TaskGenericPatternParameters::TaskGenericPatternParameters(ViewProviderTransform
     proxy = new QWidget(this);
     ui = new Ui_TaskGenericPatternParameters();
     ui->setupUi(proxy);
-    QMetaObject::connectSlotsByName(this);
 
     this->groupLayout()->addWidget(proxy);
 
@@ -83,7 +82,6 @@ TaskGenericPatternParameters::TaskGenericPatternParameters(TaskMultiTransformPar
     ui->setupUi(proxy);
     connect(ui->buttonOK, SIGNAL(clicked(bool)),
             parentTask, SLOT(onSubTaskButtonOK()));
-    QMetaObject::connectSlotsByName(this);
 
     layout->addWidget(proxy);
 
@@ -98,7 +96,7 @@ TaskGenericPatternParameters::TaskGenericPatternParameters(TaskMultiTransformPar
 
 void TaskGenericPatternParameters::setupUI()
 {
-    TaskTransformedParameters::setupUI();
+    setupBaseUI();
 
     connect(ui->editExpression, SIGNAL(textChanged()), this, SLOT(onChangedExpression()));
 

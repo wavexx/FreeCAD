@@ -58,7 +58,6 @@ TaskMirroredParameters::TaskMirroredParameters(ViewProviderTransformed *Transfor
     // we need a separate container widget to add all controls to
     proxy = new QWidget(this);
     ui->setupUi(proxy);
-    QMetaObject::connectSlotsByName(this);
 
     this->groupLayout()->addWidget(proxy);
 
@@ -78,7 +77,6 @@ TaskMirroredParameters::TaskMirroredParameters(TaskMultiTransformParameters *par
     ui->setupUi(proxy);
     connect(ui->buttonOK, &QToolButton::pressed,
             parentTask, &TaskMirroredParameters::onSubTaskButtonOK);
-    QMetaObject::connectSlotsByName(this);
 
     layout->addWidget(proxy);
 
@@ -93,12 +91,7 @@ TaskMirroredParameters::TaskMirroredParameters(TaskMultiTransformParameters *par
 
 void TaskMirroredParameters::setupUI()
 {
-    TaskTransformedParameters::setupUI();
-
-    connect(ui->comboPlane, qOverload<int>(&QComboBox::activated),
-            this, &TaskMirroredParameters::onPlaneChanged);
-    connect(ui->checkBoxUpdateView, &QCheckBox::toggled,
-            this, &TaskMirroredParameters::onUpdateView);
+    setupBaseUI();
 
     this->planeLinks.setCombo(*(ui->comboPlane));
     ui->comboPlane->setEnabled(true);
@@ -125,6 +118,11 @@ void TaskMirroredParameters::setupUI()
     }
 
     updateUI();
+
+    connect(ui->comboPlane, qOverload<int>(&QComboBox::activated),
+            this, &TaskMirroredParameters::onPlaneChanged);
+    connect(ui->checkBoxUpdateView, &QCheckBox::toggled,
+            this, &TaskMirroredParameters::onUpdateView);
 }
 
 void TaskMirroredParameters::updateUI()
