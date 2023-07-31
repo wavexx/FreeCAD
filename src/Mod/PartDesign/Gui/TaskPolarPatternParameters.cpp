@@ -86,7 +86,7 @@ TaskPolarPatternParameters::TaskPolarPatternParameters(TaskMultiTransformParamet
 {
     proxy = new QWidget(parentTask);
     ui->setupUi(proxy);
-    connect(ui->buttonOK, &QToolButton::pressed,
+    Base::connect(ui->buttonOK, &QToolButton::pressed,
             parentTask, &TaskMultiTransformParameters::onSubTaskButtonOK);
 
     layout->addWidget(proxy);

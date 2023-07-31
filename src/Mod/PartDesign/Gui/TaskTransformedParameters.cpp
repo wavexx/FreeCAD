@@ -226,7 +226,8 @@ void TaskTransformedParameters::setupBaseUI() {
 
     updateViewTimer = new QTimer(this);
     updateViewTimer->setSingleShot(true);
-    connect(updateViewTimer, SIGNAL(timeout()), this, SLOT(onUpdateViewTimer()));
+    Base::connect(updateViewTimer, &QTimer::timeout,
+            this, &TaskTransformedParameters::onUpdateViewTimer);
     
     // remembers the initial transaction ID
     App::GetApplication().getActiveTransaction(&transactionID);
@@ -650,10 +651,12 @@ TaskDlgTransformedParameters::TaskDlgTransformedParameters(
         Content.push_back(taskTransformOffset);
         taskTransformOffset->hideGroupBox();
 
-        connect(widget, SIGNAL(placementChanged(const QVariant &, bool, bool)),
-                parameter, SLOT(onChangedOffset(const QVariant &, bool, bool)));
-        connect(taskTransformOffset, SIGNAL(toggledExpansion()), this, SLOT(onToggledTaskOffset()));
-        connect(parameter, SIGNAL(toggledExpansion()), this, SLOT(onToggledTaskParameters()));
+        Base::connect(widget, &Gui::Dialog::Placement::placementChanged,
+                parameter, &TaskTransformedParameters::onChangedOffset);
+        Base::connect(taskTransformOffset, &Gui::TaskView::TaskBox::toggledExpansion,
+                this, &TaskDlgTransformedParameters::onToggledTaskOffset);
+        Base::connect(parameter, &TaskTransformedParameters::toggledExpansion,
+                this, &TaskDlgTransformedParameters::onToggledTaskParameters);
     }
 }
 

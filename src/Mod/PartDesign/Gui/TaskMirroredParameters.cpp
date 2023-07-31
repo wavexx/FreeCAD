@@ -33,6 +33,7 @@
 #include <App/DocumentObject.h>
 #include <App/Origin.h>
 #include <Base/Console.h>
+#include <Base/ExceptionSafeCall.h>
 #include <Base/Tools.h>
 #include <Gui/Application.h>
 #include <Gui/Command.h>
@@ -119,9 +120,9 @@ void TaskMirroredParameters::setupUI()
 
     updateUI();
 
-    connect(ui->comboPlane, qOverload<int>(&QComboBox::activated),
+    Base::connect(ui->comboPlane, qOverload<int>(&QComboBox::activated),
             this, &TaskMirroredParameters::onPlaneChanged);
-    connect(ui->checkBoxUpdateView, &QCheckBox::toggled,
+    Base::connect(ui->checkBoxUpdateView, &QCheckBox::toggled,
             this, &TaskMirroredParameters::onUpdateView);
 }
 

@@ -29,6 +29,7 @@
 #endif
 
 #include <Base/Console.h>
+#include <Base/ExceptionSafeCall.h>
 #include <Base/Tools.h>
 #include <App/Application.h>
 #include <App/Document.h>
@@ -80,8 +81,8 @@ TaskGenericPatternParameters::TaskGenericPatternParameters(TaskMultiTransformPar
     proxy = new QWidget(parentTask);
     ui = new Ui_TaskGenericPatternParameters();
     ui->setupUi(proxy);
-    connect(ui->buttonOK, SIGNAL(clicked(bool)),
-            parentTask, SLOT(onSubTaskButtonOK()));
+    connect(ui->buttonOK, &QToolButton::pressed,
+            parentTask, &TaskGenericPatternParameters::onSubTaskButtonOK);
 
     layout->addWidget(proxy);
 
@@ -97,11 +98,11 @@ TaskGenericPatternParameters::TaskGenericPatternParameters(TaskMultiTransformPar
 void TaskGenericPatternParameters::setupUI()
 {
     setupBaseUI();
-
-    connect(ui->editExpression, SIGNAL(textChanged()), this, SLOT(onChangedExpression()));
-
     updateUI();
 
+
+    connect(ui->editExpression, &Gui::ExpressionTextEdit::textChanged,
+            this, &TaskGenericPatternParameters::onChangedExpression);
     ui->editExpression->setDocumentObject(getObject());
 }
 
