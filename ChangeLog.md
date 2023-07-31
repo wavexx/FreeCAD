@@ -2,6 +2,7 @@ Tip release (branch (LinkMerge)[https://github.com/realthunder/FreeCAD/tree/Link
 
 # Tip 2023.07.30
 
+Fix libfmt packaging problem
 PartDesign: fix auto recompute when editing pattern features (#839)
 
 # Tip 2023.07.29
