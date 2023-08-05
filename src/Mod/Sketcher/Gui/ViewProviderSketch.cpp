@@ -320,6 +320,7 @@ struct EditData {
     int DragCurve;
     // dragged constraints
     std::set<int> DragConstraintSet;
+    int DragConstraintTransactionId = 0;
 
     SbColor PreselectOldColor;
     int PreselectPoint;
@@ -1188,16 +1189,16 @@ bool ViewProviderSketch::mouseButtonPressed(int Button, bool pressed, const SbVe
                     setSketchMode(STATUS_NONE);
                     return true;
                 case STATUS_SKETCH_DragConstraint:
-                    if (edit->DragConstraintSet.empty() == false) {
-                        getDocument()->openCommand(QT_TRANSLATE_NOOP("Command", "Drag Constraint"));
-                        auto idset = edit->DragConstraintSet;
+                    if (!edit->DragConstraintSet.empty()) {
+                        auto idset = std::move(edit->DragConstraintSet);
+                        edit->DragConstraintSet.clear();
                         for(int id : idset) {
                             moveConstraint(id, Base::Vector2d(x, y));
                             //updateColor();
                         }
-                        edit->PreselectConstraintSet = edit->DragConstraintSet;
-                        edit->DragConstraintSet.clear();
-                        getDocument()->commitCommand();
+                        edit->PreselectConstraintSet = std::move(idset);
+                        App::GetApplication().closeActiveTransaction();
+                        edit->DragConstraintTransactionId = 0;
                     }
                     setSketchMode(STATUS_NONE);
                     return true;
@@ -1686,7 +1687,11 @@ bool ViewProviderSketch::mouseMove(const SbVec2s &cursorPos, Gui::View3DInventor
             }
             return true;
         case STATUS_SKETCH_DragConstraint:
-            if (edit->DragConstraintSet.empty() == false) {
+            if (!edit->DragConstraintSet.empty()) {
+                if (edit->DragConstraintTransactionId == 0) {
+                    edit->DragConstraintTransactionId = App::GetApplication().setActiveTransaction(
+                            QT_TRANSLATE_NOOP("Command", "Drag Constraint"));
+                }
                 auto idset = edit->DragConstraintSet;
                 for(int id : idset)
                     moveConstraint(id, Base::Vector2d(x,y));
@@ -1729,7 +1734,7 @@ void ViewProviderSketch::moveConstraint(int constNum, const Base::Vector2d &toPo
         return;
 
     const std::vector<Sketcher::Constraint *> &constrlist = getSketchObject()->Constraints.getValues();
-    Constraint *Constr = constrlist[constNum];
+    std::unique_ptr<Constraint> Constr(constrlist[constNum]->clone());
 
 #ifdef _DEBUG
     int intGeoCount = getSketchObject()->getHighestCurveIndex() + 1;
@@ -1925,6 +1930,9 @@ void ViewProviderSketch::moveConstraint(int constNum, const Base::Vector2d &toPo
     // delete the cloned objects
     for (std::vector<Part::Geometry *>::const_iterator it=geomlist.begin(); it != geomlist.end(); ++it)
         if (*it) delete *it;
+
+
+    getSketchObject()->Constraints.set1Value(constNum, std::move(Constr));
 
     draw(true,false);
 }
