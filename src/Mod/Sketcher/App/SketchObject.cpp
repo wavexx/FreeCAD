@@ -33,6 +33,7 @@
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepOffsetAPI_NormalProjection.hxx>
 #include <BRepTools_WireExplorer.hxx>
 #include <ElCLib.hxx>
@@ -8134,8 +8135,9 @@ Part::Geometry* projectEdgeToLine(const TopoDS_Edge &edge,
 
     // Explicitly make the mesh, or else getBoundBox() will be very loosely
     // bound.
-    shape.meshShape(Part::PartParams::getMinimumDeviation(),
-                    Part::PartParams::getMinimumAngularDeflection());
+    //
+    // Use very small deflection to make more accurate measurement. Could be slow!
+    BRepMesh_IncrementalMesh aMesh(shape.getShape(), 0.005, false, 0.1, true);
 
     // Obtain the bounding box and move the extreme points back to its original
     // location
