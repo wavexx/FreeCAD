@@ -7298,6 +7298,9 @@ bool ViewProviderSketch::setEdit(int ModNum)
     edit = std::make_unique<EditData>(this);
     snapManager = std::make_unique<SnapManager>(*this);
 
+    // Init icon, font and marker sizes
+    initParams();
+
     ParameterGrp::handle hSketch = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
     edit->handleEscapeButton = !hSketch->GetBool("LeaveSketchWithEscape", true);
 
