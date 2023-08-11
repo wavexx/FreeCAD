@@ -571,7 +571,7 @@ void initInterpreter(int argc,char *argv[])
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
     config.parse_argv = 0;
-    config->install_signal_handlers = 0;
+    config.install_signal_handlers = 0;
 
     status = PyConfig_SetBytesArgv(&config, argc, argv);
     if (PyStatus_Exception(status)) {
