@@ -61,6 +61,7 @@
 #include <Inventor/misc/SoChildList.h>
 #include <Inventor/errors/SoDebugError.h>
 
+#include <boost/container/flat_set.hpp>
 #include <unordered_map>
 #include <map>
 
@@ -391,7 +392,7 @@ public:
   SbFCVector<RenderCachePtr> stack;
   SbFCVector<SbFCUniqueId> selnodeid;
   SbFCUniqueId sceneid;
-  std::unordered_set<const SoNode *> nodeset;
+  boost::container::flat_set<const SoNode *> nodeset;
   const SoNode * prunenode;
   int traversedepth;
   SoFCRenderer *renderer;
