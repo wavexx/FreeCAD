@@ -62,6 +62,7 @@
 #include <Inventor/misc/SoChildList.h>
 #include <Inventor/errors/SoDebugError.h>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/container/flat_set.hpp>
 #include <unordered_map>
 #include <map>
@@ -347,17 +348,15 @@ public:
     {
       setFunction([](void *, SoSensor *sensor) {
         auto self = static_cast<LatePickPathSensor*>(sensor);
-        if (self->tmpPath->getLength() == self->attachedPath->getLength())
-          return;
         self->detach();
         self->master->latepickpaths.truncate(0);
         self->master->latepicktable.erase(self->tmpPath);
-        return;
       });
     }
 
     virtual void notify(SoNotList * l) {
       (void)l;
+      master->latepickpaths.truncate(0);
       if (!isScheduled())
         schedule();
     }
@@ -378,6 +377,7 @@ public:
                      PathHasher<PathPtr>,
                      PathHasher<PathPtr>> latepicktable;
   mutable SoPathList latepickpaths;
+  bool obeysrules;
   RenderCachePtr highlightcache;
   CoinPtr<SoPath> highlightpath;
   bool nosectionontop = false;
@@ -430,6 +430,7 @@ getMaxShapeTypeId()
 
 SoFCRenderCacheManagerP::SoFCRenderCacheManagerP()
 {
+  this->obeysrules = boost::ends_with(SoDB::getVersion(), "rt");
   this->prunenode = nullptr;
   this->selid = 0;
   this->sceneid = 0;
@@ -503,6 +504,7 @@ void SoFCRenderCacheManagerP::initAction()
   this->action->addPostCallback(SoTexture3Transform::getClassTypeId(), &postTextureTransform, this);
   this->action->addPostCallback(SoVRMLTextureTransform::getClassTypeId(), &postTextureTransform, this);
   this->action->addPostCallback(SoLightModel::getClassTypeId(), &postLightModel, this);
+  this->action->addPostCallback(SoShadowStyle::getClassTypeId(), &postShadowStyle, this);
   this->action->addPostCallback(SoMaterial::getClassTypeId(), &postMaterial, this);
   this->action->addPostCallback(SoVRMLMaterial::getClassTypeId(), &postVRMLMaterial, this);
   this->action->addPostCallback(SoBaseColor::getClassTypeId(), &postColor, this);
@@ -1292,9 +1294,10 @@ void SoFCRenderCacheManagerP::doLatePick(SoRayPickAction *action) const
   if (latepickpaths.getLength() == 0) {
     for (auto &v : latepicktable)
       latepickpaths.append(v.first);
-    latepickpaths.sort();
+    if (obeysrules)
+      latepickpaths.sort();
   }
-  action->apply(latepickpaths, TRUE);
+  action->apply(latepickpaths, obeysrules);
 }
 
 SoCallbackAction::Response
