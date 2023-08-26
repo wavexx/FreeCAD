@@ -29,6 +29,7 @@
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoModelMatrixElement.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoResetTransform.h>
@@ -65,6 +66,7 @@
 #include <unordered_map>
 #include <map>
 
+#include <Base/Console.h>
 #include "../ViewParams.h"
 #include "../InventorBase.h"
 #include "../SoFCUnifiedSelection.h"
@@ -76,6 +78,8 @@
 #include "SoFCRenderCacheManager.h"
 
 using namespace Gui;
+
+FC_LOG_LEVEL_INIT("Renderer", true, true)
 
 // ---------------------------------------------------------------
 
@@ -221,6 +225,7 @@ public:
   static SoCallbackAction::Response postClipPlane(void *, SoCallbackAction *action, const SoNode * node);
   static SoCallbackAction::Response preAutoZoom(void *, SoCallbackAction *action, const SoNode * node);
   static SoCallbackAction::Response postAutoZoom(void *, SoCallbackAction *action, const SoNode * node);
+  static SoCallbackAction::Response postShadowStyle(void *, SoCallbackAction *action, const SoNode * node);
   static SoCallbackAction::Response postLightModel(void *, SoCallbackAction *action, const SoNode * node);
   static SoCallbackAction::Response postLight(void *, SoCallbackAction *action, const SoNode * node);
   static SoCallbackAction::Response postVRMLLight(void *, SoCallbackAction *action, const SoNode * node);
@@ -1379,6 +1384,19 @@ SoFCRenderCacheManagerP::postLightModel(void *userdata,
   assert(node && node->isOfType(SoLightModel::getClassTypeId()));
   const SoLightModel *lightmodel = static_cast<const SoLightModel*>(node);
   self->stack.back()->setLightModel(action->getState(), lightmodel);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+SoFCRenderCacheManagerP::postShadowStyle(void *userdata,
+                                        SoCallbackAction *action,
+                                        const SoNode * node)
+{
+  (void)userdata;
+  assert(node && node->isOfType(SoShadowStyle::getClassTypeId()));
+  const SoShadowStyle *shadowstyle = static_cast<const SoShadowStyle*>(node);
+  // This is a work around of the fact that SoShadowStyle does not handle SoCallbackAction
+  SoShadowStyleElement::set(action->getState(), const_cast<SoNode*>(node), shadowstyle->style.getValue());
   return SoCallbackAction::CONTINUE;
 }
 
