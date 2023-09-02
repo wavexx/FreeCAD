@@ -1174,12 +1174,16 @@ SoFCUnifiedSelection::Private::setHighlight(SoFullPath *path,
         const char *objname = vpd->getObject()->getNameInDocument();
 
         this->preSelection = 1;
-        int ret = Gui::Selection().setPreselect(docname,objname,subname,x,y,z,
-                SelectionChanges::MsgSource::Any,true);
-        if(ret > 0 || ret == -1) {
+        switch(Gui::Selection().setPreselect(docname,objname,subname,x,y,z,
+                SelectionChanges::MsgSource::Any,true))
+        {
+        case SelectionSingleton::PreselectResult::OK:
+        case SelectionSingleton::PreselectResult::Same:
             clearHighlight();
             currentHighlight->append(path);
             highlighted = true;
+        default:
+            break;
         }
     }
 
