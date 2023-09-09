@@ -72,7 +72,7 @@ Params = [
     ParamBool("AuxGroupUniqueLabel", False),
     ParamBool("SplitEllipsoid", True),
     ParamInt("ParallelRunThreshold", 100),
-    ParamBool("ValidateShape", True),
+    ParamBool("AutoValidateShape", False),
     ParamBool("FixShape", False),
     _MinimumDeviation,
     _MeshDeviation,

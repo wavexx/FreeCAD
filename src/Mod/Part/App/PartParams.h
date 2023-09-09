@@ -30,11 +30,11 @@ import PartParams
 PartParams.declare()
 ]]]*/
 
-// Auto generated code (Tools/params_utils.py:72)
+// Auto generated code (Tools/params_utils.py:82)
 #include <Base/Parameter.h>
 
 
-// Auto generated code (Tools/params_utils.py:78)
+// Auto generated code (Tools/params_utils.py:90)
 namespace Part {
 /** Convenient class to obtain Part/PartDesign related parameters
 
@@ -70,7 +70,7 @@ class PartExport PartParams {
 public:
     static ParameterGrp::handle getHandle();
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter ShapePropertyCopy
     static const bool & getShapePropertyCopy();
@@ -80,7 +80,7 @@ public:
     static const char *docShapePropertyCopy();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter DisableShapeCache
     static const bool & getDisableShapeCache();
@@ -90,7 +90,7 @@ public:
     static const char *docDisableShapeCache();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter CommandOverride
     static const long & getCommandOverride();
@@ -100,7 +100,7 @@ public:
     static const char *docCommandOverride();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter EnableWrapFeature
     static const long & getEnableWrapFeature();
@@ -110,7 +110,7 @@ public:
     static const char *docEnableWrapFeature();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter CopySubShape
     static const bool & getCopySubShape();
@@ -120,7 +120,7 @@ public:
     static const char *docCopySubShape();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter UseBrepToolsOuterWire
     static const bool & getUseBrepToolsOuterWire();
@@ -130,7 +130,7 @@ public:
     static const char *docUseBrepToolsOuterWire();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter UseBaseObjectName
     static const bool & getUseBaseObjectName();
@@ -140,7 +140,7 @@ public:
     static const char *docUseBaseObjectName();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter AutoGroupSolids
     static const bool & getAutoGroupSolids();
@@ -150,7 +150,7 @@ public:
     static const char *docAutoGroupSolids();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter SingleSolid
     static const bool & getSingleSolid();
@@ -160,7 +160,7 @@ public:
     static const char *docSingleSolid();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter UsePipeForExtrusionDraft
     static const bool & getUsePipeForExtrusionDraft();
@@ -170,7 +170,7 @@ public:
     static const char *docUsePipeForExtrusionDraft();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter LinearizeExtrusionDraft
     static const bool & getLinearizeExtrusionDraft();
@@ -180,7 +180,7 @@ public:
     static const char *docLinearizeExtrusionDraft();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter AutoCorrectLink
     static const bool & getAutoCorrectLink();
@@ -190,7 +190,7 @@ public:
     static const char *docAutoCorrectLink();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter RefineModel
     static const bool & getRefineModel();
@@ -200,7 +200,7 @@ public:
     static const char *docRefineModel();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter AuxGroupUniqueLabel
     static const bool & getAuxGroupUniqueLabel();
@@ -210,7 +210,7 @@ public:
     static const char *docAuxGroupUniqueLabel();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter SplitEllipsoid
     static const bool & getSplitEllipsoid();
@@ -220,7 +220,7 @@ public:
     static const char *docSplitEllipsoid();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter ParallelRunThreshold
     static const long & getParallelRunThreshold();
@@ -230,17 +230,17 @@ public:
     static const char *docParallelRunThreshold();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
-    /// Accessor for parameter ValidateShape
-    static const bool & getValidateShape();
-    static const bool & defaultValidateShape();
-    static void removeValidateShape();
-    static void setValidateShape(const bool &v);
-    static const char *docValidateShape();
+    /// Accessor for parameter AutoValidateShape
+    static const bool & getAutoValidateShape();
+    static const bool & defaultAutoValidateShape();
+    static void removeAutoValidateShape();
+    static void setAutoValidateShape(const bool &v);
+    static const char *docAutoValidateShape();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter FixShape
     static const bool & getFixShape();
@@ -250,7 +250,7 @@ public:
     static const char *docFixShape();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter MinimumDeviation
     static const double & getMinimumDeviation();
@@ -260,7 +260,7 @@ public:
     static const char *docMinimumDeviation();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter MeshDeviation
     static const double & getMeshDeviation();
@@ -270,7 +270,7 @@ public:
     static const char *docMeshDeviation();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter MeshAngularDeflection
     static const double & getMeshAngularDeflection();
@@ -280,7 +280,7 @@ public:
     static const char *docMeshAngularDeflection();
     //@}
 
-    // Auto generated code (Tools/params_utils.py:122)
+    // Auto generated code (Tools/params_utils.py:138)
     //@{
     /// Accessor for parameter MinimumAngularDeflection
     static const double & getMinimumAngularDeflection();
@@ -290,7 +290,7 @@ public:
     static const char *docMinimumAngularDeflection();
     //@}
 
-// Auto generated code (Tools/params_utils.py:150)
+// Auto generated code (Tools/params_utils.py:178)
 }; // class PartParams
 } // namespace Part
 //[[[end]]]
