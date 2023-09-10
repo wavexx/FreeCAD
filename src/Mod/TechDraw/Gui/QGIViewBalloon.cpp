@@ -150,12 +150,7 @@ void QGIBalloonLabel::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_EMIT hover(true);
     hasHover = true;
-    if (!isSelected()) {
-        setPrettyPre();
-    }
-    else {
-        setPrettySel();
-    }
+    setPrettyPre();
     QGraphicsItem::hoverEnterEvent(event);
 }
 
@@ -323,8 +318,22 @@ void QGIViewBalloon::select(bool state)
 
 void QGIViewBalloon::hover(bool state)
 {
-    hasHover = state;
-    draw();
+    setPreselect(state);
+}
+
+void QGIViewBalloon::setPreselect(bool enable)
+{
+    hasHover = enable;
+    if (hasHover) {
+        setPrettyPre();
+    }
+    else if (isSelected()) {
+        setPrettySel();
+    }
+    else {
+        setPrettyNormal();
+    }
+    QGIView::setPreselect(enable);
 }
 
 void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon* balloonFeat)
@@ -824,7 +833,7 @@ void QGIViewBalloon::drawBalloon(bool dragged)
     }
 
     // redraw the Balloon and the parent View
-    if (hasHover && !isSelected()) {
+    if (hasHover) {
         setPrettyPre();
     }
     else if (isSelected()) {

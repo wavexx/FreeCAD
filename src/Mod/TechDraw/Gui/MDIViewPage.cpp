@@ -891,14 +891,14 @@ void MDIViewPage::selectQGIView(App::DocumentObject* obj, const bool isSelected)
 void MDIViewPage::onSelectionChanged(const Gui::SelectionChanges& msg)
 {
     //    Base::Console().Message("MDIVP::onSelectionChanged()\n");
-    std::vector<Gui::SelectionSingleton::SelObj> selObjs =
-        Gui::Selection().getSelection(msg.pDocName);
     if (msg.Type == Gui::SelectionChanges::ClrSelection) {
         clearSceneSelection();
     }
     else if (msg.Type == Gui::SelectionChanges::SetSelection) {//replace entire selection set
         clearSceneSelection();
         blockSceneSelection(true);
+        std::vector<Gui::SelectionSingleton::SelObj> selObjs =
+            Gui::Selection().getSelection(msg.pDocName);
         for (auto& so : selObjs) {
             if (so.pObject->isDerivedFrom(TechDraw::DrawView::getClassTypeId())) {
                 selectQGIView(so.pObject, true);
@@ -908,12 +908,34 @@ void MDIViewPage::onSelectionChanged(const Gui::SelectionChanges& msg)
     }
     else if (msg.Type == Gui::SelectionChanges::AddSelection) {
         blockSceneSelection(true);
+        std::vector<Gui::SelectionSingleton::SelObj> selObjs =
+            Gui::Selection().getSelection(msg.pDocName);
         for (auto& so : selObjs) {
             if (so.pObject->isDerivedFrom(TechDraw::DrawView::getClassTypeId())) {
                 selectQGIView(so.pObject, true);
             }
         }
         blockSceneSelection(false);
+    }
+    else if (msg.Type == Gui::SelectionChanges::SetPreselect
+            || msg.Type == Gui::SelectionChanges::RmvPreselect) {
+        if (auto drawView = Base::freecad_dynamic_cast<TechDraw::DrawView>(msg.Object.getObject())) {
+            if (QGIView* view = m_scene->findQViewForDocObj(drawView)) {
+                if (msg.Type == Gui::SelectionChanges::RmvPreselect || m_preselection != view) {
+                    if (m_preselection)
+                        m_preselection->setPreselect(false);
+                    if (msg.Type == Gui::SelectionChanges::SetPreselect) {
+                        m_preselection = view;
+                        view->setPreselect(true);
+                    }
+                    return;
+                }
+            }
+        }
+        if (m_preselection) {
+            m_preselection->setPreselect(false);
+            m_preselection = nullptr;
+        }
     }
 }
 

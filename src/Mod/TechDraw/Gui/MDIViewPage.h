@@ -154,6 +154,7 @@ private:
     std::string m_documentName;
     int isSelectionBlocked;
     QPointer<QGSPage> m_scene;
+    QPointer<QGIView> m_preselection;
 
     QString m_currentPath;
     ViewProviderPage* m_vpPage;

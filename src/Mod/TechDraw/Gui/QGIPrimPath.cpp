@@ -93,16 +93,16 @@ QVariant QGIPrimPath::itemChange(GraphicsItemChange change, const QVariant &valu
 void QGIPrimPath::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
 //    Base::Console().Message("QGIPP::hoverEnter() - selected; %d\n", isSelected());
-    if (!isSelected()) {
-        setPrettyPre();
-    }
+    setPrettyPre();
     QGraphicsPathItem::hoverEnterEvent(event);
 }
 
 void QGIPrimPath::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
 //    Base::Console().Message("QGIPP::hoverLeave() - selected; %d\n", isSelected());
-    if(!isSelected()) {
+    if(isSelected()) {
+        setPrettySel();
+    } else {
         setPrettyNormal();
     }
 

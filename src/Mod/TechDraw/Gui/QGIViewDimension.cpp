@@ -184,12 +184,7 @@ void QGIDatumLabel::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 void QGIDatumLabel::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_EMIT hover(true);
-    if (!isSelected()) {
-        setPrettyPre();
-    }
-    else {
-        setPrettySel();
-    }
+    setPrettyPre();
     QGraphicsItem::hoverEnterEvent(event);
 }
 
@@ -538,8 +533,22 @@ void QGIViewDimension::select(bool state)
 //surrogate for hover enter (true), hover leave (false) events
 void QGIViewDimension::hover(bool state)
 {
-    hasHover = state;
-    draw();
+    setPreselect(state);
+}
+
+void QGIViewDimension::setPreselect(bool enable)
+{
+    hasHover = enable;
+    if (hasHover) {
+        setPrettyPre();
+    }
+    else if (datumLabel->isSelected()) {
+        setPrettySel();
+    }
+    else {
+        setPrettyNormal();
+    }
+    QGIView::setPreselect(enable);
 }
 
 void QGIViewDimension::setViewPartFeature(TechDraw::DrawViewDimension* obj)
@@ -773,7 +782,7 @@ void QGIViewDimension::draw()
     }
 
     // reset the colors
-    if (hasHover && !datumLabel->isSelected()) {
+    if (hasHover) {
         setPrettyPre();
     }
     else if (datumLabel->isSelected()) {
