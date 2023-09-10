@@ -687,6 +687,7 @@ void QGIViewDimension::datumLabelDragFinished()
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Drag Dimension"));
     Gui::cmdAppObject(dim, std::ostringstream() << "X = " << x);
     Gui::cmdAppObject(dim, std::ostringstream() << "Y = " << -y);
+    Gui::Command::updateActive();
     Gui::Command::commitCommand();
 }
 

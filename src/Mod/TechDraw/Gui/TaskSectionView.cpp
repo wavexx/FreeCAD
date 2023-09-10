@@ -452,7 +452,7 @@ bool TaskSectionView::apply(bool forceUpdate)
         failNoObject();
     }
 
-    m_section->recomputeFeature();
+    Gui::Command::updateActive();
     if (isBaseValid()) {
         m_base->requestPaint();
     }
@@ -546,6 +546,7 @@ TechDraw::DrawViewSection* TaskSectionView::createSectionView(void)
         double rotation = requiredRotation(viewDirectionAngle);
         Gui::cmdAppObjectArgs(m_section, "Rotation = %.6f", rotation);
     }
+    Gui::Command::updateActive();
     Gui::Command::commitCommand();
     return m_section;
 }
@@ -590,6 +591,7 @@ void TaskSectionView::updateSectionView()
         double rotation = requiredRotation(viewDirectionAngle);
         Gui::cmdAppObjectArgs(m_section, "Rotation = %.6f", rotation);
     }
+    Gui::Command::updateActive();
     Gui::Command::commitCommand();
 }
 

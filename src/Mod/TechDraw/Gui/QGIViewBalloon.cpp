@@ -488,6 +488,7 @@ void QGIViewBalloon::balloonLabelDragFinished()
         Gui::cmdAppObjectArgs(dvb, "OriginY = %f", newOrg.y);
     }
 
+    Gui::Command::updateActive();
     Gui::Command::commitCommand();
 
     m_dragInProgress = false;

@@ -628,6 +628,7 @@ void TaskComplexSection::createComplexSection()
         Command::doCommand(Command::Doc, "App.ActiveDocument.%s.Rotation = %.6f",
                            m_sectionName.c_str(), rotation);
     }
+    Gui::Command::updateActive();
     Gui::Command::commitCommand();
 }
 
