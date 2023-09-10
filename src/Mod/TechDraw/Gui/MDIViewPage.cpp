@@ -110,7 +110,7 @@ MDIViewPage::MDIViewPage(ViewProviderPage* pageVp, Gui::Document* doc, QWidget* 
     m_printAllAction = new QAction(tr("Print All Pages"), this);
     connect(m_printAllAction, &QAction::triggered, this, qOverload<>(&MDIViewPage::printAll));
 
-    isSelectionBlocked = false;
+    isSelectionBlocked = 0;
 
     QString tabText = QString::fromUtf8(pageVp->getDrawPage()->getNameInDocument());
     tabText += QString::fromUtf8("[*]");
@@ -828,7 +828,13 @@ void MDIViewPage::preSelectionChanged(const QPoint& pos)
 }
 
 //flag to prevent selection activity within mdivp
-void MDIViewPage::blockSceneSelection(const bool isBlocked) { isSelectionBlocked = isBlocked; }
+void MDIViewPage::blockSceneSelection(const bool isBlocked)
+{
+    if (isBlocked)
+        ++isSelectionBlocked;
+    else if (isSelectionBlocked)
+        --isSelectionBlocked;
+}
 
 
 //Set all QGIViews to unselected state

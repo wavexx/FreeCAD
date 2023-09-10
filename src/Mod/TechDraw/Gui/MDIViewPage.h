@@ -152,7 +152,7 @@ private:
 
     std::string m_objectName;
     std::string m_documentName;
-    bool isSelectionBlocked;
+    int isSelectionBlocked;
     QPointer<QGSPage> m_scene;
 
     QString m_currentPath;
