@@ -106,13 +106,13 @@ bool GUIApplication::notify (QObject * receiver, QEvent * event)
         Base::Console().Error("Unhandled std::exception caught in GUIApplication::notify.\n"
                               "The error message is: %s\n", e.what());
 #ifdef FC_DEBUG
-        throw;
+        assert(0);
 #endif
     }
     catch (...) {
         Base::Console().Error("Unhandled unknown exception caught in GUIApplication::notify.\n");
 #ifdef FC_DEBUG
-        throw;
+        assert(0);
 #endif
     }
 
