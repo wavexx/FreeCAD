@@ -573,8 +573,7 @@ void TaskSectionView::updateSectionView()
         Gui::cmdAppObjectArgs(m_section, "Label = '%s'", lblText);
         Gui::cmdAppObjectArgs(m_section, "Scale = %0.6f", ui->sbScale->value().getValue());
         int scaleType = ui->cmbScaleType->currentIndex();
-        Gui::cmdAppObjectArgs(m_section, "ScaleType = %d",
-                           m_sectionName.c_str(), scaleType);
+        Gui::cmdAppObjectArgs(m_section, "ScaleType = %d", scaleType);
         Base::Vector3d localUnit = m_viewDirectionWidget->value();
         localUnit.Normalize();
         if (m_dirName == "Aligned") {
