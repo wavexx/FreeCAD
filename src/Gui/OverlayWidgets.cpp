@@ -75,7 +75,7 @@
 #include "OverlayWidgets.h"
 #include "NaviCube.h"
 
-FC_LOG_LEVEL_INIT("Dock", true, true);
+FC_LOG_LEVEL_INIT("Dock", true, true, true);
 
 using namespace Gui;
 
@@ -638,20 +638,27 @@ int OverlayTabWidget::testAlpha(const QPoint &_pos, int radiusScale)
 
 void OverlayTabWidget::paintEvent(QPaintEvent *ev)
 {
-    Base::StateLocker guard(repainting);
-    repaintTimer.stop();
+    ++repainting;
     if (!_image.isNull())
         _image = QImage();
     QTabWidget::paintEvent(ev);
+    --repainting;
 }
 
 void OverlayTabWidget::onRepaint()
 {
-    Base::StateLocker guard(repainting);
-    repaintTimer.stop();
+    if (repainting > 0) {
+        --repainting;
+        return;
+    }
+    FC_TRACE("repainting");
+    ++repainting;
     if (!_image.isNull())
         _image = QImage();
     splitter->repaint();
+
+    // Delay --repainting to avoid infinite repaint trigger
+    repaintTimer.start(1);
 }
 
 void OverlayTabWidget::scheduleRepaint()
