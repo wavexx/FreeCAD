@@ -99,7 +99,7 @@ void Thumbnail::Save (Base::Writer &writer) const
 
 void Thumbnail::Restore(Base::XMLReader &reader)
 {
-    reader.addFile("Thumbnail.png",this);
+    reader.addFile("thumbnails/Thumbnail.png",this);
 }
 
 void Thumbnail::SaveDocFile (Base::Writer &writer) const
@@ -130,7 +130,9 @@ void Thumbnail::SaveDocFile (Base::Writer &writer) const
             // Create a small "Fc" Application icon in the bottom right of the thumbnail
             // only scale app icon if an offscreen image could be created
             appIcon = appIcon.scaled(imageSize / 4, imageSize /4, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            img = BitmapFactory().merge(QPixmap::fromImage(image), appIcon, BitmapFactoryInst::BottomRight).toImage();
+            QPixmap px(QPixmap::fromImage(img));
+            if (!px.isNull() && !appIcon.isNull())
+                img = BitmapFactory().merge(px, appIcon, BitmapFactoryInst::BottomRight).toImage();
         }
         image = img;
     }
