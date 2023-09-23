@@ -389,7 +389,7 @@ void DrawViewSection::sectionExec(TopoDS_Shape& baseShape)
         waitingForCut(true);
     }
     catch (...) {
-        Base::Console().Message("DVS::sectionExec - failed to make section cut");
+        Base::Console().Error("DVS::sectionExec - failed to make section cut");
         return;
     }
 }
@@ -451,13 +451,13 @@ void DrawViewSection::makeSectionCut(const TopoDS_Shape& baseShape)
     Bnd_Box testBox;
     BRepBndLib::AddOptimal(m_cutPieces, testBox);
     testBox.SetGap(0.0);
+
+    waitingForCut(false);
     if (testBox.IsVoid()) {//prism & input don't intersect.  rawShape is garbage, don't bother.
         Base::Console().Warning("DVS::makeSectionCut - prism & input don't intersect - %s\n",
                                 Label.getValue());
         return;
     }
-
-    waitingForCut(false);
 }
 
 //position, scale and rotate shape for  buildGeometryObject
@@ -492,7 +492,7 @@ TopoDS_Shape DrawViewSection::prepareShape(const TopoDS_Shape& rawShape, double 
         }
     }
     catch (Standard_Failure& e1) {
-        Base::Console().Warning("DVS::prepareShape - failed to build shape %s - %s **\n",
+        Base::Console().Error("DVS::prepareShape - failed to build shape %s - %s **\n",
                                 getNameInDocument(), e1.GetMessageString());
     }
     return preparedShape;
@@ -773,7 +773,7 @@ TopoDS_Shape DrawViewSection::makeFaceFromWires(std::vector<TopoDS_Wire> &inWire
         }
 
         if (!mkFace.IsDone()) {
-            Base::Console().Warning("DVS::makeFaceFromWires - %s - failed to make section face.\n",
+            Base::Console().Error("DVS::makeFaceFromWires - %s - failed to make section face.\n",
                                     getNameInDocument());
             return TopoDS_Shape();
         }
