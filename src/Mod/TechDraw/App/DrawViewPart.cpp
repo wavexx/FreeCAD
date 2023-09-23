@@ -1019,6 +1019,20 @@ Base::Vector3d DrawViewPart::projectPoint(const Base::Vector3d& pt, bool invert)
     return result;
 }
 
+Base::Vector3d DrawViewPart::inverseProjectPoint(const Base::Vector3d& pt, bool invert) const
+{
+    Base::Vector3d stdOrg(0.0, 0.0, 0.0);
+    gp_Ax2 viewAxis = getProjectionCS(stdOrg);
+    gp_Pnt gPt(pt.x, pt.y, pt.z);
+
+    if (invert)
+        gPt.SetY(-pt.y);
+
+    HLRAlgo_Projector projector(viewAxis);
+    gPt.Transform(projector.InvertedTransformation());
+    return DrawUtil::toVector3d(gPt);
+}
+
 //project a loose edge onto the paper plane
 //TODO:: loose edges not supported yet
 BaseGeomPtr DrawViewPart::projectEdge(const TopoDS_Edge& e) const
