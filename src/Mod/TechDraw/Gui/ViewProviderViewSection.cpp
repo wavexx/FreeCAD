@@ -32,6 +32,8 @@
 
 #include <App/DocumentObject.h>
 #include <Base/Parameter.h>
+#include <Gui/Application.h>
+#include <Gui/Document.h>
 #include <Gui/Control.h>
 #include <Gui/Selection.h>
 
@@ -141,7 +143,7 @@ bool ViewProviderViewSection::setEdit(int ModNum)
 
 bool ViewProviderViewSection::doubleClicked()
 {
-    setEdit(ViewProvider::Default);
+    Gui::Application::Instance->activeDocument()->setEdit(this, ViewProvider::Default);
     return true;
 }
 
