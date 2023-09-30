@@ -774,64 +774,6 @@ void MDIViewPage::printAllPages()
     }
 }
 
-/////////////// Selection Routines ///////////////////
-// wf: this is never executed???
-// needs a signal from Scene? hoverEvent?  Scene does not emit signal for "preselect"
-// there is no "preSelect" signal from Gui either.
-void MDIViewPage::preSelectionChanged(const QPoint& pos)
-{
-    QObject* obj = QObject::sender();
-
-    if (!obj) {
-        return;
-    }
-
-    auto view(dynamic_cast<QGIView*>(obj));
-    if (!view) {
-        return;
-    }
-
-    QGraphicsItem* parent = view->parentItem();
-    if (!parent) {
-        return;
-    }
-
-    TechDraw::DrawView* viewObj = view->getViewObject();
-    std::stringstream ss;
-
-    QGIFace* face = dynamic_cast<QGIFace*>(obj);
-    QGIEdge* edge = dynamic_cast<QGIEdge*>(obj);
-    QGIVertex* vert = dynamic_cast<QGIVertex*>(obj);
-    if (edge) {
-        ss << "Edge" << edge->getProjIndex();
-        //bool accepted =
-        static_cast<void>(Gui::Selection().setPreselect(viewObj->getDocument()->getName(),
-                                                        viewObj->getNameInDocument(),
-                                                        ss.str().c_str(), pos.x(), pos.y(), 0));
-    }
-    else if (vert) {
-        ss << "Vertex" << vert->getProjIndex();
-        //bool accepted =
-        static_cast<void>(Gui::Selection().setPreselect(viewObj->getDocument()->getName(),
-                                                        viewObj->getNameInDocument(),
-                                                        ss.str().c_str(), pos.x(), pos.y(), 0));
-    }
-    else if (face) {
-        ss << "Face"
-           << face->getProjIndex();//TODO: SectionFaces have ProjIndex = -1. (but aren't selectable?) Problem?
-        //bool accepted =
-        static_cast<void>(Gui::Selection().setPreselect(viewObj->getDocument()->getName(),
-                                                        viewObj->getNameInDocument(),
-                                                        ss.str().c_str(), pos.x(), pos.y(), 0));
-    }
-    else {
-        ss << "";
-        Gui::Selection().setPreselect(viewObj->getDocument()->getName(),
-                                      viewObj->getNameInDocument(), ss.str().c_str(), pos.x(),
-                                      pos.y(), 0);
-    }
-}
-
 //flag to prevent selection activity within mdivp
 void MDIViewPage::blockSceneSelection(const bool isBlocked)
 {
@@ -857,12 +799,12 @@ void MDIViewPage::clearSceneSelection()
         bool state = item->isSelected();
 
         //handle oddballs
-        QGIViewDimension* dim = dynamic_cast<QGIViewDimension*>(*it);
+        QGIViewDimension* dim = qgraphicsitem_cast<QGIViewDimension*>(*it);
         if (dim) {
             state = dim->getDatumLabel()->isSelected();
         }
         else {
-            QGIViewBalloon* bal = dynamic_cast<QGIViewBalloon*>(*it);
+            QGIViewBalloon* bal = qgraphicsitem_cast<QGIViewBalloon*>(*it);
             if (bal) {
                 state = bal->getBalloonLabel()->isSelected();
             }
@@ -1077,7 +1019,7 @@ void MDIViewPage::setTreeToSceneSelect()
     Gui::Selection().clearSelection();
     QList<QGraphicsItem*> sceneSel = m_qgSceneSelected;
 
-    auto findHighlight = [](QGraphicsItem *item) -> QGIHighlight* {
+    auto findHighlightObject = [](QGraphicsItem *item) -> QGIHighlight* {
         if (item) {
             if (auto res = qgraphicsitem_cast<QGIHighlight*>(item))
                 return res;
@@ -1087,17 +1029,37 @@ void MDIViewPage::setTreeToSceneSelect()
         }
         return nullptr;
     };
+    auto findSectionLine = [](QGraphicsItem *item) -> QGISectionLine* {
+        if (item) {
+            if (auto res = qgraphicsitem_cast<QGISectionLine*>(item))
+                return res;
+
+            if (auto res = qgraphicsitem_cast<QGISectionLine*>(item->parentItem()))
+                return res;
+        }
+        return nullptr;
+    };
 
     for (QList<QGraphicsItem*>::iterator it = sceneSel.begin(); it != sceneSel.end(); ++it) {
-        QGIView* itemView = dynamic_cast<QGIView*>(*it);
+        QGIView* itemView = qgraphicsitem_cast<QGIView*>(*it);
         if (!itemView) {
-            if (QGIEdge* edge = dynamic_cast<QGIEdge*>(*it)) {
+            if (auto highlight = findHighlightObject(*it)) {
+                Gui::Selection().addSelection(
+                        highlight->getFeatureT().getDocumentName().c_str(),
+                        highlight->getFeatureT().getObjectName().c_str());
+            }
+            else if (auto section = findSectionLine(*it)) {
+                Gui::Selection().addSelection(
+                        section->getFeatureT().getDocumentName().c_str(),
+                        section->getFeatureT().getObjectName().c_str());
+            }
+            else if (QGIEdge* edge = qgraphicsitem_cast<QGIEdge*>(*it)) {
                 QGraphicsItem* parent = edge->parentItem();
                 if (!parent) {
                     continue;
                 }
 
-                QGIView* viewItem = dynamic_cast<QGIView*>(parent);
+                QGIView* viewItem = qgraphicsitem_cast<QGIView*>(parent);
                 if (!viewItem) {
                     continue;
                 }
@@ -1114,13 +1076,13 @@ void MDIViewPage::setTreeToSceneSelect()
                               ss.str().c_str());
                 continue;
             }
-            else if (QGIVertex* vert = dynamic_cast<QGIVertex*>(*it)) {
+            else if (QGIVertex* vert = qgraphicsitem_cast<QGIVertex*>(*it)) {
                 QGraphicsItem* parent = vert->parentItem();
                 if (!parent) {
                     continue;
                 }
 
-                QGIView* viewItem = dynamic_cast<QGIView*>(parent);
+                QGIView* viewItem = qgraphicsitem_cast<QGIView*>(parent);
                 if (!viewItem) {
                     continue;
                 }
@@ -1137,13 +1099,13 @@ void MDIViewPage::setTreeToSceneSelect()
                               ss.str().c_str());
                 continue;
             }
-            else if (QGIFace* face = dynamic_cast<QGIFace*>(*it)) {
+            else if (QGIFace* face = qgraphicsitem_cast<QGIFace*>(*it)) {
                 QGraphicsItem* parent = face->parentItem();
                 if (!parent) {
                     continue;
                 }
 
-                QGIView* viewItem = dynamic_cast<QGIView*>(parent);
+                QGIView* viewItem = qgraphicsitem_cast<QGIView*>(parent);
                 if (!viewItem) {
                     continue;
                 }
@@ -1160,13 +1122,13 @@ void MDIViewPage::setTreeToSceneSelect()
                               ss.str().c_str());
                 continue;
             }
-            else if (QGIDatumLabel* dimLabel = dynamic_cast<QGIDatumLabel*>(*it)) {
+            else if (QGIDatumLabel* dimLabel = qgraphicsitem_cast<QGIDatumLabel*>(*it)) {
                 QGraphicsItem* dimParent = dimLabel->QGraphicsItem::parentItem();
                 if (!dimParent) {
                     continue;
                 }
 
-                QGIView* dimItem = dynamic_cast<QGIView*>(dimParent);
+                QGIView* dimItem = qgraphicsitem_cast<QGIView*>(dimParent);
 
                 if (!dimItem) {
                     continue;
@@ -1186,13 +1148,13 @@ void MDIViewPage::setTreeToSceneSelect()
                 static_cast<void>(Gui::Selection().addSelection(dimObj->getDocument()->getName(),
                                                                 dimObj->getNameInDocument()));
             }
-            else if (QGMText* mText = dynamic_cast<QGMText*>(*it)) {
+            else if (QGMText* mText = qgraphicsitem_cast<QGMText*>(*it)) {
                 QGraphicsItem* textParent = mText->QGraphicsItem::parentItem();
                 if (!textParent) {
                     continue;
                 }
 
-                QGIView* parent = dynamic_cast<QGIView*>(textParent);
+                QGIView* parent = qgraphicsitem_cast<QGIView*>(textParent);
 
                 if (!parent) {
                     continue;
@@ -1210,11 +1172,6 @@ void MDIViewPage::setTreeToSceneSelect()
                 //bool accepted =
                 static_cast<void>(Gui::Selection().addSelection(
                     parentFeat->getDocument()->getName(), parentFeat->getNameInDocument()));
-            }
-            else if (auto highlight = findHighlight(*it)) {
-                Gui::Selection().addSelection(
-                        highlight->getFeatureT().getDocumentName().c_str(),
-                        highlight->getFeatureT().getObjectName().c_str());
             }
         }
         else {
@@ -1265,10 +1222,10 @@ bool MDIViewPage::compareSelections(std::vector<Gui::SelectionObject> treeSel,
     treeCount = treeNames.size();
 
     for (auto sn : sceneSel) {
-        QGIView* itemView = dynamic_cast<QGIView*>(sn);
+        QGIView* itemView = qgraphicsitem_cast<QGIView*>(sn);
         if (!itemView) {
-            QGIDatumLabel* dl = dynamic_cast<QGIDatumLabel*>(sn);
-            QGIPrimPath* pp = dynamic_cast<QGIPrimPath*>(sn);//count Vertex/Edge/Face
+            QGIDatumLabel* dl = qgraphicsitem_cast<QGIDatumLabel*>(sn);
+            QGIPrimPath* pp = qgraphicsitem_cast<QGIPrimPath*>(sn);//count Vertex/Edge/Face
             if (pp) {
                 ppCount++;
             }
@@ -1276,7 +1233,7 @@ bool MDIViewPage::compareSelections(std::vector<Gui::SelectionObject> treeSel,
                 //get dim associated with this label
                 QGraphicsItem* qgi = dl->parentItem();
                 if (qgi) {
-                    QGIViewDimension* vd = dynamic_cast<QGIViewDimension*>(qgi);
+                    QGIViewDimension* vd = qgraphicsitem_cast<QGIViewDimension*>(qgi);
                     if (vd) {
                         std::string s = vd->getViewNameAsString();
                         sceneNames.push_back(s);

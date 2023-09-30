@@ -294,9 +294,9 @@ void DrawComplexSection::makeSectionCut(const TopoDS_Shape& baseShape)
 
     //    Base::Console().Message("DCS::makeSectionCut() - %s - baseShape.IsNull: %d\n",
     //                            getNameInDocument(), baseShape.IsNull());
-    DrawViewSection::makeSectionCut(baseShape);
 
     if (ProjectionStrategy.getValue() == 0) {
+        DrawViewSection::makeSectionCut(baseShape);
         return;
     }
 
@@ -728,20 +728,18 @@ TopoDS_Wire DrawComplexSection::makeProfileWire(App::DocumentObject* toolObj)
         return TopoDS_Wire();
     }
 
-    TopoDS_Shape toolShape = Part::Feature::getShape(toolObj);
-    if (toolShape.IsNull()) {
+    Part::TopoShape toolShape = Part::Feature::getShape(toolObj);
+    if (toolShape.isNull()) {
         return TopoDS_Wire();
     }
 
     TopoDS_Wire profileWire;
-    if (toolShape.ShapeType() == TopAbs_WIRE) {
-        profileWire = makeNoseToTailWire(TopoDS::Wire(toolShape));
-    }
-    else {//we have already checked that the shape is a wire or an edge in isProfileObject
-        TopoDS_Edge edge = TopoDS::Edge(toolShape);
-        profileWire = BRepBuilderAPI_MakeWire(edge).Wire();
-    }
-    return profileWire;
+    if (!toolShape.hasSubShape(TopAbs_WIRE))
+        toolShape = toolShape.makEWires();
+    profileWire = TopoDS::Wire(toolShape.getSubShape(TopAbs_WIRE, 1));
+    if (profileWire.IsNull())
+        return TopoDS_Wire();
+    return makeNoseToTailWire(profileWire);
 }
 
 gp_Vec DrawComplexSection::makeProfileVector(TopoDS_Wire profileWire)
@@ -1201,11 +1199,11 @@ TopoDS_Wire DrawComplexSection::makeNoseToTailWire(TopoDS_Wire inWire)
 bool DrawComplexSection::isProfileObject(App::DocumentObject* obj)
 {
     //if the object's shape is a wire or an edge, then it can be a profile object
-    TopoDS_Shape shape = Part::Feature::getShape(obj);
-    if (shape.IsNull()) {
+    Part::TopoShape shape = Part::Feature::getShape(obj);
+    if (shape.isNull()) {
         return false;
     }
-    if (shape.ShapeType() == TopAbs_WIRE || shape.ShapeType() == TopAbs_EDGE) {
+    if (shape.hasSubShape(TopAbs_WIRE) || shape.hasSubShape(TopAbs_EDGE)) {
         return true;
     }
     //don't know what this is, but it isn't suitable as a profile

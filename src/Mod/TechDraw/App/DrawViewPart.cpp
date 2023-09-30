@@ -1445,23 +1445,34 @@ TopoDS_Shape DrawViewPart::shapeShapeIntersect(const TopoDS_Shape& shape0,
                                                Handle(Message_ProgressIndicator) pi)
 
 {
+    TopoDS_Shape result;
+    if (pi.IsNull()) {
+        BRepAlgoAPI_Common anOp(shape0, shape1);
+        anOp.SetFuzzyValue(EWTOLERANCE);
+        anOp.Build();
+        if (!anOp.IsDone())
+            return TopoDS_Shape();
+        result = anOp.Shape();//always a compound
+    }
+    else {
 #if OCC_VERSION_HEX < 0x070500
-    BRepAlgoAPI_Common anOp(shape0, shape1);
-    anOp.SetProgressIndicator(pi);
-    pi->NewScope(100, "Make intersection");
-    pi->Show();
+        BRepAlgoAPI_Common anOp(shape0, shape1);
+        anOp.SetProgressIndicator(pi);
+        pi->NewScope(100, "Make intersection");
+        pi->Show();
 #else
-    BRepAlgoAPI_Common anOp(shape0, shape1, pi->Start());
+        BRepAlgoAPI_Common anOp(shape0, shape1, pi->Start());
 #endif
-    anOp.SetFuzzyValue(EWTOLERANCE);
-    anOp.Build();
+        anOp.SetFuzzyValue(EWTOLERANCE);
+        anOp.Build();
 #if OCC_VERSION_HEX < 0x070500
-    pi->EndScope();
+        pi->EndScope();
 #endif
-    if (!anOp.IsDone())
-        return TopoDS_Shape();
+        if (!anOp.IsDone())
+            return TopoDS_Shape();
 
-    TopoDS_Shape result = anOp.Shape();//always a compound
+        result = anOp.Shape();//always a compound
+    }
     if (isTrulyEmpty(result)) {
         return TopoDS_Shape();
     }

@@ -71,7 +71,6 @@ public:
 
     /// Observer message from the Tree Selection mechanism
     void onSelectionChanged(const Gui::SelectionChanges& msg) override;
-    void preSelectionChanged(const QPoint &pos);
 
     /// QGraphicsScene selection routines
     void selectQGIView(App::DocumentObject *obj, bool isSelected);

@@ -500,7 +500,7 @@ void DrawViewSection::doSectionCut(const SectionParams &params)
     testBox.SetGap(0.0);
 
     if (testBox.IsVoid()) {//prism & input don't intersect.  rawShape is garbage, don't bother.
-        Base::Console().Error("DVS::makeSectionCut - prism & input don't intersect - %s\n", params.featureName.c_str());
+        Base::Console().Warning("DVS::makeSectionCut - prism & input don't intersect - %s\n", params.featureName.c_str());
         return;
     }
 }
