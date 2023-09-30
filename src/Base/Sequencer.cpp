@@ -354,6 +354,17 @@ bool SequencerLauncher::next(bool canAbort)
     this->nProgress++;
     if (SequencerP::_topLauncher != this) {
         if (canAbort) {
+            if (bNoException) {
+                if (bCanceled)
+                    return false;
+                try {
+                    SequencerBase::Instance().checkAbort();
+                } catch (Base::Exception &) {
+                    return false;
+                } catch (...) {
+                    return false;
+                }
+            }
             if (bCanceled)
                 throw Base::AbortException();
             SequencerBase::Instance().checkAbort();
@@ -366,8 +377,11 @@ bool SequencerLauncher::next(bool canAbort)
 void SequencerLauncher::setProgress(size_t pos)
 {
     QMutexLocker locker(&SequencerP::mutex);
-    if (bCanceled)
+    if (bCanceled) {
+        if (bNoException)
+            return;
         throw Base::AbortException();
+    }
     this->nProgress = pos;
     if (SequencerP::_topLauncher == this)
         SequencerBase::Instance().setProgress(pos);
@@ -401,4 +415,10 @@ void SequencerLauncher::setCanceled(bool cancel)
 {
     QMutexLocker locker(&SequencerP::mutex);
     bCanceled = cancel;
+}
+
+void SequencerLauncher::setNoException(bool enable)
+{
+    QMutexLocker locker(&SequencerP::mutex);
+    bNoException = enable;
 }

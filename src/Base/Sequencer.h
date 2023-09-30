@@ -382,6 +382,7 @@ public:
     bool isBlocking() const {
         return bBlocking;
     }
+    void setNoException(bool enable);
     bool start(size_t steps=0, const char *pszTxt=nullptr);
     bool stop();
 private:
@@ -391,6 +392,7 @@ private:
     // Allow cancel by user code
     bool bCanceled = false;
     bool bBlocking = false;
+    bool bNoException = false;
     std::vector<SequencerLauncher*> vChildren;
     SequencerLauncher *pParent = nullptr;
 
