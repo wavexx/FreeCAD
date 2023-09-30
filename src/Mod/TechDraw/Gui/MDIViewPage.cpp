@@ -62,6 +62,7 @@
 #include <Mod/TechDraw/App/DrawPagePy.h>
 #include <Mod/TechDraw/App/DrawTemplate.h>
 #include <Mod/TechDraw/App/DrawViewDetail.h>
+#include <Mod/TechDraw/App/DrawViewSection.h>
 #include <Mod/TechDraw/App/Preferences.h>
 
 #include "MDIViewPage.h"
@@ -73,6 +74,7 @@
 #include "QGIView.h"
 #include "QGIViewBalloon.h"
 #include "QGIViewDimension.h"
+#include "QGISectionLine.h"
 #include "QGMText.h"
 #include "QGSPage.h"
 #include "QGVPage.h"
@@ -891,6 +893,22 @@ QGIHighlight *MDIViewPage::findHighlight(const App::DocumentObject *obj)
     return nullptr;
 }
 
+QGISectionLine *MDIViewPage::findSection(const App::DocumentObject *obj)
+{
+    if (auto section = Base::freecad_dynamic_cast<const DrawViewSection>(obj)) {
+        if (auto baseView = m_scene->findQViewForDocObj(section->BaseView.getValue())) {
+            for (auto child : baseView->childItems()) {
+                if (auto sectionLine = qgraphicsitem_cast<QGISectionLine*>(child)) {
+                    if (sectionLine->getFeature() == section)
+                        return sectionLine;
+                }
+            }
+        }
+
+    }
+    return nullptr;
+}
+
 //!Update QGIView's selection state based on Selection made outside Drawing Interface
 void MDIViewPage::selectQGIView(App::DocumentObject* obj, const bool isSelected)
 {
@@ -900,6 +918,10 @@ void MDIViewPage::selectQGIView(App::DocumentObject* obj, const bool isSelected)
     if (auto highlight = findHighlight(obj)) {
         highlight->setSelected(isSelected);
         highlight->update();
+    }
+    else if (auto section = findSection(obj)) {
+        section->setSelected(isSelected);
+        section->update();
     }
     if (view) {
         view->setGroupSelection(isSelected);
@@ -946,17 +968,26 @@ void MDIViewPage::onSelectionChanged(const Gui::SelectionChanges& msg)
                 if (msg.Type == Gui::SelectionChanges::RmvPreselect || m_preselection != view) {
                     if (m_preselection) {
                         m_preselection->setPreselect(false);
-                        if (auto highlight = findHighlight(m_preselect_detail.getObject())) {
-                            highlight->setPreselect(false);
-                            m_preselect_detail = App::DocumentObjectT();
+                        if (auto obj = m_preselectOther.getObject()) {
+                            m_preselectOther = App::DocumentObjectT();
+                            if (auto highlight = findHighlight(obj)) {
+                                highlight->setPreselect(false);
+                            }
+                            else if (auto section = findSection(obj)) {
+                                section->setPreselect(false);
+                            }
                         }
                     }
                     if (msg.Type == Gui::SelectionChanges::SetPreselect) {
                         m_preselection = view;
                         view->setPreselect(true);
                         if (auto highlight = findHighlight(drawView)) {
-                            m_preselect_detail = drawView;
+                            m_preselectOther = drawView;
                             highlight->setPreselect(true);
+                        }
+                        else if (auto section = findSection(drawView)) {
+                            m_preselectOther = drawView;
+                            section->setPreselect(true);
                         }
                     }
                     return;
