@@ -782,8 +782,8 @@ void QGIViewPart::drawSectionLine(TechDraw::DrawViewSection* viewSection, bool b
     if (!viewSection)
         return;
 
-    if (!viewSection->hasGeometry())
-        return;
+    // if (!viewSection->hasGeometry())
+    //     return;
 
     auto vp = static_cast<ViewProviderViewPart*>(getViewProvider(getViewObject()));
     if (!vp) {
