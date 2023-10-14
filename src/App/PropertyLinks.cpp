@@ -3722,11 +3722,14 @@ void PropertyXLink::setValue(App::DocumentObject *lValue,
             if(!docInfo || lValue->getDocument()!=docInfo->pcDoc)
             {
                 const char *filename = lValue->getDocument()->getFileName();
-                if(!filename || *filename==0)
-                    throw Base::RuntimeError("Linked document not saved");
-                FC_LOG("xlink set to new document " << lValue->getDocument()->getName());
-                info = DocInfo::get(filename,owner->getDocument(),this,name);
-                assert(info && info->pcDoc == lValue->getDocument());
+                const char *ownerPath = owner->getDocument()->getFileName();
+                if(!filename || *filename==0 || !ownerPath || *ownerPath==0) {
+                    // linked or owner document not saved, delay getting file path till Save()
+                } else {
+                    FC_LOG("xlink set to new document " << lValue->getDocument()->getName());
+                    info = DocInfo::get(filename,owner->getDocument(),this,name);
+                    assert(info && info->pcDoc == lValue->getDocument());
+                }
             }else
                 info = docInfo;
         }
@@ -3919,6 +3922,18 @@ void PropertyXLink::Save (Base::Writer &writer) const {
         // Lets save the export name
         writer.Stream() << writer.ind() << "<XLink name=\"" << _pcLink->getExportName();
     }else {
+        if (!docInfo && _pcLink && _pcLink->getDocument() != owner->getDocument()) {
+            const char *filename = _pcLink->getDocument()->getFileName();
+            if(!filename || *filename == 0) {
+                FC_ERR("Linked document not saved for object " << _pcLink->getFullName());
+                throw Base::RuntimeError("Linked document not saved");
+            } else {
+                auto self = const_cast<PropertyXLink*>(this);
+                self->docInfo = DocInfo::get(filename,owner->getDocument(),self,_pcLink->getNameInDocument());
+                self->stamp = docInfo->pcDoc->LastModifiedDate.getValue();
+            }
+        }
+
         const char *path = filePath.c_str();
         std::string _path;
         if(exporting) {
