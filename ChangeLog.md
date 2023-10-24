@@ -1,5 +1,11 @@
 Tip release (branch [LinkMerge](https://github.com/realthunder/FreeCAD/tree/LinkMerge)) is merged with upstream aa3b2f39 2023.05.22
 
+# Tip 2023.10.24
+
+Fix git installation in AppImage (affects AddonManager) (#895)
+Fix mouse wheel pass through on Windows
+Part: fix handling of compound shape in loft (#478)
+
 # Tip 2023.10.18
 
 Add 3D view property 'ThumbnailView' to mark which view is preferred for capturing document thumbnail
@@ -22,7 +28,7 @@ TechDraw: refactor background computation
 TechDraw: improve selection highlight of various objects
 TechDraw: add move by mouse for simple section, detail view, and weld symbol
 
--- 20231018tip --
+-- 20231024tip --
 
 Second try to fix Python 3.11 not using user site package issue (#864)
 Path: fix legacy Controller object backward compatibility issue
