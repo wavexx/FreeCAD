@@ -133,6 +133,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QTime>
+#include <QThread>
 #include <QUuid>
 
 

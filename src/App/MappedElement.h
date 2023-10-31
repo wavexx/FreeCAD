@@ -33,6 +33,9 @@
 #include "ComplexGeoData.h"
 #include "StringHasher.h"
 
+#undef min
+#undef max
+
 namespace App
 {
 class DocumentObject;

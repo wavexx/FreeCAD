@@ -53,10 +53,13 @@
 #include <TopExp_Explorer.hxx>
 
 // Qt Toolkit
+#include <QAction>
+#include <QApplication>
 #include <QDialog>
 #include <QDir>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QMenu>
 
 // all of Inventor
 #include <Inventor/SbVec3f.h>
@@ -70,6 +73,7 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoPickStyle.h>
 
 #endif //_PreComp_
 
