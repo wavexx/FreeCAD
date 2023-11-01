@@ -455,16 +455,8 @@ void NavigationStyle::setCameraOrientation(const SbRotation& rot, const SbVec3f 
                             cam->focalDistance.getValue() * direction;
     if (!center)
         PRIVATE(this)->focal2 = PRIVATE(this)->focal1;
-    else {
-        SbVec3f focal(*center);
-        // rot.multVec(SbVec3f(0, 0, -1), direction);
-        // float s = (this->focal1 - focal).dot(direction);
-        // focal +=  s * direction;
-        //
-        // setting the center of the overall bounding box as the future focal point
-        // seems to be a satisfactory solution
-        PRIVATE(this)->focal2 = focal;
-    }
+    else
+        PRIVATE(this)->focal2 = *center;
 
     // avoid to interfere with spinning (fixes #3101462)
     if (this->isAnimating())
