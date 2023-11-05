@@ -38,6 +38,7 @@
 #include <Mod/Mesh/App/MeshFeature.h>
 #include <Mod/Mesh/App/Core/Iterator.h>
 #include <Mod/Mesh/App/Core/MeshKernel.h>
+#include <Mod/Mesh/App/MeshParams.h>
 
 #include "ViewProviderMeshFaceSet.h"
 #include "SoFCIndexedFaceSet.h"
@@ -85,8 +86,7 @@ void ViewProviderMeshFaceSet::attach(App::DocumentObject *pcFeat)
     pcShapeGroup->addChild(pcMeshFaces);
 
     // read the threshold from the preferences
-    Base::Reference<ParameterGrp> hGrp = Gui::WindowParameter::getDefaultParameter()->GetGroup("Mod/Mesh");
-    int size = hGrp->GetInt("RenderTriangleLimit", -1);
+    int size = Mesh::MeshParams::getRenderTriangleLimit();
     if (size > 0) {
         pcMeshShape->renderTriangleLimit = (unsigned int)(pow(10.0f,size));
         static_cast<SoFCIndexedFaceSet*>(pcMeshFaces)->renderTriangleLimit = (unsigned int)(pow(10.0f,size));
