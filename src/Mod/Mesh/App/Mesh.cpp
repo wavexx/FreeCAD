@@ -28,6 +28,8 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
+#include <App/MappedElement.h>
+
 #include <Base/Builder3D.h>
 #include <Base/Console.h>
 #include <Base/Converter.h>
@@ -167,6 +169,33 @@ Data::Segment* MeshObject::getSubElement(const char* Type, unsigned long n) cons
     return nullptr;
 }
 
+MeshObject* MeshObject::getSubElementAsMesh(const char *SubElement) const
+{
+    Data::IndexedName indexedName(SubElement, getElementTypes(), false);
+    if (!indexedName)
+        return nullptr;
+    if (boost::equals(indexedName.getType(),"Mesh") && indexedName.getIndex() == 1) {
+        return new MeshObject(*this);
+    }
+    else if (boost::equals(indexedName.getType(), "Segment")
+            && indexedName.getIndex() <= static_cast<long>(countSegments())) {
+        auto mesh = new MeshObject;
+        mesh->_kernel = _kernel;
+        mesh->addSegment(_segments[indexedName.getIndex()-1]);
+        return mesh;
+    }
+    else if (boost::equals(indexedName.getType(), "Facet")
+            && indexedName.getIndex() <= static_cast<long>(countFacets())) {
+        auto mesh = new MeshObject;
+        mesh->_kernel = _kernel;
+        unsigned long index = static_cast<unsigned long>(indexedName.getIndex()-1);
+        mesh->addSegment({index});
+        return mesh;
+    }
+
+    return nullptr;
+}
+
 void MeshObject::getFacesFromSubElement(const Data::Segment* element,
                                         std::vector<Base::Vector3d> &points,
                                         std::vector<Base::Vector3d> &/*pointNormals*/,
@@ -221,6 +250,48 @@ bool MeshObject::getCenterOfGravity(Base::Vector3d& center) const
     MeshCore::MeshAlgorithm alg(getKernel());
     Base::Vector3f pnt = alg.GetGravityPoint();
     center = transformPointToOutside(pnt);
+    return true;
+}
+
+bool MeshObject::getRotation(Base::Rotation &rotation) const
+{
+    if (!_kernel || _segments.size() != 1)
+        return false;
+    
+    const auto &indices = _segments[0].getIndices();
+    Base::Vector3d base, normal;
+    MeshCore::MeshFacetIterator it(getKernel());
+    for (auto index : indices) {
+        it.Set(index);
+        const auto &facet = *it;
+        const auto &n = facet.GetNormal();
+        normal.x += n.x;
+        normal.y += n.y;
+        normal.z += n.z;
+        const auto &v0 = facet._aclPoints[0];
+        const auto &v1 = facet._aclPoints[1];
+        const auto &v2 = facet._aclPoints[2];
+        base.x += v0.x + v1.x + v2.x;
+        base.y += v0.y + v1.y + v2.y;
+        base.z += v0.z + v1.z + v2.z;
+    }
+    base /= indices.size() * 3;
+    normal /= indices.size();
+    normal.Normalize();
+
+    Base::Vector3d xdir(1,0,0);
+    Base::Vector3d origin(0,0,0);
+    xdir.ProjectToPlane(base, normal);
+    origin.ProjectToPlane(base, normal);
+    xdir -= origin;
+    if (xdir.Sqr() < 1e-14)
+        xdir = Base::Vector3d(1,0,0);
+    else
+        xdir.Normalize();
+
+    Base::Rotation rot(Base::Vector3d(0,0,1), normal);
+    rot *= Base::Rotation(Base::Vector3d(1,0,0), rot.multVec(xdir));
+    rotation = rot;
     return true;
 }
 

@@ -116,6 +116,7 @@ public:
     unsigned long countSubElements(const char* Type) const override;
     /// get the subelement by type and number
     Data::Segment* getSubElement(const char* Type, unsigned long) const override;
+    MeshObject* getSubElementAsMesh(const char *SubElement) const;
     /** Get faces from segment */
     void getFacesFromSubElement(
         const Data::Segment*,
@@ -167,6 +168,8 @@ public:
 
     Base::BoundBox3d getBoundBox() const override;
     bool getCenterOfGravity(Base::Vector3d& center) const override;
+
+    bool getRotation(Base::Rotation &) const override;
 
     /** @name I/O */
     //@{
