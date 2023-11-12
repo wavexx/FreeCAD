@@ -25,6 +25,7 @@
 
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -161,10 +162,8 @@ public:
     //@}
 
     void setKernel(const MeshCore::MeshKernel& m);
-    MeshCore::MeshKernel& getKernel()
-    { return _kernel; }
-    const MeshCore::MeshKernel& getKernel() const
-    { return _kernel; }
+    MeshCore::MeshKernel& getKernel();
+    const MeshCore::MeshKernel& getKernel() const;
 
     Base::BoundBox3d getBoundBox() const override;
     bool getCenterOfGravity(Base::Vector3d& center) const override;
@@ -428,7 +427,7 @@ private:
 
 private:
     Base::Matrix4D _Mtrx;
-    MeshCore::MeshKernel _kernel;
+    std::shared_ptr<MeshCore::MeshKernel> _kernel;
     std::vector<Segment> _segments;
     static const float Epsilon;
 };
