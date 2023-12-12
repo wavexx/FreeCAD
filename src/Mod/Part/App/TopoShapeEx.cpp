@@ -347,9 +347,9 @@ struct ShapeSources {
 class TopoShape::Cache: public std::enable_shared_from_this<TopoShape::Cache>
 {
 public:
-    // Reference counted element naming map for the owner TopoShape.
-    // The ElementMap of a TopoShape is normally accessed through
-    // ComplexGeoData::elementMap. The extra shared pointer here is so that
+    // Reference counted element map for the owner TopoShape. The ElementMap of
+    // a TopoShape is normally accessed through the inherited member function
+    // ComplexGeoData::elementMap(). The extra shared pointer here is so that
     // other TopoShape instances with the same Cache can resuse the map once
     // generated.
     ElementMapPtr cachedElementMap;
