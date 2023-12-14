@@ -4437,7 +4437,12 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
     }
     case QEvent::Wheel: {
         auto we = static_cast<QWheelEvent*>(ev);
-        lastIntercept = getChildAt(widget, we->globalPos());
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+        auto pos = we->globalPos();
+#else
+        auto pos = we->globalPosition().toPoint();
+#endif
+        lastIntercept = getChildAt(widget, pos);
         if (qobject_cast<View3DInventorViewer*>(lastIntercept->parentWidget())) {
             for (auto parent = lastIntercept->parentWidget(); parent; parent = parent->parentWidget()) {
                 if (qobject_cast<QGraphicsView*>(parent)) {
@@ -4446,8 +4451,8 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
             }
         }
 #if QT_VERSION >= QT_VERSION_CHECK(5,12,0)
-        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(we->globalPos()),
-                               we->globalPos(),
+        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(pos),
+                               pos,
                                we->pixelDelta(),
                                we->angleDelta(),
                                we->buttons(),
@@ -4456,8 +4461,8 @@ void OverlayManager::Private::interceptEvent(QWidget *widget, QEvent *ev)
                                we->inverted(),
                                we->source());
 #else
-        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(we->globalPos()),
-                               we->globalPos(),
+        QWheelEvent wheelEvent(lastIntercept->mapFromGlobal(pos),
+                               pos,
                                we->pixelDelta(),
                                we->angleDelta(),
                                0,
