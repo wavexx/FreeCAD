@@ -249,11 +249,13 @@ public:
                 QSize imageSize;
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
                 auto pixmap = label->pixmap();
+                if (pixmap && !pixmap->isNull())
+                    imageSize = pixmap->size();
 #else
                 auto pixmap = label->pixmap(Qt::ReturnByValue);
-#endif
                 if (!pixmap.isNull())
                     imageSize = pixmap.size();
+#endif
                 else if (auto movie = label->movie())
                     imageSize = movie->frameRect().size();
                 if (!label->hasScaledContents()
