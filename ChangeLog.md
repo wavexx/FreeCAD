@@ -1,8 +1,8 @@
-Tip release (branch [LinkMerge](https://github.com/realthunder/FreeCAD/tree/LinkMerge)) is merged with upstream aa3b2f39 2023.05.22
+Stable release (branch [LinkStable](https://github.com/realthunder/FreeCAD/tree/LinkStable)) is merged with upstream aa3b2f39 2023.05.22
 
-# Tip 2023.12.31
+# Stable 2024.01.01
 
-Notice: `LinkMerge` will be merge to `LinkDaily` after this release. There will be another merge from current upstream to `LinkMerge`.
+# Stable|Tip 2023.12.31
 
 Add mesh facet selection mode `Mesh_SubElementSelection`. Can be used together with new commands `View front face (V, N)` and `View back face (V, B)`.
 Remember user closed overlay panel ([#11680](FreeCAD/FreeCAD#11680)
@@ -16,7 +16,7 @@ Sketcher: fix crash on adding tagent (#917)
 TechDraw: fix circle center vertex selection (#907)
 TechDraw: fix undesired border when drawing SVG pattern (#909)
 
--- 20231231tip --
+-- 20231231stable --
 
 # Tip 2023.11.02
 
